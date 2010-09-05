@@ -1,8 +1,9 @@
 package nz.ac.vuw.ecs.kcassell.similarity;
 
 /*
-Retrieved from http://www.google.com/codesearch/p?hl=en#LjJS3knaY94/trunk/src/metrics/GoogleDistance.java&q=googledistance%20lang:java&sa=N&cd=1&ct=rc
-	http://reviewclustering.googlecode.com/svn
+ * The code here is based on code retrieved from 
+ * http://www.google.com/codesearch/p?hl=en#LjJS3knaY94/trunk/src/metrics/GoogleDistance.java&q=googledistance%20lang:java&sa=N&cd=1&ct=rc
+  (http://reviewclustering.googlecode.com/svn)
 */
 
 import java.io.BufferedReader;
@@ -22,119 +23,152 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 public class GoogleDistance {
+	private static final String SEARCH_SITE_PREFIX =
+		"http://ajax.googleapis.com/ajax/services/search/web?v=1.0&";
+	protected static final String CACHE_FILE_NAME = "google.cache";
+
 	static int counter = 0;
 
-	protected final static double logM = Math.log(8058044651.0); // http://ryouready.wordpress.com/2009/01/12/r-normalized-google-distance-ngd-in-r-part-ii/
-
-	protected static final String cacheFilename = "google.cache";
+	/** The logarithm of a number that is (hopefully) greater than or equal
+	 *  to the (unpublished) indexed number of Google documents.
+	 *  http://googleblog.blogspot.com/2008/07/we-knew-web-was-big.html
+	 *  puts this at a trillion or more.  */
+	protected final static double logN = Math.log(1.0e12);
 
 	Map<String, Integer> cache;
-	Map<String, Integer> newCache; // Holds the new terms we entered (these are
-									// also in the cache)
+	
+	/** Holds the new terms we entered (these are also in the cache) */
+	Map<String, Integer> newCache = new HashMap<String, Integer>();
 
 	public GoogleDistance() throws NumberFormatException, IOException {
-		cache = setupCache(cacheFilename);
-		newCache = new HashMap<String, Integer>();
+		cache = setupCache(CACHE_FILE_NAME);
 	}
 
 	protected Map<String, Integer> setupCache(String filename)
 			throws NumberFormatException, IOException {
 		Map<String, Integer> cache = new HashMap<String, Integer>();
-
-		BufferedReader br = new BufferedReader(new FileReader(filename));
-
+		BufferedReader reader = new BufferedReader(new FileReader(filename));
 		String line;
-		while ((line = br.readLine()) != null) {
-			int lastSpaceIdx = line.lastIndexOf(' ');
-			cache.put(line.substring(0, lastSpaceIdx), Integer.parseInt(line
-					.substring(lastSpaceIdx + 1)));
+
+		while ((line = reader.readLine()) != null) {
+			int lastSpaceIndex = line.lastIndexOf(' ');
+			String token = line.substring(0, lastSpaceIndex);
+			int count = Integer.parseInt(line.substring(lastSpaceIndex + 1));
+			cache.put(token, count);
 		}
 
-		br.close();
-
+		reader.close();
 		return cache;
 	}
 
-	protected void outputCache(String filename) throws IOException {
-		BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true));
+	/**
+	 * Adds the contents of newCache to the specified file
+	 * @param filename
+	 */
+	protected void updateCache(String filename) {
 
-		for (Map.Entry<String, Integer> e : newCache.entrySet())
-			bw.append(e.getKey() + " " + e.getValue() + "\n");
+		if (counter++ >= 20) {
+			BufferedWriter writer = null;
+			try {
+				writer = new BufferedWriter(new FileWriter(filename, true));
 
-		bw.close();
-
-		newCache = new HashMap<String, Integer>();
+				for (Map.Entry<String, Integer> entry : newCache.entrySet()) {
+					writer.append(entry.getKey() + " " + entry.getValue() + "\n");
+				}
+				newCache = new HashMap<String, Integer>();
+				counter = 0;
+			} catch (IOException e) {
+				// Things will just take longer
+			} finally {
+				if (writer != null) {
+					try {
+						writer.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 
-	protected int numResults(String term) {
-		if (cache.containsKey(term))
-			return cache.get(term);
-
-		try {
+	protected int numResultsFromWeb(String term)
+	throws JSONException, IOException {
+		int result = 0;
+		
+		if (cache.containsKey(term)) {
+			result = cache.get(term);
+		} else {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
 
-			URL url = new URL(
-					"http://ajax.googleapis.com/ajax/services/search/web?v=1.0&"
-							+ "q=" + term.replaceAll(" ", "+") + " ");
-			URLConnection connection = url.openConnection();
-			InputStream is = connection.getInputStream();
-			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(is));
+			String searchTerm = term.replaceAll(" ", "+");
+			URL url = null;
+			InputStream stream = null;
+			try {
+				url = new URL(SEARCH_SITE_PREFIX + "q=" + searchTerm + " ");
+				URLConnection connection = url.openConnection();
+				stream = connection.getInputStream();
+				InputStreamReader inputReader = new InputStreamReader(stream);
+				BufferedReader bufferedReader = new BufferedReader(inputReader);
 
-			JSONObject json = new JSONObject(new JSONTokener(reader));
-			int count = json.getJSONObject("responseData").getJSONObject(
-					"cursor").getInt("estimatedResultCount");
-			
-			/* A search for meriweather yielded:
-			 * {"responseData": {"results":[{"GsearchResultClass":"GwebSearch","unescapedUrl":"http://www.meriweather.com/","url":"http://www.meriweather.com/","visibleUrl":"www.meriweather.com","cacheUrl":"http://www.google.com/search?q\u003dcache:QCPH_oVFGocJ:www.meriweather.com","title":"\u003cb\u003eMeriweather\u0026#39;s\u003c/b\u003e Photo Gallery","titleNoFormatting":"Meriweather\u0026#39;s Photo Gallery","content":"Jerome \u003cb\u003eMeriweather\u0026#39;s\u003c/b\u003e Photo Gallery. Just a few pictures of my work and comments   as a United Airlines Photographer."},{"GsearchResultClass":"GwebSearch","unescapedUrl":"http://www.merriweathermusic.com/","url":"http://www.merriweathermusic.com/","visibleUrl":"www.merriweathermusic.com","cacheUrl":"http://www.google.com/search?q\u003dcache:MwSkYM8nm8IJ:www.merriweathermusic.com","title":"Merriweather Post Pavilion","titleNoFormatting":"Merriweather Post Pavilion","content":"At Merriweather - HFStival 2010 • Third Eye Blind • Billy Idol • Everclear • Ed   Kowalczyk from Live • Presidents of the United States of America • Fuel \u003cb\u003e...\u003c/b\u003e"},{"GsearchResultClass":"GwebSearch","unescapedUrl":"http://www.myspace.com/meriwether","url":"http://www.myspace.com/meriwether","visibleUrl":"www.myspace.com","cacheUrl":"http://www.google.com/search?q\u003dcache:mg7JvIOSUQcJ:www.myspace.com","title":"Meriwether [twitter @meriwether1] on MySpace Music - Free \u003cb\u003e...\u003c/b\u003e","titleNoFormatting":"Meriwether [twitter @meriwether1] on MySpace Music - Free ...","content":"MySpace Music profile for Meriwether [twitter @meriwether1]. Download Meriwether   [twitter @meriwether1] Rock / Alternative / Soul music singles, \u003cb\u003e...\u003c/b\u003e"},{"GsearchResultClass":"GwebSearch","unescapedUrl":"http://en.wikipedia.org/wiki/Brandon_Meriweather","url":"http://en.wikipedia.org/wiki/Brandon_Meriweather","visibleUrl":"en.wikipedia.org","cacheUrl":"http://www.google.com/search?q\u003dcache:lcfTHafxuYMJ:en.wikipedia.org","title":"Brandon \u003cb\u003eMeriweather\u003c/b\u003e - Wikipedia, the free encyclopedia","titleNoFormatting":"Brandon Meriweather - Wikipedia, the free encyclopedia","content":"Brandon \u003cb\u003eMeriweather\u003c/b\u003e (born January 14, 1984 in Apopka, Florida) is an American   football safety for the New England Patriots of the National Football League.   \u003cb\u003e...\u003c/b\u003e"}],"cursor":{"pages":[{"start":"0","label":1},{"start":"4","label":2},{"start":"8","label":3},{"start":"12","label":4},{"start":"16","label":5},{"start":"20","label":6},{"start":"24","label":7},{"start":"28","label":8}],"estimatedResultCount":"13700","currentPageIndex":0,"moreResultsUrl":"http://www.google.com/search?oe\u003dutf8\u0026ie\u003dutf8\u0026source\u003duds\u0026start\u003d0\u0026hl\u003den\u0026q\u003dmeriweather"}}, "responseDetails": null, "responseStatus": 200}
-			 */
-
-			is.close();
-
-			cache.put(term, count);
-			newCache.put(term, count);
-
-			if (counter++ == 20) {
-				System.out.println("Outputted!");
-				outputCache(cacheFilename);
-				counter = 0;
+				JSONObject json = new JSONObject(new JSONTokener(bufferedReader));
+				JSONObject responseData = json.getJSONObject("responseData");
+				JSONObject cursor = responseData.getJSONObject("cursor");
+				int count = cursor.getInt("estimatedResultCount");
+				
+				/* A search for meriweather yielded:
+				 * {"responseData": {"results":[{"GsearchResultClass":"GwebSearch","unescapedUrl":"http://www.meriweather.com/","url":"http://www.meriweather.com/","visibleUrl":"www.meriweather.com","cacheUrl":"http://www.google.com/search?q\u003dcache:QCPH_oVFGocJ:www.meriweather.com","title":"\u003cb\u003eMeriweather\u0026#39;s\u003c/b\u003e Photo Gallery","titleNoFormatting":"Meriweather\u0026#39;s Photo Gallery","content":"Jerome \u003cb\u003eMeriweather\u0026#39;s\u003c/b\u003e Photo Gallery. Just a few pictures of my work and comments   as a United Airlines Photographer."},{"GsearchResultClass":"GwebSearch","unescapedUrl":"http://www.merriweathermusic.com/","url":"http://www.merriweathermusic.com/","visibleUrl":"www.merriweathermusic.com","cacheUrl":"http://www.google.com/search?q\u003dcache:MwSkYM8nm8IJ:www.merriweathermusic.com","title":"Merriweather Post Pavilion","titleNoFormatting":"Merriweather Post Pavilion","content":"At Merriweather - HFStival 2010 • Third Eye Blind • Billy Idol • Everclear • Ed   Kowalczyk from Live • Presidents of the United States of America • Fuel \u003cb\u003e...\u003c/b\u003e"},{"GsearchResultClass":"GwebSearch","unescapedUrl":"http://www.myspace.com/meriwether","url":"http://www.myspace.com/meriwether","visibleUrl":"www.myspace.com","cacheUrl":"http://www.google.com/search?q\u003dcache:mg7JvIOSUQcJ:www.myspace.com","title":"Meriwether [twitter @meriwether1] on MySpace Music - Free \u003cb\u003e...\u003c/b\u003e","titleNoFormatting":"Meriwether [twitter @meriwether1] on MySpace Music - Free ...","content":"MySpace Music profile for Meriwether [twitter @meriwether1]. Download Meriwether   [twitter @meriwether1] Rock / Alternative / Soul music singles, \u003cb\u003e...\u003c/b\u003e"},{"GsearchResultClass":"GwebSearch","unescapedUrl":"http://en.wikipedia.org/wiki/Brandon_Meriweather","url":"http://en.wikipedia.org/wiki/Brandon_Meriweather","visibleUrl":"en.wikipedia.org","cacheUrl":"http://www.google.com/search?q\u003dcache:lcfTHafxuYMJ:en.wikipedia.org","title":"Brandon \u003cb\u003eMeriweather\u003c/b\u003e - Wikipedia, the free encyclopedia","titleNoFormatting":"Brandon Meriweather - Wikipedia, the free encyclopedia","content":"Brandon \u003cb\u003eMeriweather\u003c/b\u003e (born January 14, 1984 in Apopka, Florida) is an American   football safety for the New England Patriots of the National Football League.   \u003cb\u003e...\u003c/b\u003e"}],"cursor":{"pages":[{"start":"0","label":1},{"start":"4","label":2},{"start":"8","label":3},{"start":"12","label":4},{"start":"16","label":5},{"start":"20","label":6},{"start":"24","label":7},{"start":"28","label":8}],"estimatedResultCount":"13700","currentPageIndex":0,"moreResultsUrl":"http://www.google.com/search?oe\u003dutf8\u0026ie\u003dutf8\u0026source\u003duds\u0026start\u003d0\u0026hl\u003den\u0026q\u003dmeriweather"}}, "responseDetails": null, "responseStatus": 200}
+				 */
+				cache.put(term, count);
+				newCache.put(term, count);
+				updateCache(CACHE_FILE_NAME);
+				result = count;
 			}
-
-			return count;
-		} catch (IOException ioe) {
-		} catch (JSONException e) {
+			finally {
+				if (stream != null) {
+					try {
+						stream.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
 		}
-
-		throw new IllegalArgumentException("Soemthign bad");
+		return result;
 	}
 
-	public double termDist(String term, String against) {
-		System.out.println("scoring " + term + " and " + against);
+	public double normalizedGoogleDistance(String term1, String term2) throws Exception {
+		System.out.println("scoring " + term1 + " and " + term2);
 
-		int min = numResults(term);
-		int max = numResults(against);
-		int both = numResults(term + " " + against);
+		int min = numResultsFromWeb(term1);
+		int max = numResultsFromWeb(term2);
+		int both = numResultsFromWeb(term1 + " " + term2);
 
+		// if necessary, swap the min and max
 		if (min < max) {
 			int temp = max;
 			max = min;
 			min = temp;
 		}
 
-		if (min == 0.0 || both == 0.0)
-			return 0.0;
-
-		return (Math.log(max) - Math.log(both)) / (logM - Math.log(min));
+		double distance = 0.0;
+		if (min != 0.0 && both != 0.0) {
+			distance =
+				(Math.log(max) - Math.log(both)) / (logN - Math.log(min));
+		}
+		return distance;
 	}
 
-//	public double score(Review r, Mean m) {
+//	public double score(List<String> words, List<String> keys) {
+////	public double score(Review r, Mean m) {
 //		double sum = 0.0;
-//		for (String s : r.words) {
-//			for (String against : m.prob.keySet()) {
-//				double score = termDist(s, against);
+//		for (String s : words) {
+//			for (String against : keys) {
+//				double score = normalizedGoogleDistance(s, against);
 //				sum += score;
 //			}
 //		}
