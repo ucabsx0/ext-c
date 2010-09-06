@@ -118,11 +118,11 @@ implements DistanceCalculatorIfc<String> {
 		if (cache.containsKey(term)) {
 			result = cache.get(term);
 		} else {
-			try {
-				// TODO why sleep?
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
+//			try {
+//				// TODO why sleep?
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//			}
 
 			String searchTerm = term.replaceAll(" ", "+");
 			URL url = null;
@@ -146,7 +146,14 @@ implements DistanceCalculatorIfc<String> {
 				JSONObject json = new JSONObject(new JSONTokener(bufferedReader));
 				JSONObject responseData = json.getJSONObject("responseData");
 				JSONObject cursor = responseData.getJSONObject("cursor");
-				int count = cursor.getInt("estimatedResultCount");
+				int count = 0;
+				
+				try {
+					count = cursor.getInt("estimatedResultCount");
+				} catch (JSONException e) {
+					// exception will be thrown when no matches are found
+					count = 0;
+				}
 				cache.put(term, count);
 				newCache.put(term, count);
 				updateCache(CACHE_FILE_NAME);
@@ -170,6 +177,9 @@ implements DistanceCalculatorIfc<String> {
 	 * Calculates the normalized Google Distance (NGD) between the two terms
 	 * specified.  NOTE: this number can change between runs, because it is
 	 * based on the number of web pages found by Google, which changes.
+	 * @return a number from 0 (minimally distant) to 1 (maximally distant),
+	 *   unless an exception occurs in which case, it is negative
+	 *   (RefactoringConstants.UNKNOWN_DISTANCE)
 	 */
 	public Double calculateDistance(String term1, String term2) {
 		// System.out.println("scoring " + term1 + " and " + term2);
@@ -178,20 +188,20 @@ implements DistanceCalculatorIfc<String> {
 		try {
 			int min = numResultsFromWeb(term1);
 			int max = numResultsFromWeb(term2);
-			int both = numResultsFromWeb(term1 + " " + term2);
+			int both = numResultsFromWeb(term1 + "+" + term2);
 
 			// if necessary, swap the min and max
-			if (min < max) {
+			if (max < min) {
 				int temp = max;
 				max = min;
 				min = temp;
 			}
 
-			if (min != 0.0 && both != 0.0) {
+			if (min > 0.0 && both > 0.0) {
 				distance =
 					(Math.log(max) - Math.log(both)) / (logN - Math.log(min));
 			} else {
-				distance = 0.0;
+				distance = 1.0;
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

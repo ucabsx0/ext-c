@@ -32,8 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.similarity;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 
 import junit.framework.TestCase;
@@ -50,8 +48,33 @@ public class GoogleDistanceCalculatorTest extends TestCase {
 	@Test
 	public void testNormalizedGoogleDistance() {
 		try {
+			/*
+			 * Example queries:
+				cassell: q=cassell
+				keith cassell: q=keith+cassell
+				"keith cassell": q=%22keith+cassell%22
+				"keith cassell" betweenness: q=%22keith+cassell%22+betweenness
+			 */
 			GoogleDistanceCalculator calculator = new GoogleDistanceCalculator();
-			Double distance = calculator.calculateDistance("betweenness", "cluster");
+			String term1 = "betweenness";
+			String term2 = "cluster";
+			Double distance2terms = calculator.calculateDistance(term1, term2);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + distance2terms);
+
+			term1 = "betweenness";
+			term2 = "betweenness+cluster";
+			Double distanceSubsumedTerm = calculator.calculateDistance(term1, term2);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + distanceSubsumedTerm);
+
+			term1 = "%22ugliest man in the world%22";
+			term2 = "%22keith cassell%22";
+			Double veryDistant = calculator.calculateDistance(term1, term2);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + veryDistant);
+			assertTrue(distance2terms > distanceSubsumedTerm);
+			assertTrue(veryDistant > distance2terms);
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
