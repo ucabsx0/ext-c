@@ -64,16 +64,23 @@ public class GoogleDistanceCalculatorTest extends TestCase {
 
 			term1 = "betweenness";
 			term2 = "betweenness+cluster";
-			Double distanceSubsumedTerm = calculator.calculateDistance(term1, term2);
+			Double distanceSubsumedTerm1 = calculator.calculateDistance(term1, term2);
 			System.out.println("Distance from " + term1 + " to " + term2 +
-					" = " + distanceSubsumedTerm);
+					" = " + distanceSubsumedTerm1);
+
+			term1 = "cluster";
+			term2 = "betweenness+cluster";
+			Double distanceSubsumedTerm2 = calculator.calculateDistance(term1, term2);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + distanceSubsumedTerm2);
 
 			term1 = "%22ugliest man in the world%22";
 			term2 = "%22keith cassell%22";
 			Double veryDistant = calculator.calculateDistance(term1, term2);
 			System.out.println("Distance from " + term1 + " to " + term2 +
 					" = " + veryDistant);
-			assertTrue(distance2terms > distanceSubsumedTerm);
+			assertTrue(distanceSubsumedTerm2 > distanceSubsumedTerm1);
+			assertTrue(distance2terms > distanceSubsumedTerm1);
 			assertTrue(veryDistant > distance2terms);
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
