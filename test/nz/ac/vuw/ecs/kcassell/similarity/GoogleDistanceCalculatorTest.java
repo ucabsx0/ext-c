@@ -59,29 +59,37 @@ public class GoogleDistanceCalculatorTest extends TestCase {
 			String term1 = "betweenness";
 			String term2 = "cluster";
 			Double distance2terms = calculator.calculateDistance(term1, term2);
-			System.out.println("Distance from " + term1 + " to " + term2 +
-					" = " + distance2terms);
+//			System.out.println("Distance from " + term1 + " to " + term2 +
+//					" = " + distance2terms);
 
 			term1 = "betweenness";
-			term2 = "betweenness+cluster";
+			term2 = "betweenness cluster";
 			Double distanceSubsumedTerm1 = calculator.calculateDistance(term1, term2);
-			System.out.println("Distance from " + term1 + " to " + term2 +
-					" = " + distanceSubsumedTerm1);
+//			System.out.println("Distance from " + term1 + " to " + term2 +
+//					" = " + distanceSubsumedTerm1);
 
 			term1 = "cluster";
-			term2 = "betweenness+cluster";
+			term2 = "betweenness cluster";
 			Double distanceSubsumedTerm2 = calculator.calculateDistance(term1, term2);
-			System.out.println("Distance from " + term1 + " to " + term2 +
-					" = " + distanceSubsumedTerm2);
+//			System.out.println("Distance from " + term1 + " to " + term2 +
+//					" = " + distanceSubsumedTerm2);
 
-			term1 = "%22ugliest man in the world%22";
-			term2 = "%22keith cassell%22";
+			term1 = "\"ugliest man in the world\"";
+			term2 = "\"keith cassell\"";
 			Double veryDistant = calculator.calculateDistance(term1, term2);
-			System.out.println("Distance from " + term1 + " to " + term2 +
-					" = " + veryDistant);
+//			System.out.println("Distance from " + term1 + " to " + term2 +
+//					" = " + veryDistant);
+
+			term1 = "\"ugliest man in the world\"";
+			term2 = "\"dr hook\"";
+			Double hookDistant = calculator.calculateDistance(term1, term2);
+//			System.out.println("Distance from " + term1 + " to " + term2 +
+//					" = " + veryDistant);
+
 			assertTrue(distanceSubsumedTerm2 > distanceSubsumedTerm1);
 			assertTrue(distance2terms > distanceSubsumedTerm1);
 			assertTrue(veryDistant > distance2terms);
+			assertTrue(veryDistant > hookDistant);
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

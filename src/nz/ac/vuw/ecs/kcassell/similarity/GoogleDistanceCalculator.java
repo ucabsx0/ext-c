@@ -13,8 +13,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,9 +35,15 @@ import org.json.JSONTokener;
 public class GoogleDistanceCalculator
 implements DistanceCalculatorIfc<String> {
 	
-	/** A site that will return the number of matches, among other things. */
-	private static final String SEARCH_SITE_PREFIX =
+	/** A Google URL that will return the number of matches, among other things. */
+	private static final String GOOGLE_SEARCH_SITE_PREFIX =
 		"http://ajax.googleapis.com/ajax/services/search/web?v=1.0&";
+
+	/** A Yahoo URL that will return the number of matches, among other things. */
+	private static final String YAHOO_SEARCH_SITE_PREFIX =
+		"http://boss.yahooapis.com/ysearch/web/v1/";
+	// + iphone?appid=YOUR_API_KEY&format=json"
+	//   (iPhone is the search query)
 	
 	protected static final String CACHE_FILE_NAME = "google.cache";
 
@@ -51,6 +59,9 @@ implements DistanceCalculatorIfc<String> {
 	
 	/** Holds the new terms we entered (these are also in the cache) */
 	Map<String, Integer> newCache = new HashMap<String, Integer>();
+
+	/** The key to use for querying Yahoo. */
+	private static String yahooApiKey = System.getProperty("yahooApiKey");
 
 	public GoogleDistanceCalculator() throws NumberFormatException, IOException {
 		cache = setupCache(CACHE_FILE_NAME);
@@ -118,42 +129,17 @@ implements DistanceCalculatorIfc<String> {
 		if (cache.containsKey(term)) {
 			result = cache.get(term);
 		} else {
-//			try {
-//				// TODO why sleep?
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//			}
-
-			String searchTerm = term.replaceAll(" ", "+");
 			URL url = null;
 			InputStream stream = null;
 			try {
-				String urlString = SEARCH_SITE_PREFIX + "q=" + searchTerm + " ";
-				/*
-				 * Example queries:
-					cassell: q=cassell
-					keith cassell: q=keith+cassell
-					"keith cassell": q=%22keith+cassell%22
-					"keith cassell" betweenness: q=%22keith+cassell%22+betweenness
-				 */
-				url = new URL(urlString);
+				url = makeQueryURL(term);
 				URLConnection connection = url.openConnection();
 				connection.setConnectTimeout(2000);
 				stream = connection.getInputStream();
 				InputStreamReader inputReader = new InputStreamReader(stream);
 				BufferedReader bufferedReader = new BufferedReader(inputReader);
-
-				JSONObject json = new JSONObject(new JSONTokener(bufferedReader));
-				JSONObject responseData = json.getJSONObject("responseData");
-				JSONObject cursor = responseData.getJSONObject("cursor");
-				int count = 0;
-				
-				try {
-					count = cursor.getInt("estimatedResultCount");
-				} catch (JSONException e) {
-					// exception will be thrown when no matches are found
-					count = 0;
-				}
+				int count = getCountFromQuery(bufferedReader);
+//				System.out.println(term + ":\t" + count + " hits");
 				cache.put(term, count);
 				newCache.put(term, count);
 				updateCache(CACHE_FILE_NAME);
@@ -171,6 +157,83 @@ implements DistanceCalculatorIfc<String> {
 			}
 		}
 		return result;
+	}
+
+	private int getCountFromQuery(BufferedReader reader)
+			throws JSONException, IOException {
+		int count = getCountFromYahooQuery(reader);
+//		int count = getCountFromGoogleQuery(bufferedReader);
+		return count;
+	}
+
+	private int getCountFromYahooQuery(BufferedReader reader)
+			throws IOException, JSONException {
+//		String line;
+//		StringBuilder builder = new StringBuilder();
+//
+//		while ((line = reader.readLine()) != null) {
+//			builder.append(line);
+//		}
+//		String response = builder.toString();
+//		JSONObject json = new JSONObject(response);
+		JSONObject json = new JSONObject(new JSONTokener(reader));
+		JSONObject searchResponse = json.getJSONObject("ysearchresponse");
+		int count = searchResponse.getInt("totalhits");
+		return count;
+	}
+
+	private int getCountFromGoogleQuery(BufferedReader bufferedReader) throws JSONException {
+		JSONObject json = new JSONObject(new JSONTokener(bufferedReader));
+		JSONObject responseData = json.getJSONObject("responseData");
+		JSONObject cursor = responseData.getJSONObject("cursor");
+		int count = 0;
+		
+		try {
+			count = cursor.getInt("estimatedResultCount");
+		} catch (JSONException e) {
+			// exception will be thrown when no matches are found
+			count = 0;
+		}
+		return count;
+	}
+
+	protected URL makeQueryURL(String term) throws MalformedURLException, IOException {
+		//String searchTerm = term.replaceAll(" ", "+");
+		String searchTerm = URLEncoder.encode(term, "UTF-8");
+		URL url;
+		String urlString = makeYahooQueryString(searchTerm);
+//		String urlString = makeGoogleQueryString(searchTerm);
+		url = new URL(urlString);
+		return url;
+	}
+
+	/**
+	 * Builds a query string suitable for Google
+	 * @param searchTerm
+	 * @return
+	 */
+	private String makeGoogleQueryString(String searchTerm) {
+		String urlString = GOOGLE_SEARCH_SITE_PREFIX + "q=" + searchTerm + " ";
+		/*
+		 * Example queries:
+			cassell: q=cassell
+			keith cassell: q=keith+cassell
+			"keith cassell": q=%22keith+cassell%22
+			"keith cassell" betweenness: q=%22keith+cassell%22+betweenness
+		 */
+		return urlString;
+	}
+
+	/**
+	 * Builds a query string suitable for Yahoo
+	 * @param searchTerm
+	 * @return
+	 */
+	private String makeYahooQueryString(String searchTerm) {
+		String urlString = YAHOO_SEARCH_SITE_PREFIX + searchTerm +
+			     "?appid=" + yahooApiKey + "&count=10&format=json";
+//		System.out.println(urlString);
+		return urlString;
 	}
 
 	/**
