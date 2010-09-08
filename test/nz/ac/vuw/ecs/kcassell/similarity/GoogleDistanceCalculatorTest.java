@@ -48,48 +48,48 @@ public class GoogleDistanceCalculatorTest extends TestCase {
 	@Test
 	public void testNormalizedGoogleDistance() {
 		try {
-			/*
-			 * Example queries:
-				cassell: q=cassell
-				keith cassell: q=keith+cassell
-				"keith cassell": q=%22keith+cassell%22
-				"keith cassell" betweenness: q=%22keith+cassell%22+betweenness
-			 */
 			GoogleDistanceCalculator calculator = new GoogleDistanceCalculator();
+			calculator.clearCache();
 			String term1 = "betweenness";
 			String term2 = "cluster";
 			Double distance2terms = calculator.calculateDistance(term1, term2);
-//			System.out.println("Distance from " + term1 + " to " + term2 +
-//					" = " + distance2terms);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + distance2terms);
 
 			term1 = "betweenness";
 			term2 = "betweenness cluster";
 			Double distanceSubsumedTerm1 = calculator.calculateDistance(term1, term2);
-//			System.out.println("Distance from " + term1 + " to " + term2 +
-//					" = " + distanceSubsumedTerm1);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + distanceSubsumedTerm1);
+
+			term1 = "betweenness";
+			Double distanceSelf = calculator.calculateDistance(term1, term1);
+			System.out.println("Distance from " + term1 + " to " + term1 +
+					" = " + distanceSelf);
 
 			term1 = "cluster";
 			term2 = "betweenness cluster";
 			Double distanceSubsumedTerm2 = calculator.calculateDistance(term1, term2);
-//			System.out.println("Distance from " + term1 + " to " + term2 +
-//					" = " + distanceSubsumedTerm2);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + distanceSubsumedTerm2);
 
 			term1 = "\"ugliest man in the world\"";
 			term2 = "\"keith cassell\"";
 			Double veryDistant = calculator.calculateDistance(term1, term2);
-//			System.out.println("Distance from " + term1 + " to " + term2 +
-//					" = " + veryDistant);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + veryDistant);
 
 			term1 = "\"ugliest man in the world\"";
 			term2 = "\"dr hook\"";
 			Double hookDistant = calculator.calculateDistance(term1, term2);
-//			System.out.println("Distance from " + term1 + " to " + term2 +
-//					" = " + veryDistant);
+			System.out.println("Distance from " + term1 + " to " + term2 +
+					" = " + veryDistant);
 
 			assertTrue(distanceSubsumedTerm2 > distanceSubsumedTerm1);
 			assertTrue(distance2terms > distanceSubsumedTerm1);
 			assertTrue(veryDistant > distance2terms);
 			assertTrue(veryDistant > hookDistant);
+			assertEquals(0.0, distanceSelf);
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -1,10 +1,5 @@
 package nz.ac.vuw.ecs.kcassell.similarity;
 
-/*
- * The code here is based on code retrieved from 
- * http://reviewclustering.googlecode.com/svn
-*/
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -67,6 +62,13 @@ implements DistanceCalculatorIfc<String> {
 		cache = setupCache(CACHE_FILE_NAME);
 	}
 
+	public void clearCache() {
+		cache = new HashMap<String, Integer>();
+		newCache = new HashMap<String, Integer>();
+		File cacheFile = new File(CACHE_FILE_NAME);
+		cacheFile.delete();
+	}
+	
 	protected Map<String, Integer> setupCache(String filename)
 			throws NumberFormatException, IOException {
 
@@ -134,7 +136,7 @@ implements DistanceCalculatorIfc<String> {
 			try {
 				url = makeQueryURL(term);
 				URLConnection connection = url.openConnection();
-				connection.setConnectTimeout(2000);
+//				connection.setConnectTimeout(2000);
 				stream = connection.getInputStream();
 				InputStreamReader inputReader = new InputStreamReader(stream);
 				BufferedReader bufferedReader = new BufferedReader(inputReader);
@@ -231,7 +233,7 @@ implements DistanceCalculatorIfc<String> {
 	 */
 	private String makeYahooQueryString(String searchTerm) {
 		String urlString = YAHOO_SEARCH_SITE_PREFIX + searchTerm +
-			     "?appid=" + yahooApiKey + "&count=10&format=json";
+			     "?appid=" + yahooApiKey + "&count=1&format=json";
 //		System.out.println(urlString);
 		return urlString;
 	}
@@ -266,23 +268,17 @@ implements DistanceCalculatorIfc<String> {
 			} else {
 				distance = 1.0;
 			}
+			
+			// Counts change and are estimated, so there would be a possibility
+			// of a slightly negative distance.
+			if (distance < 0.0) {
+				distance = 0.0;
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return distance;
 	}
-
-//	public double score(List<String> words, List<String> keys) {
-////	public double score(Review r, Mean m) {
-//		double sum = 0.0;
-//		for (String s : words) {
-//			for (String against : keys) {
-//				double score = normalizedGoogleDistance(s, against);
-//				sum += score;
-//			}
-//		}
-//		return sum;
-//	}
 
 }
