@@ -9,14 +9,6 @@
             visible="true"
             id="com.example.helloworld.actionSet">
          <action
-               label="Clustering"
-               icon="icons/grapes.png"
-               class="nz.ac.vuw.ecs.kcassell.ClusteringAction"
-               tooltip="Clustering"
-               toolbarPath="sampleGroup"
-               id="nz.ac.vuw.ecs.kcassell.ClusteringAction">
-         </action>
-         <action
                label="Agglomerate"
                icon="icons/merge.gif"
                class="nz.ac.vuw.ecs.kcassell.AgglomerateAction"
