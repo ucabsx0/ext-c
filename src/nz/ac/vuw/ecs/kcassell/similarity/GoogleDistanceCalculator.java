@@ -37,8 +37,7 @@ implements DistanceCalculatorIfc<String> {
 	/** A Yahoo URL that will return the number of matches, among other things. */
 	private static final String YAHOO_SEARCH_SITE_PREFIX =
 		"http://boss.yahooapis.com/ysearch/web/v1/";
-	// + iphone?appid=YOUR_API_KEY&format=json"
-	//   (iPhone is the search query)
+	// + theQueryTerm?appid=YOUR_API_KEY&format=json"
 	
 	protected static final String CACHE_FILE_NAME = "google.cache";
 
@@ -55,7 +54,8 @@ implements DistanceCalculatorIfc<String> {
 	/** Holds the new terms we entered (these are also in the cache) */
 	Map<String, Integer> newCache = new HashMap<String, Integer>();
 
-	/** The key to use for querying Yahoo. */
+	/** The key to use for querying Yahoo.   This is read in via the system
+	 * property "yahooApiKey".  */
 	private static String yahooApiKey = System.getProperty("yahooApiKey");
 
 	public GoogleDistanceCalculator() throws NumberFormatException, IOException {

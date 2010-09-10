@@ -84,6 +84,24 @@ public class DistanceMatrix<V> implements RefactoringConstants {
 		matrix = new DenseDoubleMatrix2D(size, size);
 		matrix.assign(UNKNOWN_DISTANCE.doubleValue());
 	}
+	
+	
+	/**
+	 * Use the distance calculator to fill in the distance matrix.
+	 * @param calc the distance calculator
+	 */
+	public void fillMatrix(DistanceCalculatorIfc<V> calc) {
+		for (int row = 0; row < headers.size(); row++) {
+			V obj1 = headers.get(row);
+			for (int col = 0; col <= row; col++) {
+				V obj2 = headers.get(col);
+				Number distance = calc.calculateDistance(obj1, obj2);
+				setDistance(obj1, obj2, distance);
+			}
+		}
+	}
+
+
 
 	/**
 	 * Gets the index corresponding to the supplied member.
