@@ -15,6 +15,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.json.JSONException;
@@ -48,6 +49,9 @@ implements DistanceCalculatorIfc<String> {
 	 *  http://googleblog.blogspot.com/2008/07/we-knew-web-was-big.html
 	 *  puts this at a trillion or more.  */
 	protected final static double logN = Math.log(1.0e12);
+
+    protected static final UtilLogger logger =
+    	new UtilLogger("GoogleDistanceCalculator");
 
 	Map<String, Integer> cache = new HashMap<String, Integer>();
 	
@@ -152,8 +156,7 @@ implements DistanceCalculatorIfc<String> {
 					try {
 						stream.close();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.warning(e.toString());
 					}
 				}
 			}
@@ -184,6 +187,7 @@ implements DistanceCalculatorIfc<String> {
 		return count;
 	}
 
+	@SuppressWarnings("unused")
 	private int getCountFromGoogleQuery(BufferedReader bufferedReader) throws JSONException {
 		JSONObject json = new JSONObject(new JSONTokener(bufferedReader));
 		JSONObject responseData = json.getJSONObject("responseData");
@@ -214,6 +218,7 @@ implements DistanceCalculatorIfc<String> {
 	 * @param searchTerm
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	private String makeGoogleQueryString(String searchTerm) {
 		String urlString = GOOGLE_SEARCH_SITE_PREFIX + "q=" + searchTerm + " ";
 		/*
@@ -247,7 +252,6 @@ implements DistanceCalculatorIfc<String> {
 	 *   (RefactoringConstants.UNKNOWN_DISTANCE)
 	 */
 	public Double calculateDistance(String term1, String term2) {
-		// System.out.println("scoring " + term1 + " and " + term2);
 		double distance = RefactoringConstants.UNKNOWN_DISTANCE.doubleValue();
 
 		try {

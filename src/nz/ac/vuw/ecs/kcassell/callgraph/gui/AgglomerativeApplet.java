@@ -189,7 +189,8 @@ implements ClusterUIConstants, ParameterConstants {
 							DistanceCalculatorEnum.Identifier.toString());
 					
 					// TODO visual display for identifier clustering
-					if (DistanceCalculatorEnum.Identifier.toString().equals(sCalc)) {
+					if (DistanceCalculatorEnum.Identifier.toString().equals(sCalc)
+							|| DistanceCalculatorEnum.GoogleDistance.toString().equals(sCalc)) {
 					} else {
 						redrawGraph(iteration);
 						displayGraphClusterText();

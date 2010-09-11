@@ -40,6 +40,7 @@ package nz.ac.vuw.ecs.kcassell.similarity;
  */
 public enum DistanceCalculatorEnum {
 	Czibula,
+	GoogleDistance,
 	Identifier,
 	IntraClass,
 	Levenshtein,

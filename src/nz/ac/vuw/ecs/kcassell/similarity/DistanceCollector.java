@@ -43,9 +43,9 @@ public class DistanceCollector {
 		CzibulaDistanceCalculator czibulaCalculator =
 			new CzibulaDistanceCalculator(callGraph);
 		calculators.add(czibulaCalculator);
-		GoogleDistanceCalculator googleCalculator = null;
+		IdentifierGoogleDistanceCalculator googleCalculator = null;
 		try {
-			googleCalculator = new GoogleDistanceCalculator();
+			googleCalculator = new IdentifierGoogleDistanceCalculator();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -50,6 +50,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
@@ -61,6 +62,7 @@ import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
+import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
@@ -100,7 +102,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	protected JLabel progressLabel = null;
     protected JProgressBar progressBar = null;
 
-    /** Accumulates the aggregation results. */
+    /** Accumulates the clustering results. */
 	protected StringBuffer buf = new StringBuffer(RUN_SEPARATOR);
 
     protected static final UtilLogger logger =
@@ -164,7 +166,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	public void actionPerformed(ActionEvent event) {
 		String command = event.getActionCommand();
 		if (AGGLOMERATE_BUTTON_LABEL.equals(command)) {
-			aggregateAll(mainPanel);
+			clusterAllSelections(mainPanel);
 		}
 		else {
 			countAllDisconnectedSubgraphs(mainPanel);
@@ -176,7 +178,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * Clusters the members of all classes in the metrics view.
 	 * @return
 	 */
-	protected StringBuffer aggregateSelections() {
+	protected StringBuffer clusterSelections() {
 		ApplicationParameters params = ApplicationParameters.getSingleton();
 		String sClusterer = params.getParameter(
 				CLUSTERER_KEY, ClustererEnum.MIXED_MODE.toString());
@@ -189,52 +191,76 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		// "=Weka/<weka.classifiers.meta{MultiClassClassifier.java[MultiClassClassifier";
 		activateProgressBar(classHandles.length);
 
-		// TODO loop through all
 		int iterations = classHandles.length; // Math.min(20, classHandles.length);
 		activateProgressBar(iterations);
 		for (int i = 0;  i < iterations; i++) {
 			progressBar.setValue(i);
-			buf = new StringBuffer(RUN_SEPARATOR);
-			long start = System.currentTimeMillis();
-			try {
-				JavaCallGraph callGraph = getGraphFromHandle(classHandles[i]);
-				// TODO other calculators for all clusterers
-				if (ClustererEnum.AGGLOMERATIVE.toString().equalsIgnoreCase(
-						sClusterer)) {
-					if (DistanceCalculatorEnum.IntraClass.toString()
-							.equalsIgnoreCase(sCalc)) {
-						DistanceCalculatorIfc<String> calc =
-							new IntraClassDistanceCalculator(callGraph);
-						List<String> memberHandles = EclipseUtils
-								.getMemberHandles(classHandles[i]);
-						MatrixBasedAgglomerativeClusterer clusterer =
-							new MatrixBasedAgglomerativeClusterer(
-								memberHandles, calc);
-						MemberCluster cluster = clusterer.getSingleCluster();
-						buf.append("Final cluster:\n"
-								+ cluster.toNestedString());
-					}
-				} else if (ClustererEnum.MIXED_MODE.toString()
-						.equalsIgnoreCase(sClusterer)) {
-					Collection<CallGraphNode> clusters =
-						clusterUsingMixedMode(callGraph);
-					buf.append("Final clusters for " + callGraph.getName());
-					appendClusterSizes(clusters);
-					String sClusters = toOutputString(clusters);
-					buf.append(":\n" + sClusters);
-				}
-				textArea.append(buf.toString());
-			} catch (JavaModelException e) {
-				buf.append(e.toString());
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			long end = System.currentTimeMillis();
-			buf.append("Clustering above took " + (end - start) + " millis");
-			buf.append(CLASS_SEPARATOR);
+			String handle = classHandles[i];
+			clusterOneSelection(sClusterer, sCalc, handle);
 		}
 		inactivateProgressBar();
 		return buf;
+	}
+
+
+	protected void clusterOneSelection(String sClusterer, String sCalc,
+			String handle) {
+		buf = new StringBuffer(RUN_SEPARATOR);
+		long start = System.currentTimeMillis();
+		try {
+			JavaCallGraph callGraph = getGraphFromHandle(handle);
+			// TODO other calculators for all clusterers
+			if (ClustererEnum.AGGLOMERATIVE.toString().equalsIgnoreCase(
+					sClusterer)) {
+				if (DistanceCalculatorEnum.IntraClass.toString()
+						.equalsIgnoreCase(sCalc)) {
+					DistanceCalculatorIfc<String> calc =
+						new IntraClassDistanceCalculator(callGraph);
+					List<String> memberHandles = EclipseUtils
+							.getMemberHandles(handle);
+					MatrixBasedAgglomerativeClusterer clusterer =
+						new MatrixBasedAgglomerativeClusterer(
+							memberHandles, calc);
+					MemberCluster cluster = clusterer.getSingleCluster();
+					buf.append("Final cluster:\n"
+							+ cluster.toNestedString());
+				} else if (DistanceCalculatorEnum.GoogleDistance.toString()
+						.equalsIgnoreCase(sCalc)) {
+					DistanceCalculatorIfc<String> calc;
+					try {
+						calc = new IdentifierGoogleDistanceCalculator();
+						List<String> memberHandles =
+							EclipseUtils.getMemberNames(handle);
+//							EclipseUtils.getMemberHandles(handle);
+						MatrixBasedAgglomerativeClusterer clusterer =
+							new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
+						MemberCluster cluster = clusterer.getSingleCluster();
+						buf.append("Final cluster:\n"
+								+ cluster.toNestedString());
+					} catch (Exception e) {
+						String msg = "Unable to calculate distances.  (No web access?)";
+						JOptionPane.showMessageDialog(mainPanel, msg,
+							"Error Clustering", JOptionPane.WARNING_MESSAGE);
+					}
+				}
+			} else if (ClustererEnum.MIXED_MODE.toString()
+					.equalsIgnoreCase(sClusterer)) {
+				Collection<CallGraphNode> clusters =
+					clusterUsingMixedMode(callGraph);
+				buf.append("Final clusters for " + callGraph.getName());
+				appendClusterSizes(clusters);
+				String sClusters = toOutputString(clusters);
+				buf.append(":\n" + sClusters);
+			}
+			textArea.append(buf.toString());
+		} catch (JavaModelException e) {
+			buf.append(e.toString());
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		long end = System.currentTimeMillis();
+		buf.append("Clustering above took " + (end - start) + " millis");
+		buf.append(CLASS_SEPARATOR);
 	}
 
 
@@ -388,10 +414,10 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * report the results in the text area.
 	 * @param mainPane the component on which to put the wait cursor
 	 */
-	public void aggregateAll(final Component mainPane) {
-		System.out.println("aggregating...");
+	public void clusterAllSelections(final Component mainPane) {
+		System.out.println("clustering...");
 
-		Thread worker = new Thread("BatchAggregateThread") {
+		Thread worker = new Thread("BatchClusterThread") {
 
 			public void run() {
 
@@ -399,15 +425,15 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					try {
 						textArea.setText("");
 						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
-						aggregateSelections();
+						clusterSelections();
 					} finally {
 						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 					}
 				} catch (Exception e) {
-					String msg = "Problem while aggregating: "
+					String msg = "Problem while clustering: "
 							+ e.getMessage();
 					JOptionPane.showMessageDialog(mainPane, msg,
-							"Error Aggregating", JOptionPane.WARNING_MESSAGE);
+							"Error Clustering", JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		}; // Thread worker
@@ -421,7 +447,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * @param mainPane the component on which to put the wait cursor
 	 */
 	public void countAllDisconnectedSubgraphs(final Component mainPane) {
-		System.out.println("aggregating...");
+		System.out.println("counting subgraphs...");
 
 		Thread worker = new Thread("SubgraphsThread") {
 
