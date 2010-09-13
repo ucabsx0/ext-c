@@ -236,8 +236,8 @@ public class DistanceMatrix<V> implements RefactoringConstants {
 		for (int i = 0; i < size; i++) {
 			buf.append(" ").append(i).append(" ");
 			String member = headers.get(i).toString();
-			member = String.format("%-10.10s", member);
-			buf.append(member);
+			String member10 = String.format("%-10.10s", member);
+			buf.append(member10); // the shortened member name begins the row
 			for (int j = 0; j < i; j++) {
 				double distance = matrix.get(i, j);
 				if (distance == UNKNOWN_DISTANCE.doubleValue()) {
@@ -246,7 +246,7 @@ public class DistanceMatrix<V> implements RefactoringConstants {
 					buf.append("\t").append(numberFormatter.format(distance));
 				}
 			}
-			buf.append("\t").append(member); // this will serve as the column name
+			buf.append("\t").append(member); // the name is the column header
 			buf.append("\n");
 		}
 	}

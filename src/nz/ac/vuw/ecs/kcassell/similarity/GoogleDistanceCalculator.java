@@ -40,6 +40,8 @@ implements DistanceCalculatorIfc<String> {
 		"http://boss.yahooapis.com/ysearch/web/v1/";
 	// + theQueryTerm?appid=YOUR_API_KEY&format=json"
 	
+	/** The file in the eclipse install directory containing a textual rep.
+	 * of the cache.	 */
 	protected static final String CACHE_FILE_NAME = "google.cache";
 
 	static int counter = 0;
@@ -53,10 +55,10 @@ implements DistanceCalculatorIfc<String> {
     protected static final UtilLogger logger =
     	new UtilLogger("GoogleDistanceCalculator");
 
-	Map<String, Integer> cache = new HashMap<String, Integer>();
+	Map<String, Double> cache = new HashMap<String, Double>();
 	
 	/** Holds the new terms we entered (these are also in the cache) */
-	Map<String, Integer> newCache = new HashMap<String, Integer>();
+	Map<String, Double> newCache = new HashMap<String, Double>();
 
 	/** The key to use for querying Yahoo.   This is read in via the system
 	 * property "yahooApiKey".  */
@@ -67,13 +69,13 @@ implements DistanceCalculatorIfc<String> {
 	}
 
 	public void clearCache() {
-		cache = new HashMap<String, Integer>();
-		newCache = new HashMap<String, Integer>();
+		cache = new HashMap<String, Double>();
+		newCache = new HashMap<String, Double>();
 		File cacheFile = new File(CACHE_FILE_NAME);
 		cacheFile.delete();
 	}
 	
-	protected Map<String, Integer> setupCache(String filename)
+	protected Map<String, Double> setupCache(String filename)
 			throws NumberFormatException, IOException {
 
 		File cacheFile = new File(filename);
@@ -81,14 +83,14 @@ implements DistanceCalculatorIfc<String> {
 		if (cacheFile.canRead()) {
 			BufferedReader reader = new BufferedReader(new FileReader(filename));
 
-			Map<String, Integer> cache = new HashMap<String, Integer>();
+			Map<String, Double> cache = new HashMap<String, Double>();
 			String line;
 
 			while ((line = reader.readLine()) != null) {
 				int lastSpaceIndex = line.lastIndexOf(' ');
 				String token = line.substring(0, lastSpaceIndex);
-				int count = Integer
-						.parseInt(line.substring(lastSpaceIndex + 1));
+				double count = Double
+						.parseDouble(line.substring(lastSpaceIndex + 1));
 				cache.put(token, count);
 			}
 
@@ -108,10 +110,10 @@ implements DistanceCalculatorIfc<String> {
 			try {
 				writer = new BufferedWriter(new FileWriter(filename, true));
 
-				for (Map.Entry<String, Integer> entry : newCache.entrySet()) {
+				for (Map.Entry<String, Double> entry : newCache.entrySet()) {
 					writer.append(entry.getKey() + " " + entry.getValue() + "\n");
 				}
-				newCache = new HashMap<String, Integer>();
+				newCache = new HashMap<String, Double>();
 				counter = 0;
 			} catch (IOException e) {
 				// Things will just take longer
@@ -128,9 +130,9 @@ implements DistanceCalculatorIfc<String> {
 		}
 	}
 
-	protected int numResultsFromWeb(String term)
+	protected double numResultsFromWeb(String term)
 	throws JSONException, IOException {
-		int result = 0;
+		double result = 0;
 		
 		if (cache.containsKey(term)) {
 			result = cache.get(term);
@@ -144,7 +146,7 @@ implements DistanceCalculatorIfc<String> {
 				stream = connection.getInputStream();
 				InputStreamReader inputReader = new InputStreamReader(stream);
 				BufferedReader bufferedReader = new BufferedReader(inputReader);
-				int count = getCountFromQuery(bufferedReader);
+				double count = getCountFromQuery(bufferedReader);
 //				System.out.println(term + ":\t" + count + " hits");
 				cache.put(term, count);
 				newCache.put(term, count);
@@ -164,14 +166,14 @@ implements DistanceCalculatorIfc<String> {
 		return result;
 	}
 
-	private int getCountFromQuery(BufferedReader reader)
+	private double getCountFromQuery(BufferedReader reader)
 			throws JSONException, IOException {
-		int count = getCountFromYahooQuery(reader);
-//		int count = getCountFromGoogleQuery(bufferedReader);
+		double count = getCountFromYahooQuery(reader);
+//		double count = getCountFromGoogleQuery(bufferedReader);
 		return count;
 	}
 
-	private int getCountFromYahooQuery(BufferedReader reader)
+	private double getCountFromYahooQuery(BufferedReader reader)
 			throws IOException, JSONException {
 //		String line;
 //		StringBuilder builder = new StringBuilder();
@@ -183,19 +185,19 @@ implements DistanceCalculatorIfc<String> {
 //		JSONObject json = new JSONObject(response);
 		JSONObject json = new JSONObject(new JSONTokener(reader));
 		JSONObject searchResponse = json.getJSONObject("ysearchresponse");
-		int count = searchResponse.getInt("totalhits");
+		double count = searchResponse.getDouble("totalhits");
 		return count;
 	}
 
 	@SuppressWarnings("unused")
-	private int getCountFromGoogleQuery(BufferedReader bufferedReader) throws JSONException {
+	private double getCountFromGoogleQuery(BufferedReader bufferedReader) throws JSONException {
 		JSONObject json = new JSONObject(new JSONTokener(bufferedReader));
 		JSONObject responseData = json.getJSONObject("responseData");
 		JSONObject cursor = responseData.getJSONObject("cursor");
-		int count = 0;
+		double count = 0;
 		
 		try {
-			count = cursor.getInt("estimatedResultCount");
+			count = cursor.getDouble("estimatedResultCount");
 		} catch (JSONException e) {
 			// exception will be thrown when no matches are found
 			count = 0;
@@ -255,13 +257,13 @@ implements DistanceCalculatorIfc<String> {
 		double distance = RefactoringConstants.UNKNOWN_DISTANCE.doubleValue();
 
 		try {
-			int min = numResultsFromWeb(term1);
-			int max = numResultsFromWeb(term2);
-			int both = numResultsFromWeb(term1 + "+" + term2);
+			double min = numResultsFromWeb(term1);
+			double max = numResultsFromWeb(term2);
+			double both = numResultsFromWeb(term1 + " " + term2);
 
 			// if necessary, swap the min and max
 			if (max < min) {
-				int temp = max;
+				double temp = max;
 				max = min;
 				min = temp;
 			}

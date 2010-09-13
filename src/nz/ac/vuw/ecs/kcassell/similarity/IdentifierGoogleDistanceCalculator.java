@@ -63,5 +63,9 @@ implements DistanceCalculatorIfc<String> {
 	public DistanceCalculatorEnum getType() {
 		return DistanceCalculatorEnum.GoogleDistance;
 	}
+	
+	public void clearCache() {
+		googleCalculator.clearCache();
+	}
 
 }

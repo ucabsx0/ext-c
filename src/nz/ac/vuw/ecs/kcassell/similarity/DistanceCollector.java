@@ -2,6 +2,7 @@ package nz.ac.vuw.ecs.kcassell.similarity;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -73,6 +74,7 @@ public class DistanceCollector {
 		for (CallGraphNode node : nodes) {
 			memberNames.add(node.getSimpleName());
 		}
+		Collections.sort(memberNames);
 		return memberNames;
 	}
 

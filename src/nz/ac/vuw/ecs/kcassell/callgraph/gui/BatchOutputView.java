@@ -60,14 +60,12 @@ import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
 import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
-import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCollector;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
-import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
@@ -561,13 +559,14 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		ArrayList<DistanceCalculatorIfc<String>> calculators =
 			new ArrayList<DistanceCalculatorIfc<String>>();
 		
-		CzibulaDistanceCalculator czibulaCalculator =
-			new CzibulaDistanceCalculator(callGraph);
-		calculators.add(czibulaCalculator);
+//		CzibulaDistanceCalculator czibulaCalculator =
+//			new CzibulaDistanceCalculator(callGraph);
+//		calculators.add(czibulaCalculator);
 		
 		IdentifierGoogleDistanceCalculator googleCalculator = null;
 		try {
 			googleCalculator = new IdentifierGoogleDistanceCalculator();
+			// googleCalculator.clearCache();
 			calculators.add(googleCalculator);
 		} catch (Exception e) {
 			String msg = "Unable to initialize GoogleDistanceCalculator:\n" + e;
@@ -575,13 +574,13 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				"Error Initializing", JOptionPane.WARNING_MESSAGE);
 		}
 		
-		IntraClassDistanceCalculator intraCalculator =
-			new IntraClassDistanceCalculator(callGraph);
-		calculators.add(intraCalculator);
-		
-		SimonDistanceCalculator simonCalculator =
-			new SimonDistanceCalculator(callGraph);
-		calculators.add(simonCalculator);
+//		IntraClassDistanceCalculator intraCalculator =
+//			new IntraClassDistanceCalculator(callGraph);
+//		calculators.add(intraCalculator);
+//		
+//		SimonDistanceCalculator simonCalculator =
+//			new SimonDistanceCalculator(callGraph);
+//		calculators.add(simonCalculator);
 		return calculators;
 	}
 
@@ -596,6 +595,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		for (CallGraphNode node : nodes) {
 			memberNames.add(node.getSimpleName());
 		}
+		Collections.sort(memberNames);
 		return memberNames;
 	}
 
