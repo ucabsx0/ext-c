@@ -47,4 +47,9 @@ public interface DistanceCalculatorIfc<V>
      * @param obj1 the first object
      * @param obj2 the second object */
     public Number calculateDistance(V obj1, V obj2);
+    
+    /**
+     * @return the type of the calculator
+     */
+    public DistanceCalculatorEnum getType();
 }

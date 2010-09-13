@@ -1,63 +1,65 @@
 package nz.ac.vuw.ecs.kcassell.similarity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 
+/**
+ * Uses each of a collection of calculators to calculate a
+ * distance matrix between the members represented by a callGraph.
+ * @author kcassell
+ *
+ */
 public class DistanceCollector {
 	
+	/** The key is a distance calculator; the value is the distance matrix
+	 * computed by that distance calculator for a dependency graph.
+	 */
 	HashMap<DistanceCalculatorIfc<String>, DistanceMatrix<String>> allDistances =
 		new HashMap<DistanceCalculatorIfc<String>, DistanceMatrix<String>>();
-//	DistanceMatrix<String> czibulaDistances = null;
-//	DistanceMatrix<String> googleDistances = null;
-//	DistanceMatrix<String> intraClassDistances = null;
-//	DistanceMatrix<String> simonDistances = null;
 
-	public static void main(String[] args) {
-		JavaCallGraph callGraph = null;
-		DistanceCollector collector = new DistanceCollector();
-		collector.collectDistances(callGraph);
+	/** The calculators to use for collecting distances. */
+	private Collection<DistanceCalculatorIfc<String>> calculators =
+		new ArrayList<DistanceCalculatorIfc<String>>();
+
+	
+	public DistanceCollector(
+			Collection<DistanceCalculatorIfc<String>> calculators) {
+		this.calculators = calculators;
 	}
-
+	
+	/**
+	 * Uses each of a collection of calculators to calculate a
+	 * distance matrix between the members represented by the callGraph.
+	 * @param callGraph a dependency graph between class members
+	 */
 	public void collectDistances(JavaCallGraph callGraph) {
-		ArrayList<DistanceCalculatorIfc<String>> calculators =
-			initializeCalculators(callGraph);
 		List<CallGraphNode> nodes = callGraph.getNodes();
 		List<String> memberNames = getMemberNames(nodes);
 		
 		for (DistanceCalculatorIfc<String> calc : calculators) {
-			DistanceMatrix<String> matrix =
-				new DistanceMatrix<String>(memberNames);
-			matrix.fillMatrix(calc);
-			allDistances.put(calc, matrix);
+			collectDistances(memberNames, calc);
 		}
 	}
 
-	private ArrayList<DistanceCalculatorIfc<String>> initializeCalculators(
-			JavaCallGraph callGraph) {
-		ArrayList<DistanceCalculatorIfc<String>> calculators =
-			new ArrayList<DistanceCalculatorIfc<String>>();
-		CzibulaDistanceCalculator czibulaCalculator =
-			new CzibulaDistanceCalculator(callGraph);
-		calculators.add(czibulaCalculator);
-		IdentifierGoogleDistanceCalculator googleCalculator = null;
-		try {
-			googleCalculator = new IdentifierGoogleDistanceCalculator();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		calculators.add(googleCalculator);
-		IntraClassDistanceCalculator intraCalculator =
-			new IntraClassDistanceCalculator(callGraph);
-		calculators.add(intraCalculator);
-		SimonDistanceCalculator simonCalculator =
-			new SimonDistanceCalculator(callGraph);
-		calculators.add(simonCalculator);
-		return calculators;
+	/**
+	 * Uses a calculator to calculate a
+	 * distance matrix between class members.
+	 * @param memberNames the names of class members
+	 * @param calc the distance calculator to use
+	 * @return the distance matrix
+	 */
+	public DistanceMatrix<String> collectDistances(List<String> memberNames,
+			DistanceCalculatorIfc<String> calc) {
+		DistanceMatrix<String> matrix =
+			new DistanceMatrix<String>(memberNames);
+		matrix.fillMatrix(calc);
+		allDistances.put(calc, matrix);
+		return matrix;
 	}
 
 	/**
@@ -72,5 +74,9 @@ public class DistanceCollector {
 			memberNames.add(node.getSimpleName());
 		}
 		return memberNames;
+	}
+
+	public HashMap<DistanceCalculatorIfc<String>, DistanceMatrix<String>> getAllDistances() {
+		return allDistances;
 	}
 }

@@ -48,7 +48,6 @@ import java.util.Vector;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
@@ -71,7 +70,6 @@ import edu.uci.ics.jung.visualization.VisualizationViewer;
 public class AgglomerativeApplet extends ClusteringGraphApplet
 implements ClusterUIConstants, ParameterConstants {
 	
-	protected static final Dimension BUTTON_SIZE = new Dimension(150, 60);
 	public static final String CALCULATOR_COMBO = "DistanceCombo";
 
 	protected static final long serialVersionUID = 1L;
@@ -81,8 +79,6 @@ implements ClusterUIConstants, ParameterConstants {
 	protected JComboBox calculatorBox = null;
 
 	JPanel southPanel = null;
-    protected JProgressBar progressBar = null;
-	protected JLabel progressLabel = null;
 
 	// protected HashMap<CallGraphNode, Point2D> nodePositions =
 	// new HashMap<CallGraphNode, Point2D>();
@@ -114,7 +110,11 @@ implements ClusterUIConstants, ParameterConstants {
 	private JComboBox createCalculatorCombo() {
 		Vector<String> menuItems = new Vector<String>();
 		for (DistanceCalculatorEnum calc : DistanceCalculatorEnum.values()) {
-			menuItems.add(calc.toString());
+			// TODO reincorporate GoogleDistance when code to handle its
+			// long run-time is in place
+			if ( calc != DistanceCalculatorEnum.GoogleDistance) {
+				menuItems.add(calc.toString());
+			}
 		}
 		JComboBox calculatorBox = new JComboBox(menuItems);
 		String sCalc = parameters.getParameter(
@@ -159,33 +159,9 @@ implements ClusterUIConstants, ParameterConstants {
 		setRenderContextTransformers();
 	}
 
-	protected void activateProgressBar(int limit) {
-		if (progressBar != null) {
-			southPanel.remove(progressBar);
-		}
-		progressBar = new JProgressBar(0, limit);
-		progressBar.setPreferredSize(BUTTON_SIZE);
-		southPanel.add(progressBar);
-		progressBar.setValue(0);
-        progressBar.setStringPainted(true);
-        progressLabel.setVisible(true);
-		southPanel.validate();
-		southPanel.repaint();
-	}
-
-	protected void inactivateProgressBar() {
-		if (progressBar != null) {
-			southPanel.remove(progressBar);
-		}
-		progressBar = null;
-        progressLabel.setVisible(false);
-		southPanel.validate();
-		southPanel.repaint();
-	}
-
 	protected JPanel setUpSouthPanel() {
 		southPanel = new JPanel();
-		JPanel grid = new JPanel(new GridLayout(2, 4));
+		JPanel grid = new JPanel(new GridLayout(1, 4));
 
 		JLabel calcLabel = new JLabel("DistanceCalculator: ");
 		calcLabel.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -198,11 +174,6 @@ implements ClusterUIConstants, ParameterConstants {
 		addChangeListenerToSlider(sliderBorder);
 		grid.add(sliderPanel);
 		southPanel.add(grid);
-
-		progressLabel = new JLabel("Progress:");
-		progressLabel.setVisible(false);
-		progressLabel.setPreferredSize(BUTTON_SIZE);
-		southPanel.add(progressLabel);
 
 		setUpMouseMode();
 		southPanel.validate();

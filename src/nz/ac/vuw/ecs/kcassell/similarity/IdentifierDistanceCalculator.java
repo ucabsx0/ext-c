@@ -122,4 +122,8 @@ implements DistanceCalculatorIfc<String>
 		}
 	}
 
+	public DistanceCalculatorEnum getType() {
+		return DistanceCalculatorEnum.Identifier;
+	}
+
 }

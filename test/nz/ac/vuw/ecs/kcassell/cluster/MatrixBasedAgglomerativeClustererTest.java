@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 
 import junit.framework.TestCase;
+import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
@@ -78,6 +79,10 @@ public class MatrixBasedAgglomerativeClustererTest extends TestCase {
 				}
 				Number num = new Double(sNum);
 				return num;
+			}
+
+			public DistanceCalculatorEnum getType() {
+				return null;
 			}
 	};
 	

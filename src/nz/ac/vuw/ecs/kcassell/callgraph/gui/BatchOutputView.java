@@ -60,10 +60,14 @@ import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
 import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
+import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
+import nz.ac.vuw.ecs.kcassell.similarity.DistanceCollector;
+import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
@@ -74,36 +78,37 @@ import org.eclipse.jdt.core.JavaModelException;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class BatchOutputView implements ActionListener, ParameterConstants {
-	protected static final String AGGLOMERATE_BUTTON_LABEL = "Agglomerate";
-	protected static final String DISCONNECTED_BUTTON_LABEL =
+	private static final String AGGLOMERATE_BUTTON_LABEL = "Agglomerate";
+	private static final String DISCONNECTED_BUTTON_LABEL =
 		"Disconnected Subgraphs";
-//	protected static final String DISCONNECTED_C_BUTTON_LABEL =
+	private static final String DISTANCES_BUTTON_LABEL = "Compute Distances";
+//	private static final String DISCONNECTED_C_BUTTON_LABEL =
 //		"Disconnected (Constrained) Subgraphs";
 	
-	protected static final Dimension BUTTON_SIZE = new Dimension(150, 60);
-	protected static final String  CLASS_SEPARATOR =
+	private static final Dimension BUTTON_SIZE = new Dimension(150, 60);
+	private static final String  CLASS_SEPARATOR =
 		"--------------------------------------\n";
 
-	protected static final String  RUN_SEPARATOR =
+	private static final String  RUN_SEPARATOR =
 		"======================================\n";
 
 	/** The main panel for this view. */
-    protected JSplitPane mainPanel = null;
+    private JSplitPane mainPanel = null;
     
     /** Where descriptive text about the clusters is written. */
     protected JTextArea textArea = null;
 
 	/** The visualization area for agglomerative clustering. */
-    protected JPanel leftPanel = null;
+    private JPanel leftPanel = null;
     
     /** The enclosing application. */
-    protected ExtC app = null;
+    private ExtC app = null;
     
-	protected JLabel progressLabel = null;
-    protected JProgressBar progressBar = null;
+	private JLabel progressLabel = null;
+    private JProgressBar progressBar = null;
 
     /** Accumulates the clustering results. */
-	protected StringBuffer buf = new StringBuffer(RUN_SEPARATOR);
+	private StringBuffer buf = new StringBuffer(RUN_SEPARATOR);
 
     protected static final UtilLogger logger =
     	new UtilLogger("BatchOutputView");
@@ -142,6 +147,10 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		subgraphButton.setPreferredSize(BUTTON_SIZE);
 		subgraphButton.addActionListener(this);
 		leftPanel.add(subgraphButton);
+		JButton distancesButton = new JButton(DISTANCES_BUTTON_LABEL);
+		distancesButton.setPreferredSize(BUTTON_SIZE);
+		distancesButton.addActionListener(this);
+		leftPanel.add(distancesButton);
 //		JButton subgraphConstrainedButton = new JButton(DISCONNECTED_C_BUTTON_LABEL);
 //		subgraphConstrainedButton.setPreferredSize(BUTTON_SIZE);
 //		subgraphConstrainedButton.addActionListener(this);
@@ -168,8 +177,11 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		if (AGGLOMERATE_BUTTON_LABEL.equals(command)) {
 			clusterAllSelections(mainPanel);
 		}
-		else {
+		else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
 			countAllDisconnectedSubgraphs(mainPanel);
+		}
+		else if (DISTANCES_BUTTON_LABEL.equals(command)){
+			collectDistances(mainPanel);
 		}
 		textArea.repaint();
 	}
@@ -189,7 +201,6 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		MetricsView metricsView = app.getMetricsView();
 		String[] classHandles = metricsView.getClassHandles();
 		// "=Weka/<weka.classifiers.meta{MultiClassClassifier.java[MultiClassClassifier";
-		activateProgressBar(classHandles.length);
 
 		int iterations = classHandles.length; // Math.min(20, classHandles.length);
 		activateProgressBar(iterations);
@@ -471,5 +482,122 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 
 		worker.start(); // So we don't hold up the dispatch thread.
 	}
+
+	/**
+	 * Determine the distances between the members for each class.
+	 * @param mainPane the component on which to put the wait cursor
+	 */
+	public void collectDistances(final Component mainPane) {
+		System.out.println("collecting distances...");
+
+		Thread worker = new Thread("CollectDistancesThread") {
+
+			public void run() {
+
+				try {
+					try {
+						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
+						collectDistances();
+					} finally {
+						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+					}
+				} catch (Exception e) {
+					String msg = "Problem while collecting distances: "
+							+ e.getMessage();
+					JOptionPane.showMessageDialog(mainPane, msg,
+							"Error Collecting Distances", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		}; // Thread worker
+
+		worker.start(); // So we don't hold up the dispatch thread.
+	}
+
+	/**
+	 * Collects distance measurements between the members of the
+	 * class visible in the graph view.
+	 */
+	protected void collectDistances() {
+		textArea.append(RUN_SEPARATOR);
+		GraphView graphView = app.getGraphView();
+		JavaCallGraph callGraph = graphView.getGraph();
+
+		if (callGraph == null) {
+			String msg = "Choose a class.";
+			JOptionPane.showMessageDialog(mainPanel, msg,
+				"No class chosen", JOptionPane.WARNING_MESSAGE);
+		} else {
+			List<CallGraphNode> nodes = callGraph.getNodes();
+			List<String> memberNames = getMemberNames(nodes);
+			ArrayList<DistanceCalculatorIfc<String>> calculators =
+				initializeCalculators(callGraph);
+			DistanceCollector collector = new DistanceCollector(calculators);
+			activateProgressBar(calculators.size());
+			int i = 0;
+
+			for (DistanceCalculatorIfc<String> calc : calculators) {
+				long start = System.currentTimeMillis();
+
+				DistanceMatrix<String> matrix =
+					collector.collectDistances(memberNames, calc);
+				textArea.append(calc.getType().toString() +
+						" distances for " + callGraph.getName() + ":\n");
+				textArea.append(matrix.toString());
+				progressBar.setValue(i++);
+				long end = System.currentTimeMillis();
+				textArea.append("Distance calculation above took " + (end - start) + " millis\n");
+			}
+			inactivateProgressBar();
+		}
+	}
+
+	/**
+	 * @param callGraph a dependency graph between class members
+	 * @return a list of calculators that will calculate distances
+	 * between the nodes of the supplied graph
+	 */
+	private ArrayList<DistanceCalculatorIfc<String>> initializeCalculators(
+			JavaCallGraph callGraph) {
+		ArrayList<DistanceCalculatorIfc<String>> calculators =
+			new ArrayList<DistanceCalculatorIfc<String>>();
+		
+		CzibulaDistanceCalculator czibulaCalculator =
+			new CzibulaDistanceCalculator(callGraph);
+		calculators.add(czibulaCalculator);
+		
+		IdentifierGoogleDistanceCalculator googleCalculator = null;
+		try {
+			googleCalculator = new IdentifierGoogleDistanceCalculator();
+			calculators.add(googleCalculator);
+		} catch (Exception e) {
+			String msg = "Unable to initialize GoogleDistanceCalculator:\n" + e;
+			JOptionPane.showMessageDialog(mainPanel, msg,
+				"Error Initializing", JOptionPane.WARNING_MESSAGE);
+		}
+		
+		IntraClassDistanceCalculator intraCalculator =
+			new IntraClassDistanceCalculator(callGraph);
+		calculators.add(intraCalculator);
+		
+		SimonDistanceCalculator simonCalculator =
+			new SimonDistanceCalculator(callGraph);
+		calculators.add(simonCalculator);
+		return calculators;
+	}
+
+	/**
+	 * Collects the member names from the graph's nodes.
+	 * @param nodes
+	 * @return the list of names
+	 */
+	private List<String> getMemberNames(List<CallGraphNode> nodes) {
+		List<String> memberNames = new ArrayList<String>();
+		
+		for (CallGraphNode node : nodes) {
+			memberNames.add(node.getSimpleName());
+		}
+		return memberNames;
+	}
+
 
 }

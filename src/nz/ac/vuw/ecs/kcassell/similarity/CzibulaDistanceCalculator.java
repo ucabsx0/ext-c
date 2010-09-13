@@ -132,4 +132,8 @@ implements DistanceCalculatorIfc<String>
         return distance;
     }
 
+	public DistanceCalculatorEnum getType() {
+		return DistanceCalculatorEnum.Czibula;
+	}
+
 }

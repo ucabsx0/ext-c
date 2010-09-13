@@ -78,4 +78,8 @@ implements DistanceCalculatorIfc<String> {
 		return lDistance;
 	}
 
+	public DistanceCalculatorEnum getType() {
+		return DistanceCalculatorEnum.Levenshtein;
+	}
+
 }

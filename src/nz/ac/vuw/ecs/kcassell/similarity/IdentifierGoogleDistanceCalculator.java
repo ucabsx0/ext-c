@@ -59,4 +59,9 @@ implements DistanceCalculatorIfc<String> {
 		return searchTerm;
 	}
 
+
+	public DistanceCalculatorEnum getType() {
+		return DistanceCalculatorEnum.GoogleDistance;
+	}
+
 }
