@@ -566,7 +566,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		IdentifierGoogleDistanceCalculator googleCalculator = null;
 		try {
 			googleCalculator = new IdentifierGoogleDistanceCalculator();
-			// googleCalculator.clearCache();
+			googleCalculator.clearCache();
 			calculators.add(googleCalculator);
 		} catch (Exception e) {
 			String msg = "Unable to initialize GoogleDistanceCalculator:\n" + e;

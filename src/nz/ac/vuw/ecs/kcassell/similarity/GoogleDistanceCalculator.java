@@ -39,6 +39,7 @@ implements DistanceCalculatorIfc<String> {
 	private static final String YAHOO_SEARCH_SITE_PREFIX =
 		"http://boss.yahooapis.com/ysearch/web/v1/";
 	// + theQueryTerm?appid=YOUR_API_KEY&format=json"
+	// see http://developer.yahoo.com/search/boss/
 	
 	/** The file in the eclipse install directory containing a textual rep.
 	 * of the cache.	 */
@@ -240,7 +241,7 @@ implements DistanceCalculatorIfc<String> {
 	 */
 	private String makeYahooQueryString(String searchTerm) {
 		String urlString = YAHOO_SEARCH_SITE_PREFIX + searchTerm +
-			     "?appid=" + yahooApiKey + "&count=1&format=json";
+			     "?appid=" + yahooApiKey + "&count=0&format=json";
 //		System.out.println(urlString);
 		return urlString;
 	}
