@@ -63,10 +63,6 @@ public interface ParameterConstants {
 	 * values.   */
 	public static final String GRAPH_LAYOUT_KEY = "graphLayout";
 	
-	/** The key for retrieving the parameter specifying whether to filter
-	 * out Object's methods from the graph.	 */
-	public static final String FILTER_KEY = "filterObject";
-	
 	/** The key for retrieving the list of parts of identifiers
 	   that shouldn't be considered properties. */
 	public static final String IDENTIFIER_PARTS_TO_IGNORE_KEY =
@@ -113,6 +109,12 @@ public interface ParameterConstants {
 	
 	/** Key - should inner class members be shown in the graph? */
 	public static final String INCLUDE_INNERS_KEY = "includeInners";
+	
+	/** Key - should fields of type java.util.Logger be shown in the graph? */
+	public static final String INCLUDE_LOGGERS_KEY = "includeLogger";
+	
+	/** Key - should Object's members be shown in the graph? */
+	public static final String INCLUDE_OBJECT_METHODS_KEY = "includeObjectMethods";
 	
 	/** Key - should static members be shown in the graph? */
 	public static final String INCLUDE_STATIC_KEY = "includeStatic";

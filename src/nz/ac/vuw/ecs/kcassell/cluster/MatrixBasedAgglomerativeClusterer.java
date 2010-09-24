@@ -373,7 +373,7 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			DistanceCalculatorIfc<String> calc =
 				setUpSpecifiedCalculator(classHandle);
 			List<String> memberHandles =
-				EclipseUtils.getMemberHandles(classHandle);
+				EclipseUtils.getFilteredMemberHandles(classHandle);
 			MatrixBasedAgglomerativeClusterer clusterer =
 				new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
 

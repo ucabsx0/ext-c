@@ -36,6 +36,8 @@ import java.awt.Cursor;
 
 public interface RefactoringConstants {
 	
+	public static final String LOGGER_CLASS = "java.util.logging.Logger";
+	
 	public static final String PROJECT_ROOT_HOME =
 		"C:/Tools/eclipseWorkspace/ClassRefactoringPlugin/";
 	

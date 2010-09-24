@@ -95,6 +95,8 @@ import edu.uci.ics.jung.visualization.util.Animator;
 public class GraphView 
 implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 {
+	private static final String FALSE = "false";
+	private static final String TRUE = "true";
 	private static final String EDGE_TYPE_COMBO = "EdgeTypeCombo";
 	private static final String LAYOUT_COMBO = "LayoutCombo";
     private static final String SIZING_COMBO = "SizingCombo";
@@ -124,26 +126,30 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
     protected JComboBox sizingBox = null;
 	
 	/** Indicates whether constructors should be included in the graph. */
-    protected JCheckBox constructorsButton = null;
+    protected JCheckBox includeConstructorsButton = null;
 	
 	/** Indicates whether nodes involved in recursive cycles
 	 *  should be condensed. */
-    protected JCheckBox cyclesButton = null;
-	
-	/** Indicates whether methods declared on Object
-	 *  should be filtered. */
-    protected JCheckBox filterObjectButton = null;
+    protected JCheckBox condenseCyclesButton = null;
 	
 	/** Indicates whether inherited members should be included in the graph. */
     protected JCheckBox includeInheritedButton = null;
 	
+	/** Indicates whether methods declared on Object
+	 *  should be filtered. */
+    protected JCheckBox includeObjectMethodsButton = null;
+	
+	/** Indicates whether fields of type java.util.logging.Logger
+	 *  should be filtered. */
+    protected JCheckBox includeLoggerButton = null;
+	
 	/** Indicates whether nodes representing required methods
 	 *  should be condensed. */
-    protected JCheckBox requiredMethodsButton = null;
+    protected JCheckBox condenseRequiredMethodsButton = null;
 
 	/** Indicates whether nodes representing methods inherited from Object 
 	 * should be condensed. */
-    protected JCheckBox objectsMethodsButton = null;
+    protected JCheckBox condenseObjectsMethodsButton = null;
 
 	/** The graph to display. */
     protected JavaCallGraph graph = null;
@@ -206,13 +212,16 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
     	sizingBox = createSizingCombo();
     	sizingBox.addActionListener(this);
     	controlPanel.add(sizingBox);
-        
-    	constructorsButton = new JCheckBox(INCLUDE_CONSTRUCTORS);
+
+    	controlPanel.add(new JSeparator());
+    	controlPanel.add(new JLabel("Include Nodes:"));
+
+    	includeConstructorsButton = new JCheckBox(INCLUDE_CONSTRUCTORS);
     	boolean condenseConstructors =
     		parameters.getBooleanParameter(INCLUDE_CONSTRUCTORS_KEY, false);
-        constructorsButton.setSelected(condenseConstructors);
-        constructorsButton.addItemListener(this);
-        controlPanel.add(constructorsButton);
+        includeConstructorsButton.setSelected(condenseConstructors);
+        includeConstructorsButton.addItemListener(this);
+        controlPanel.add(includeConstructorsButton);
         
     	includeInheritedButton = new JCheckBox(INCLUDE_INHERITED);
     	boolean includeInherited =
@@ -221,38 +230,45 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
         includeInheritedButton.addItemListener(this);
         controlPanel.add(includeInheritedButton);
 
-    	filterObjectButton = new JCheckBox(FILTER_OBJECT);
-    	boolean filterObject =
-    		parameters.getBooleanParameter(FILTER_KEY, false);
-        filterObjectButton.setSelected(filterObject);
-        filterObjectButton.addItemListener(this);
-        controlPanel.add(filterObjectButton);
+    	includeObjectMethodsButton = new JCheckBox(INCLUDE_OBJECT_METHODS);
+    	boolean includeObjectMethods =
+    		parameters.getBooleanParameter(INCLUDE_OBJECT_METHODS_KEY, true);
+        includeObjectMethodsButton.setSelected(includeObjectMethods);
+        includeObjectMethodsButton.addItemListener(this);
+        controlPanel.add(includeObjectMethodsButton);
+
+    	includeLoggerButton = new JCheckBox(INCLUDE_LOGGERS);
+    	boolean includeLogger =
+    		parameters.getBooleanParameter(INCLUDE_LOGGERS_KEY, true);
+        includeLoggerButton.setSelected(includeLogger);
+        includeLoggerButton.addItemListener(this);
+        controlPanel.add(includeLoggerButton);
 
     	controlPanel.add(new JSeparator());
     	controlPanel.add(new JLabel("Condense Nodes:"));
     	
-    	cyclesButton = new JCheckBox(CONDENSE_CYCLES);
+    	condenseCyclesButton = new JCheckBox(CONDENSE_CYCLES);
     	boolean condenseCycles =
     		parameters.getBooleanParameter(CONDENSE_RECURSIVE_CYCLES_KEY, false);
-        cyclesButton.setSelected(condenseCycles);
-        cyclesButton.addItemListener(this);
-        controlPanel.add(cyclesButton);
+        condenseCyclesButton.setSelected(condenseCycles);
+        condenseCyclesButton.addItemListener(this);
+        controlPanel.add(condenseCyclesButton);
         
-        requiredMethodsButton = new JCheckBox(CONDENSE_REQUIRED_METHODS);
+        condenseRequiredMethodsButton = new JCheckBox(CONDENSE_REQUIRED_METHODS);
     	boolean condenseRequired =
     		parameters.getBooleanParameter(CONDENSE_IMPOSED_METHODS_KEY, false);
-    	requiredMethodsButton = new JCheckBox(CONDENSE_REQUIRED_METHODS);
-    	requiredMethodsButton.setSelected(condenseRequired);
-        requiredMethodsButton.addItemListener(this);
-        controlPanel.add(requiredMethodsButton);
+    	condenseRequiredMethodsButton = new JCheckBox(CONDENSE_REQUIRED_METHODS);
+    	condenseRequiredMethodsButton.setSelected(condenseRequired);
+        condenseRequiredMethodsButton.addItemListener(this);
+        controlPanel.add(condenseRequiredMethodsButton);
         
-        objectsMethodsButton = new JCheckBox(CONDENSE_OBJECTS_METHODS);
+        condenseObjectsMethodsButton = new JCheckBox(CONDENSE_OBJECTS_METHODS);
     	boolean condenseObjects =
     		parameters.getBooleanParameter(CONDENSE_OBJECTS_METHODS_KEY, false);
-    	objectsMethodsButton = new JCheckBox(CONDENSE_OBJECTS_METHODS);
-    	objectsMethodsButton.setSelected(condenseObjects);
-        objectsMethodsButton.addItemListener(this);
-        controlPanel.add(objectsMethodsButton);
+    	condenseObjectsMethodsButton = new JCheckBox(CONDENSE_OBJECTS_METHODS);
+    	condenseObjectsMethodsButton.setSelected(condenseObjects);
+        condenseObjectsMethodsButton.addItemListener(this);
+        controlPanel.add(condenseObjectsMethodsButton);
 	}
 
 
@@ -529,45 +545,51 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
         Object source = event.getItemSelectable();
     	ApplicationParameters parameters = app.getApplicationParameters();
 
-		if (source == constructorsButton) {
+		if (source == includeConstructorsButton) {
 			if (event.getStateChange() == ItemEvent.SELECTED) {
-				parameters.setParameter(INCLUDE_CONSTRUCTORS_KEY, "true");
+				parameters.setParameter(INCLUDE_CONSTRUCTORS_KEY, TRUE);
 			} else {
-				parameters.setParameter(INCLUDE_CONSTRUCTORS_KEY, "false");
+				parameters.setParameter(INCLUDE_CONSTRUCTORS_KEY, FALSE);
 			}
-        } else if (source == filterObjectButton) {
+        } else if (source == includeObjectMethodsButton) {
 			if (event.getStateChange() == ItemEvent.SELECTED) {
-				parameters.setParameter(FILTER_KEY, "true");
+				parameters.setParameter(INCLUDE_OBJECT_METHODS_KEY, TRUE);
 			} else {
-				parameters.setParameter(FILTER_KEY, "false");
+				parameters.setParameter(INCLUDE_OBJECT_METHODS_KEY, FALSE);
 			}
-        } else if (source == cyclesButton) {
+        } else if (source == includeLoggerButton) {
+			if (event.getStateChange() == ItemEvent.SELECTED) {
+				parameters.setParameter(INCLUDE_LOGGERS_KEY, TRUE);
+			} else {
+				parameters.setParameter(INCLUDE_LOGGERS_KEY, FALSE);
+			}
+        } else if (source == condenseCyclesButton) {
 			JOptionPane.showMessageDialog(graphPanel,
 					"Recursive cycles not yet implemented",
 					"Not yet implemented", JOptionPane.WARNING_MESSAGE);
         } else if (source == includeInheritedButton) {
 			if (event.getStateChange() == ItemEvent.SELECTED) {
-				parameters.setParameter(INCLUDE_INHERITED_KEY, "true");
+				parameters.setParameter(INCLUDE_INHERITED_KEY, TRUE);
 			} else {
-				parameters.setParameter(INCLUDE_INHERITED_KEY, "false");
+				parameters.setParameter(INCLUDE_INHERITED_KEY, FALSE);
 			}
-		} else if (source == requiredMethodsButton) {
+		} else if (source == condenseRequiredMethodsButton) {
 			if (event.getStateChange() == ItemEvent.SELECTED) {
-				objectsMethodsButton.setVisible(true);
-	    		parameters.setParameter(CONDENSE_IMPOSED_METHODS_KEY, "true");
+				condenseObjectsMethodsButton.setVisible(true);
+	    		parameters.setParameter(CONDENSE_IMPOSED_METHODS_KEY, TRUE);
 			}	// if SELECTED
 			else if (event.getStateChange() == ItemEvent.DESELECTED) {
-	    		parameters.setParameter(CONDENSE_IMPOSED_METHODS_KEY, "false");
-				objectsMethodsButton.setSelected(false);
-				objectsMethodsButton.setVisible(false);
-	    		parameters.setParameter(CONDENSE_OBJECTS_METHODS_KEY, "false");
+	    		parameters.setParameter(CONDENSE_IMPOSED_METHODS_KEY, FALSE);
+				condenseObjectsMethodsButton.setSelected(false);
+				condenseObjectsMethodsButton.setVisible(false);
+	    		parameters.setParameter(CONDENSE_OBJECTS_METHODS_KEY, FALSE);
 			}	// if deselected
-        } else if (source == objectsMethodsButton) {
+        } else if (source == condenseObjectsMethodsButton) {
 			if (event.getStateChange() == ItemEvent.SELECTED) {
-	    		parameters.setParameter(CONDENSE_OBJECTS_METHODS_KEY, "true");
+	    		parameters.setParameter(CONDENSE_OBJECTS_METHODS_KEY, TRUE);
 			}	// if SELECTED
 			else if (event.getStateChange() == ItemEvent.DESELECTED) {
-	    		parameters.setParameter(CONDENSE_OBJECTS_METHODS_KEY, "false");
+	    		parameters.setParameter(CONDENSE_OBJECTS_METHODS_KEY, FALSE);
 			}	// if deselected
         }
 		loadGraph(graph);

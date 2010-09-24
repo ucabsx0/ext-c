@@ -46,9 +46,10 @@ public interface ClusterUIConstants {
 	public static final String CONDENSE_OBJECTS_METHODS = "Methods from Object";
 	public static final String CONDENSE_REQUIRED_METHODS = "Required Methods";
 	public static final String CONDENSE_CYCLES = "Cycles";
-	public static final String FILTER_OBJECT = "Filter Object Methods";
-	public static final String INCLUDE_CONSTRUCTORS = "Include Constructors";
-	public static final String INCLUDE_INHERITED = "Include Inherited Members";
+	public static final String INCLUDE_CONSTRUCTORS = " Constructors";
+	public static final String INCLUDE_INHERITED = " Inherited Members";
+	public static final String INCLUDE_LOGGERS = " Loggers";
+	public static final String INCLUDE_OBJECT_METHODS = " Object Methods";
 	
 	/////// RGB values for various colors
 	public static final int BLACK_RGB = 0;

@@ -43,6 +43,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
@@ -191,12 +192,18 @@ public class EclipseUtils {
 	 * @return a collection of handles
 	 * @throws JavaModelException
 	 */
-	public static List<String> getMemberHandles(String classHandle)
+	public static List<String> getFilteredMemberHandles(String classHandle)
 			throws JavaModelException {
 		//TODO initializers and inner classes too?
 		List<String> memberHandles = new ArrayList<String>();
 		
 		IJavaElement element = JavaCore.create(classHandle);
+		ApplicationParameters params =
+			ApplicationParameters.getSingleton();
+		boolean includeStatic = params.getBooleanParameter(
+				ParameterConstants.INCLUDE_STATIC_KEY, true);
+		boolean includeLoggers = params.getBooleanParameter(
+				ParameterConstants.INCLUDE_LOGGERS_KEY, true);
 
 		if (element == null) {
 			System.err.println("  No element created from " + classHandle);
@@ -205,23 +212,28 @@ public class EclipseUtils {
 			IField[] fields = type.getFields();
 			for (IField field : fields) {
 				if (field != null) {
-					memberHandles.add(field.getHandleIdentifier());
+					String className = field.getDeclaringType().getFullyQualifiedName();
+					int flags = field.getFlags();
+					if ((includeStatic || !Flags.isStatic(flags))
+							&& (includeLoggers
+									|| !RefactoringConstants.LOGGER_CLASS
+									     .equals(className))) {
+						memberHandles.add(field.getHandleIdentifier());
+					}
 				}
 			}
 
-			ApplicationParameters params =
-				ApplicationParameters.getSingleton();
 			boolean includeConstructors = params.getBooleanParameter(
 					ParameterConstants.INCLUDE_CONSTRUCTORS_KEY, false);
-			boolean filterObject = params.getBooleanParameter(
-					ParameterConstants.FILTER_KEY, true);
+			boolean includeObjectMethods = params.getBooleanParameter(
+					ParameterConstants.INCLUDE_OBJECT_METHODS_KEY, true);
 			IMethod[] methods = type.getMethods();
 			
 			// Get all method handles except maybe constructors, Object methods
 			for (IMethod method : methods) {
 				if (method != null) {
 					String methodHandle = method.getHandleIdentifier();
-					if ((!filterObject || !isObjectMethod(methodHandle))
+					if ((includeObjectMethods || !isObjectMethod(methodHandle))
 						 && (includeConstructors || !method.isConstructor())) {
 						memberHandles.add(methodHandle);
 					}
@@ -239,35 +251,45 @@ public class EclipseUtils {
 	 * @return a collection of simple names
 	 * @throws JavaModelException
 	 */
-	public static List<String> getMemberNames(String classHandle)
+	public static List<String> getFilteredMemberNames(String classHandle)
 			throws JavaModelException {
 		List<String> memberNames = new ArrayList<String>();
-		
 		IJavaElement element = JavaCore.create(classHandle);
+		ApplicationParameters params =
+			ApplicationParameters.getSingleton();
 
 		if (element == null) {
 			System.err.println("  No element created from " + classHandle);
 		} else if (element instanceof IType) {
 			IType type = (IType) element;
 			IField[] fields = type.getFields();
+			boolean includeLoggers = params.getBooleanParameter(
+					ParameterConstants.INCLUDE_LOGGERS_KEY, true);
+			boolean includeStatic = params.getBooleanParameter(
+					ParameterConstants.INCLUDE_STATIC_KEY, true);
 
 			for (IField field : fields) {
 				if (field != null) {
-					memberNames.add(field.getElementName());
+					String className = field.getDeclaringType().getFullyQualifiedName();
+					int flags = field.getFlags();
+					if ((includeStatic || !Flags.isStatic(flags))
+							&& (includeLoggers
+									|| !RefactoringConstants.LOGGER_CLASS
+									     .equals(className))) {
+						memberNames.add(field.getElementName());
+					}
 				}
 			}
 
-			ApplicationParameters params =
-				ApplicationParameters.getSingleton();
 			boolean includeConstructors = params.getBooleanParameter(
 					ParameterConstants.INCLUDE_CONSTRUCTORS_KEY, false);
-			boolean filterObject = params.getBooleanParameter(
-					ParameterConstants.FILTER_KEY, true);
+			boolean includeObjectMethods = params.getBooleanParameter(
+					ParameterConstants.INCLUDE_OBJECT_METHODS_KEY, true);
 			IMethod[] methods = type.getMethods();
 			for (IMethod method : methods) {
 				if (method != null) {
 					String methodHandle = method.getHandleIdentifier();
-					if ((!filterObject || !isObjectMethod(methodHandle))
+					if ((includeObjectMethods || !isObjectMethod(methodHandle))
 						 && (includeConstructors || !method.isConstructor())) {
 						memberNames.add(method.getElementName());
 					}

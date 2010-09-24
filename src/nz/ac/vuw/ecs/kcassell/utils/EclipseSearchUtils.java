@@ -62,7 +62,9 @@ import org.eclipse.jdt.core.search.SearchRequestor;
  * their members.
  * @author Keith Cassell
  */
-public class EclipseSearchUtils implements IJavaSearchConstants {
+public class EclipseSearchUtils
+implements IJavaSearchConstants, RefactoringConstants {
+
 
 	/**
 	 * Find all classes that this class accesses.
@@ -147,11 +149,11 @@ public class EclipseSearchUtils implements IJavaSearchConstants {
 
 		if (getInherited) {
 			ApplicationParameters params = ApplicationParameters.getSingleton();
-			boolean filterObject = params.getBooleanParameter(
-					ParameterConstants.FILTER_KEY, true);
+			boolean includeObjectMethods = params.getBooleanParameter(
+					ParameterConstants.INCLUDE_OBJECT_METHODS_KEY, true);
 			IType[] supers = hierarchy.getAllSuperclasses(type);
 			// Determine whether or not to include Object's methods
-			int limit = filterObject ? (supers.length - 1) : supers.length;
+			int limit = !includeObjectMethods ? (supers.length - 1) : supers.length;
 
 			for (int i = 0; i < limit; i++) {
 				IType superType = supers[i];
@@ -177,15 +179,15 @@ public class EclipseSearchUtils implements IJavaSearchConstants {
 			throws JavaModelException {
 		List<IMethod> methods = new ArrayList<IMethod>();
 		ApplicationParameters params = ApplicationParameters.getSingleton();
-		boolean filterObject = params.getBooleanParameter(
-				ParameterConstants.FILTER_KEY, true);
+		boolean includeObjectsMethods = params.getBooleanParameter(
+				ParameterConstants.INCLUDE_OBJECT_METHODS_KEY, true);
 		addDesiredMethods(type, methods);
 
 		if (getInherited) {
 			ITypeHierarchy hierarchy = type.newSupertypeHierarchy(null);
 			IType[] supers = hierarchy.getAllSuperclasses(type);
 			// Determine whether or not to include Object's methods
-			int limit = filterObject ? (supers.length - 1) : supers.length;
+			int limit = !includeObjectsMethods ? (supers.length - 1) : supers.length;
 
 			for (int i = 0; i < limit; i++) {
 				IType superType = supers[i];
@@ -209,6 +211,8 @@ public class EclipseSearchUtils implements IJavaSearchConstants {
 			throws JavaModelException {
 		List<IField> fields = new ArrayList<IField>();
 		addDesiredFields(type, fields);
+
+		ApplicationParameters params = ApplicationParameters.getSingleton();
 
 		if (getInherited) {
 			ITypeHierarchy hierarchy = type.newSupertypeHierarchy(null);
@@ -276,11 +280,16 @@ public class EclipseSearchUtils implements IJavaSearchConstants {
 		ApplicationParameters params = ApplicationParameters.getSingleton();
 		boolean includeStatic = params.getBooleanParameter(
 				ParameterConstants.INCLUDE_STATIC_KEY, true);
+		boolean includeLoggers = params.getBooleanParameter(
+				ParameterConstants.INCLUDE_LOGGERS_KEY, true);
 
 		for (IField field : fields) {
 			if (field != null) {
+				String className = field.getDeclaringType().getFullyQualifiedName();
 				int flags = field.getFlags();
-				if (includeStatic || !Flags.isStatic(flags)) {
+				if ((includeStatic || !Flags.isStatic(flags))
+						&& (includeLoggers
+								|| !LOGGER_CLASS.equals(className))) {
 					members.add(field);
 				}
 			}
@@ -303,13 +312,13 @@ public class EclipseSearchUtils implements IJavaSearchConstants {
 				ParameterConstants.INCLUDE_CONSTRUCTORS_KEY, false);
 		boolean includeStatic = params.getBooleanParameter(
 				ParameterConstants.INCLUDE_STATIC_KEY, true);
-		boolean filterObject = params.getBooleanParameter(
-				ParameterConstants.FILTER_KEY, true);
+		boolean includeObjectMethods = params.getBooleanParameter(
+				ParameterConstants.INCLUDE_OBJECT_METHODS_KEY, true);
 		for (IMethod method : methods) {
 			if (method != null) {
 				String methodHandle = method.getHandleIdentifier();
 				int flags = method.getFlags();
-				if ((!filterObject || !EclipseUtils.isObjectMethod(methodHandle))
+				if ((includeObjectMethods || !EclipseUtils.isObjectMethod(methodHandle))
 						&& (includeConstructors || !method.isConstructor())
 						&& (includeStatic || !Flags.isStatic(flags))
 						) {

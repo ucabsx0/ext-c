@@ -226,7 +226,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					DistanceCalculatorIfc<String> calc =
 						new IntraClassDistanceCalculator(callGraph);
 					List<String> memberHandles = EclipseUtils
-							.getMemberHandles(handle);
+							.getFilteredMemberHandles(handle);
 					MatrixBasedAgglomerativeClusterer clusterer =
 						new MatrixBasedAgglomerativeClusterer(
 							memberHandles, calc);
@@ -239,7 +239,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					try {
 						calc = new IdentifierGoogleDistanceCalculator();
 						List<String> memberHandles =
-							EclipseUtils.getMemberNames(handle);
+							EclipseUtils.getFilteredMemberNames(handle);
 //							EclipseUtils.getMemberHandles(handle);
 						MatrixBasedAgglomerativeClusterer clusterer =
 							new MatrixBasedAgglomerativeClusterer(memberHandles, calc);

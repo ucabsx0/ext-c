@@ -280,7 +280,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	throws JavaModelException {
 		// TODO handles or simple names?
 		List<String> names =
-			EclipseUtils.getMemberNames(callGraph.getHandle());
+			EclipseUtils.getFilteredMemberNames(callGraph.getHandle());
 //			EclipseUtils.getMemberHandles(callGraph.getHandle());
 		MatrixBasedAgglomerativeClusterer clusterer =
 			new MatrixBasedAgglomerativeClusterer(names, calc);

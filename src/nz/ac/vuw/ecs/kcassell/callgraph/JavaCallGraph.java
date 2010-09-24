@@ -695,8 +695,11 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 			ApplicationParameters parameters) throws JavaModelException {
 		//TODO handle inherited members
 		String handle = oldGraph.getHandle();
-	    boolean filterObjectMethods =
-	    	parameters.getBooleanParameter(FILTER_KEY, false);
+	    boolean includeObjectMethods =
+	    	parameters.getBooleanParameter(INCLUDE_OBJECT_METHODS_KEY, true);
+	    // TODO !includeLoggers
+	    boolean includeLoggers =
+	    	parameters.getBooleanParameter(INCLUDE_LOGGERS_KEY, true);
 		boolean condenseImposed =
 			parameters.getBooleanParameter(CONDENSE_IMPOSED_METHODS_KEY, false);
 		boolean condenseObjectsMethods =
@@ -713,7 +716,7 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 				IType type = (IType) element;
 				// Remove Object's methods beforehand, so they don't get
 				// put into the clustered node
-				if (filterObjectMethods) {
+				if (!includeObjectMethods) {
 					JavaCallGraph.removeObjectsMethods(oldGraph);
 				}
 				newGraph = GraphCondenser.condenseRequiredMethods(oldGraph,
@@ -721,7 +724,7 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 			}
 		} else {
 			newGraph = new JavaCallGraph(handle, EdgeType.valueOf(sEdgeType));
-			if (filterObjectMethods) {
+			if (!includeObjectMethods) {
 				JavaCallGraph.removeObjectsMethods(newGraph);
 			}
 		}

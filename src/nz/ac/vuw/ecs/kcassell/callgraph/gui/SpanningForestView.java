@@ -214,7 +214,7 @@ implements ClusterUIConstants, ActionListener {
 			IOException {
 		LevenshteinDistanceCalculator calc = new LevenshteinDistanceCalculator();
 		List<String> memberHandles = EclipseUtils
-				.getMemberHandles(callGraph.getHandle());
+				.getFilteredMemberHandles(callGraph.getHandle());
 		MatrixBasedAgglomerativeClusterer clusterer = new MatrixBasedAgglomerativeClusterer(
 				memberHandles, calc);
 		Forest<String, CallGraphLink> forest = clusterer
@@ -239,7 +239,7 @@ implements ClusterUIConstants, ActionListener {
 			IOException {
 		IdentifierDistanceCalculator calc = new IdentifierDistanceCalculator();
 		List<String> simpleNames = EclipseUtils
-				.getMemberNames(callGraph.getHandle());
+				.getFilteredMemberNames(callGraph.getHandle());
 		MatrixBasedAgglomerativeClusterer clusterer = new MatrixBasedAgglomerativeClusterer(
 				simpleNames, calc);
 		Forest<String, CallGraphLink> forest = clusterer
