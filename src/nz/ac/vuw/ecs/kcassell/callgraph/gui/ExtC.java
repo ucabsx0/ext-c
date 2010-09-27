@@ -256,12 +256,9 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		logger = new UtilLogger("ExtC");
 		applicationParameters = ApplicationParameters.getSingleton();
 		try {
-			String extcProperty = System.getProperty("extc.properties",
-					PROJECT_ROOT + "/extc.properties");
-			logger.info("extcProperty = " + extcProperty);
-			extcProperty = System.getProperty("-Dextc.properties",
-					PROJECT_ROOT + "/extc.properties");
-			logger.info("-Dextc.properties = " + extcProperty);
+//			String extcProperty = System.getProperty("extc.properties",
+//					PROJECT_ROOT + "/extc.properties");
+//			logger.info("extcProperty = " + extcProperty);
 			logger.info("System properties = " + System.getProperties());
 			if (PROPERTIES_FILE == null) {
 				logger.warning("Null PROPERTIES_FILE");
@@ -272,10 +269,18 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 			}
 		} catch (Exception e) {
 			if (logger == null) {
-				System.err.println("No Logger in ExtC!");
+				String msg = "No Logger in ExtC!";
+				System.err.println(msg);
+				JOptionPane.showMessageDialog(frame, msg,
+						"Logger Initialization Problem",
+						JOptionPane.INFORMATION_MESSAGE);
 			} else {
-				logger.warning("Extc() unable to load " + PROPERTIES_FILE
-						+ ": " + e);
+				String msg = "Extc() unable to load " + PROPERTIES_FILE + ": "
+						+ e;
+				logger.warning(msg);
+				JOptionPane.showMessageDialog(frame, msg,
+						"Parameter Initialization Problem",
+						JOptionPane.WARNING_MESSAGE);
 			}
 		}
 		createGUI();

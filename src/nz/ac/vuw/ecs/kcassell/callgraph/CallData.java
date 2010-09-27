@@ -118,7 +118,7 @@ public class CallData implements ParameterConstants {
 		includeInners =
 			params.getBooleanParameter(INCLUDE_INNERS_KEY, false);
 		includeStatics =
-			params.getBooleanParameter(INCLUDE_STATIC_KEY, true);
+			params.getBooleanParameter(INCLUDE_STATICS_KEY, true);
 	}
 
 	/**

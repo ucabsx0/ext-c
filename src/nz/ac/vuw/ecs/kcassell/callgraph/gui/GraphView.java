@@ -143,6 +143,9 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 	 *  should be filtered. */
     protected JCheckBox includeLoggerButton = null;
 	
+	/** Indicates whether static members should be included in the graph. */
+    protected JCheckBox includeStaticsButton = null;
+	
 	/** Indicates whether nodes representing required methods
 	 *  should be condensed. */
     protected JCheckBox condenseRequiredMethodsButton = null;
@@ -189,7 +192,7 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 
     protected void createControlPanel() {
     	controlPanel = new JPanel();
-    	GridLayout gridLayout = new GridLayout(19, 2);
+    	GridLayout gridLayout = new GridLayout(25, 2);
     	controlPanel.setLayout(gridLayout);
     	ApplicationParameters parameters = app.getApplicationParameters();
     	
@@ -217,11 +220,18 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
     	controlPanel.add(new JLabel("Include Nodes:"));
 
     	includeConstructorsButton = new JCheckBox(INCLUDE_CONSTRUCTORS);
-    	boolean condenseConstructors =
+    	boolean includeConstructors =
     		parameters.getBooleanParameter(INCLUDE_CONSTRUCTORS_KEY, false);
-        includeConstructorsButton.setSelected(condenseConstructors);
+        includeConstructorsButton.setSelected(includeConstructors);
         includeConstructorsButton.addItemListener(this);
         controlPanel.add(includeConstructorsButton);
+        
+    	includeStaticsButton = new JCheckBox(INCLUDE_STATIC_MEMBERS);
+    	boolean includeStatics =
+    		parameters.getBooleanParameter(INCLUDE_STATICS_KEY, false);
+        includeStaticsButton.setSelected(includeStatics);
+        includeStaticsButton.addItemListener(this);
+        controlPanel.add(includeStaticsButton);
         
     	includeInheritedButton = new JCheckBox(INCLUDE_INHERITED);
     	boolean includeInherited =
@@ -557,6 +567,12 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 				parameters.setParameter(INCLUDE_CONSTRUCTORS_KEY, TRUE);
 			} else {
 				parameters.setParameter(INCLUDE_CONSTRUCTORS_KEY, FALSE);
+			}
+        } else if (source == includeStaticsButton) {
+			if (event.getStateChange() == ItemEvent.SELECTED) {
+				parameters.setParameter(INCLUDE_STATICS_KEY, TRUE);
+			} else {
+				parameters.setParameter(INCLUDE_STATICS_KEY, FALSE);
 			}
         } else if (source == includeObjectMethodsButton) {
 			if (event.getStateChange() == ItemEvent.SELECTED) {

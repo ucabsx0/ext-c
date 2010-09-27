@@ -98,7 +98,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 
 	private boolean includeLoggers = true;
 
-	private boolean includeStatic = true;
+	private boolean includeStatics = true;
 
 	private boolean condenseImposed = false;
 
@@ -183,7 +183,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 	    	parameters.getBooleanParameter(INCLUDE_OBJECT_METHODS_KEY, true);
 	    includeLoggers =
 	    	parameters.getBooleanParameter(INCLUDE_LOGGERS_KEY, true);
-		includeStatic = parameters.getBooleanParameter(INCLUDE_STATIC_KEY, true);
+		includeStatics = parameters.getBooleanParameter(INCLUDE_STATICS_KEY, true);
 		condenseImposed =
 			parameters.getBooleanParameter(CONDENSE_IMPOSED_METHODS_KEY, false);
 		condenseObjectsMethods =
@@ -546,7 +546,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 				int flags = method.getFlags();
 				if ((includeObjectMethods || !EclipseUtils.isObjectMethod(methodHandle))
 						&& (includeConstructors || !method.isConstructor())
-						&& (includeStatic || !Flags.isStatic(flags))
+						&& (includeStatics || !Flags.isStatic(flags))
 						) {
 					String handle = method.getHandleIdentifier();
 					CallGraphNode node = createNode(handle);
@@ -588,7 +588,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 				String className = attribute.getDeclaringType()
 						.getFullyQualifiedName();
 				int flags = attribute.getFlags();
-				if ((includeStatic || !Flags.isStatic(flags))
+				if ((includeStatics || !Flags.isStatic(flags))
 						&& (includeLoggers || !LOGGER_CLASS.equals(className))) {
 					node.setMemberFlags(flags);
 					IType declaringType = attribute.getDeclaringType();
