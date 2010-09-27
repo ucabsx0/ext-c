@@ -201,7 +201,7 @@ public class EclipseUtils {
 		ApplicationParameters params =
 			ApplicationParameters.getSingleton();
 		boolean includeStatic = params.getBooleanParameter(
-				ParameterConstants.INCLUDE_STATIC_KEY, true);
+				ParameterConstants.INCLUDE_STATICS_KEY, true);
 		boolean includeLoggers = params.getBooleanParameter(
 				ParameterConstants.INCLUDE_LOGGERS_KEY, true);
 
@@ -266,7 +266,7 @@ public class EclipseUtils {
 			boolean includeLoggers = params.getBooleanParameter(
 					ParameterConstants.INCLUDE_LOGGERS_KEY, true);
 			boolean includeStatic = params.getBooleanParameter(
-					ParameterConstants.INCLUDE_STATIC_KEY, true);
+					ParameterConstants.INCLUDE_STATICS_KEY, true);
 
 			for (IField field : fields) {
 				if (field != null) {

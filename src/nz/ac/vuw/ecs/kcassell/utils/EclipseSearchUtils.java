@@ -277,7 +277,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 		//TODO should filtering be here or in the display (or both?)
 		ApplicationParameters params = ApplicationParameters.getSingleton();
 		boolean includeStatic = params.getBooleanParameter(
-				ParameterConstants.INCLUDE_STATIC_KEY, true);
+				ParameterConstants.INCLUDE_STATICS_KEY, true);
 		boolean includeLoggers = params.getBooleanParameter(
 				ParameterConstants.INCLUDE_LOGGERS_KEY, true);
 
@@ -309,7 +309,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 		boolean includeConstructors = params.getBooleanParameter(
 				ParameterConstants.INCLUDE_CONSTRUCTORS_KEY, false);
 		boolean includeStatic = params.getBooleanParameter(
-				ParameterConstants.INCLUDE_STATIC_KEY, true);
+				ParameterConstants.INCLUDE_STATICS_KEY, true);
 		boolean includeObjectMethods = params.getBooleanParameter(
 				ParameterConstants.INCLUDE_OBJECT_METHODS_KEY, true);
 		for (IMethod method : methods) {

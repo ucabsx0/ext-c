@@ -117,7 +117,7 @@ public interface ParameterConstants {
 	public static final String INCLUDE_OBJECT_METHODS_KEY = "includeObjectMethods";
 	
 	/** Key - should static members be shown in the graph? */
-	public static final String INCLUDE_STATIC_KEY = "includeStatic";
+	public static final String INCLUDE_STATICS_KEY = "includeStatic";
 	
 	//////////// Graph colors
 	
