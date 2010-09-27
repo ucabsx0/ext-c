@@ -46,9 +46,11 @@ import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
+import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.apache.commons.collections15.Factory;
 import org.apache.commons.collections15.Transformer;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
@@ -72,7 +74,8 @@ import edu.uci.ics.jung.io.graphml.GraphMetadata;
  * @author Keith
  * 
  */
-public class JavaCallGraph implements Cloneable, ParameterConstants {
+public class JavaCallGraph
+implements Cloneable, ParameterConstants, RefactoringConstants {
 	protected Graph<CallGraphNode, CallGraphLink> jungGraph =
 		new SparseMultigraph<CallGraphNode, CallGraphLink>();
 
@@ -85,11 +88,22 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 		new CallGraphLink.CallGraphLinkFactory();
 
 	/** The type of the link if not otherwise specified. */
-	protected EdgeType defaultEdgeType = EdgeType.UNDIRECTED;
+	private EdgeType defaultEdgeType = EdgeType.UNDIRECTED;
 
-    /** Indicates whether constructors should be included in the graph. */
-    protected boolean includeConstructors = false;
+    /** Indicates whether constructors should be included in the graph.
+     * (Cached parameter value.) */
+    private boolean includeConstructors = true;
     
+	private boolean includeObjectMethods = true;
+
+	private boolean includeLoggers = true;
+
+	private boolean includeStatic = true;
+
+	private boolean condenseImposed = false;
+
+	private boolean condenseObjectsMethods = false;
+
 	/** Keeps track of the correspondence of labels to vertices. */
 	protected HashMap<String, CallGraphNode> labelsToVertices =
 		new HashMap<String, CallGraphNode>();
@@ -117,6 +131,7 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 
 	public JavaCallGraph() {
 		super();
+		getParameters();
 	}
 
 	/**
@@ -129,6 +144,7 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 			HashMap<String, CallGraphNode> labelsToVertices,
 			SettableTransformer<CallGraphNode, String> vertexLabeler) {
 		super();
+		getParameters();
 		this.jungGraph = jungGraph;
 		this.labelsToVertices = labelsToVertices;
 		this.vertexLabeler = vertexLabeler;
@@ -150,15 +166,32 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 	 */
 	public JavaCallGraph(String handle, EdgeType edgeType)
 			throws JavaModelException {
+		getParameters();
 		CallData callData = EclipseUtils.createCallData(handle);
 		this.handle = handle;
-		ApplicationParameters params = ApplicationParameters.getSingleton();
-		includeConstructors =
-			params.getBooleanParameter(INCLUDE_CONSTRUCTORS_KEY, false);
 		IJavaElement element = JavaCore.create(handle);
 		setName(element.getElementName());
 		setDefaultEdgeType(edgeType);
 		processCallData(callData);
+	}
+
+	private void getParameters() {
+		ApplicationParameters parameters = ApplicationParameters.getSingleton();
+		includeConstructors =
+			parameters.getBooleanParameter(INCLUDE_CONSTRUCTORS_KEY, true);
+	    includeObjectMethods =
+	    	parameters.getBooleanParameter(INCLUDE_OBJECT_METHODS_KEY, true);
+	    includeLoggers =
+	    	parameters.getBooleanParameter(INCLUDE_LOGGERS_KEY, true);
+		includeStatic = parameters.getBooleanParameter(INCLUDE_STATIC_KEY, true);
+		condenseImposed =
+			parameters.getBooleanParameter(CONDENSE_IMPOSED_METHODS_KEY, false);
+		condenseObjectsMethods =
+			parameters.getBooleanParameter(CONDENSE_OBJECTS_METHODS_KEY, false);
+		String sEdgeType =
+			parameters.getParameter(EDGE_TYPE_KEY, EdgeType.DIRECTED.toString());
+		defaultEdgeType = EdgeType.valueOf(sEdgeType);
+		//TODO consider synchronized as a grouping mechanism
 	}
 
 
@@ -212,13 +245,6 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 		this.defaultEdgeType = defaultEdgeType;
 	}
 
-	/**
-	 * @return the includeConstructors
-	 */
-	public boolean isIncludeConstructors() {
-		return includeConstructors;
-	}
-
     /**
      * Returns an identifier for the graph - usually the Eclipse
      * handle, but possibly the name or the hash code.
@@ -236,13 +262,6 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 		}
 		return graphId;
     }
-
-	/**
-	 * @param includeConstructors the includeConstructors to set
-	 */
-	public void setIncludeConstructors(boolean includeConstructors) {
-		this.includeConstructors = includeConstructors;
-	}
 
 	public String getVertexLabel(CallGraphNode vertex) {
 		String vertexLabel = vertexLabeler.transform(vertex);
@@ -523,7 +542,12 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 			IType type) {
 		for (IMethod method : methods) {
 			try {
-				if (!method.isConstructor() || includeConstructors) {
+				String methodHandle = method.getHandleIdentifier();
+				int flags = method.getFlags();
+				if ((includeObjectMethods || !EclipseUtils.isObjectMethod(methodHandle))
+						&& (includeConstructors || !method.isConstructor())
+						&& (includeStatic || !Flags.isStatic(flags))
+						) {
 					String handle = method.getHandleIdentifier();
 					CallGraphNode node = createNode(handle);
 					node.setSimpleName(method.getElementName());
@@ -561,14 +585,21 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 			node.setSimpleName(attribute.getElementName());
 			node.setNodeType(NodeType.FIELD);
 			try {
-				node.setMemberFlags(attribute.getFlags());
-				IType declaringType = attribute.getDeclaringType();
-				
-				if (type != null  && declaringType != null) {
-					if (EclipseSearchUtils.hasSupertype(type, declaringType)) {
-						node.setInherited(true);
-					} else if (!type.equals(declaringType)) {
-						node.setInner(true);
+				String className = attribute.getDeclaringType()
+						.getFullyQualifiedName();
+				int flags = attribute.getFlags();
+				if ((includeStatic || !Flags.isStatic(flags))
+						&& (includeLoggers || !LOGGER_CLASS.equals(className))) {
+					node.setMemberFlags(flags);
+					IType declaringType = attribute.getDeclaringType();
+
+					if (type != null && declaringType != null) {
+						if (EclipseSearchUtils
+								.hasSupertype(type, declaringType)) {
+							node.setInherited(true);
+						} else if (!type.equals(declaringType)) {
+							node.setInner(true);
+						}
 					}
 				}
 			} catch (JavaModelException e) {
@@ -663,11 +694,9 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 	/**
 	 * Removes methods from the graph that were inherited from Object
 	 * (clone, equals, hashCode, toString)
-	 * @param callGraph
 	 */
-	public static void removeObjectsMethods(JavaCallGraph callGraph) {
-		Graph<CallGraphNode, CallGraphLink> jungGraph = callGraph
-				.getJungGraph();
+	void removeObjectsMethods() {
+		Graph<CallGraphNode, CallGraphLink> jungGraph = getJungGraph();
 		Collection<CallGraphNode> vertices = jungGraph.getVertices();
 		ArrayList<CallGraphNode> toRemove = new ArrayList<CallGraphNode>();
 	
@@ -691,24 +720,12 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 	 * @return the new graph, after the parameters were applied
 	 * @throws JavaModelException 
 	 */
-	public static JavaCallGraph getAltGraphUsingParams(JavaCallGraph oldGraph,
-			ApplicationParameters parameters) throws JavaModelException {
+	public JavaCallGraph getAltGraphUsingParams()
+	throws JavaModelException {
 		//TODO handle inherited members
-		String handle = oldGraph.getHandle();
-	    boolean includeObjectMethods =
-	    	parameters.getBooleanParameter(INCLUDE_OBJECT_METHODS_KEY, true);
-	    // TODO !includeLoggers
-	    boolean includeLoggers =
-	    	parameters.getBooleanParameter(INCLUDE_LOGGERS_KEY, true);
-		boolean condenseImposed =
-			parameters.getBooleanParameter(CONDENSE_IMPOSED_METHODS_KEY, false);
-		boolean condenseObjectsMethods =
-			parameters.getBooleanParameter(CONDENSE_OBJECTS_METHODS_KEY, false);
-		String sEdgeType =
-			parameters.getParameter(EDGE_TYPE_KEY, EdgeType.DIRECTED.toString());
-		//TODO consider synchronized as a grouping mechanism
-		String graphName = oldGraph.getName();
-		JavaCallGraph newGraph = oldGraph;
+		String handle = getHandle();
+		String graphName = getName();
+		JavaCallGraph newGraph = this;
 		
 		if (condenseImposed) {
 			IJavaElement element = JavaCore.create(handle);
@@ -717,16 +734,17 @@ public class JavaCallGraph implements Cloneable, ParameterConstants {
 				// Remove Object's methods beforehand, so they don't get
 				// put into the clustered node
 				if (!includeObjectMethods) {
-					JavaCallGraph.removeObjectsMethods(oldGraph);
+					removeObjectsMethods();
 				}
-				newGraph = GraphCondenser.condenseRequiredMethods(oldGraph,
+				newGraph = GraphCondenser.condenseRequiredMethods(this,
 						type, condenseObjectsMethods);
+				//TODO handle inherited
 			}
 		} else {
-			newGraph = new JavaCallGraph(handle, EdgeType.valueOf(sEdgeType));
-			if (!includeObjectMethods) {
-				JavaCallGraph.removeObjectsMethods(newGraph);
-			}
+			newGraph = new JavaCallGraph(handle, defaultEdgeType);
+//			if (!includeObjectMethods) {
+//				newGraph.removeObjectsMethods();
+//			}
 		}
 		newGraph.setName(graphName);
 		return newGraph;

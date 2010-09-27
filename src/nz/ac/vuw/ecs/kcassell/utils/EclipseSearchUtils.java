@@ -212,8 +212,6 @@ implements IJavaSearchConstants, RefactoringConstants {
 		List<IField> fields = new ArrayList<IField>();
 		addDesiredFields(type, fields);
 
-		ApplicationParameters params = ApplicationParameters.getSingleton();
-
 		if (getInherited) {
 			ITypeHierarchy hierarchy = type.newSupertypeHierarchy(null);
 			IType[] supers = hierarchy.getAllSuperclasses(type);

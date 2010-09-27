@@ -189,7 +189,7 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 
     protected void createControlPanel() {
     	controlPanel = new JPanel();
-    	GridLayout gridLayout = new GridLayout(15, 2);
+    	GridLayout gridLayout = new GridLayout(19, 2);
     	controlPanel.setLayout(gridLayout);
     	ApplicationParameters parameters = app.getApplicationParameters();
     	
@@ -473,8 +473,15 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
     {
         graph = callGraph;
     	ApplicationParameters parameters = app.getApplicationParameters();
+
+        // TODO be smarter about when to create new graphs vs. relayout
     	try {
-    		graph = JavaCallGraph.getAltGraphUsingParams(callGraph, parameters);
+        	String sEdgeType =
+        		parameters.getParameter(EDGE_TYPE_KEY, EdgeType.DIRECTED.toString());
+        	EdgeType edgeType = EdgeType.valueOf(sEdgeType);
+            String handle = callGraph.getHandle();
+    		graph = new JavaCallGraph(handle, edgeType);
+    		// graph = callGraph.getAltGraphUsingParams();
 		} catch (Exception e) {
 			String msg =
 				"Unable to modify graph using parameters: " + e.getMessage();
