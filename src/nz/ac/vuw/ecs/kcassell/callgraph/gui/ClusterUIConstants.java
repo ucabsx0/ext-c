@@ -48,6 +48,7 @@ public interface ClusterUIConstants {
 	public static final String CONDENSE_CYCLES = "Cycles";
 	public static final String INCLUDE_CONSTRUCTORS = " Constructors";
 	public static final String INCLUDE_INHERITED = " Inherited Members";
+	public static final String INCLUDE_INNERS = " Inner Class Members";
 	public static final String INCLUDE_LOGGERS = " Loggers";
 	public static final String INCLUDE_OBJECT_METHODS = " Object Methods";
 	public static final String INCLUDE_STATIC_MEMBERS = " Object Methods";

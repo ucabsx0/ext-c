@@ -135,6 +135,9 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 	/** Indicates whether inherited members should be included in the graph. */
     protected JCheckBox includeInheritedButton = null;
 	
+	/** Indicates whether inner class members should be included in the graph. */
+    protected JCheckBox includeInnersButton = null;
+	
 	/** Indicates whether methods declared on Object
 	 *  should be filtered. */
     protected JCheckBox includeObjectMethodsButton = null;
@@ -240,12 +243,12 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
         includeInheritedButton.addItemListener(this);
         controlPanel.add(includeInheritedButton);
 
-    	includeObjectMethodsButton = new JCheckBox(INCLUDE_OBJECT_METHODS);
-    	boolean includeObjectMethods =
-    		parameters.getBooleanParameter(INCLUDE_OBJECT_METHODS_KEY, true);
-        includeObjectMethodsButton.setSelected(includeObjectMethods);
-        includeObjectMethodsButton.addItemListener(this);
-        controlPanel.add(includeObjectMethodsButton);
+    	includeInnersButton = new JCheckBox(INCLUDE_INNERS);
+    	boolean includeInners =
+    		parameters.getBooleanParameter(INCLUDE_INNERS_KEY, false);
+        includeInnersButton.setSelected(includeInners);
+        includeInnersButton.addItemListener(this);
+        controlPanel.add(includeInnersButton);
 
     	includeLoggerButton = new JCheckBox(INCLUDE_LOGGERS);
     	boolean includeLogger =
@@ -253,6 +256,13 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
         includeLoggerButton.setSelected(includeLogger);
         includeLoggerButton.addItemListener(this);
         controlPanel.add(includeLoggerButton);
+
+    	includeObjectMethodsButton = new JCheckBox(INCLUDE_OBJECT_METHODS);
+    	boolean includeObjectMethods =
+    		parameters.getBooleanParameter(INCLUDE_OBJECT_METHODS_KEY, true);
+        includeObjectMethodsButton.setSelected(includeObjectMethods);
+        includeObjectMethodsButton.addItemListener(this);
+        controlPanel.add(includeObjectMethodsButton);
 
     	controlPanel.add(new JSeparator());
     	controlPanel.add(new JLabel("Condense Nodes:"));
@@ -595,6 +605,12 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 				parameters.setParameter(INCLUDE_INHERITED_KEY, TRUE);
 			} else {
 				parameters.setParameter(INCLUDE_INHERITED_KEY, FALSE);
+			}
+        } else if (source == includeInnersButton) {
+			if (event.getStateChange() == ItemEvent.SELECTED) {
+				parameters.setParameter(INCLUDE_INNERS_KEY, TRUE);
+			} else {
+				parameters.setParameter(INCLUDE_INNERS_KEY, FALSE);
 			}
 		} else if (source == condenseRequiredMethodsButton) {
 			if (event.getStateChange() == ItemEvent.SELECTED) {
