@@ -51,7 +51,7 @@ public interface ClusterUIConstants {
 	public static final String INCLUDE_INNERS = " Inner Class Members";
 	public static final String INCLUDE_LOGGERS = " Loggers";
 	public static final String INCLUDE_OBJECT_METHODS = " Object Methods";
-	public static final String INCLUDE_STATIC_MEMBERS = " Object Methods";
+	public static final String INCLUDE_STATIC_MEMBERS = " Static Members";
 	
 	/////// RGB values for various colors
 	public static final int BLACK_RGB = 0;
