@@ -500,8 +500,8 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
         		parameters.getParameter(EDGE_TYPE_KEY, EdgeType.DIRECTED.toString());
         	EdgeType edgeType = EdgeType.valueOf(sEdgeType);
             String handle = callGraph.getHandle();
-    		graph = new JavaCallGraph(handle, edgeType);
-    		// graph = callGraph.getAltGraphUsingParams();
+    		//graph = new JavaCallGraph(handle, edgeType);
+    		graph = callGraph.getAltGraphUsingParams();
 		} catch (Exception e) {
 			String msg =
 				"Unable to modify graph using parameters: " + e.getMessage();
