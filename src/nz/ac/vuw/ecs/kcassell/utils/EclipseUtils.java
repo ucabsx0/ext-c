@@ -233,7 +233,7 @@ public class EclipseUtils {
 			for (IMethod method : methods) {
 				if (method != null) {
 					String methodHandle = method.getHandleIdentifier();
-					if ((includeObjectMethods || !isObjectMethod(methodHandle))
+					if ((includeObjectMethods || !isRedefinedObjectMethod(methodHandle))
 						 && (includeConstructors || !method.isConstructor())) {
 						memberHandles.add(methodHandle);
 					}
@@ -289,7 +289,7 @@ public class EclipseUtils {
 			for (IMethod method : methods) {
 				if (method != null) {
 					String methodHandle = method.getHandleIdentifier();
-					if ((includeObjectMethods || !isObjectMethod(methodHandle))
+					if ((includeObjectMethods || !isRedefinedObjectMethod(methodHandle))
 						 && (includeConstructors || !method.isConstructor())) {
 						memberNames.add(method.getElementName());
 					}
@@ -352,8 +352,9 @@ public class EclipseUtils {
 	 * @param handle the Eclipse handle
 	 * @return true if an Object method; false otherwise
 	 */
-	public static boolean isObjectMethod(String handle) {
+	public static boolean isRedefinedObjectMethod(String handle) {
 		boolean result =
+//			handle.indexOf("java.lang(Object.") > -1;
 			handle.endsWith("~hashCode")
 			|| handle.endsWith("~equals~QObject;")
 			|| handle.endsWith("~clone")

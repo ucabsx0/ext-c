@@ -544,7 +544,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 			try {
 				String methodHandle = method.getHandleIdentifier();
 				int flags = method.getFlags();
-				if ((includeObjectMethods || !EclipseUtils.isObjectMethod(methodHandle))
+				if ((includeObjectMethods || !EclipseUtils.isRedefinedObjectMethod(methodHandle))
 						&& (includeConstructors || !method.isConstructor())
 						&& (includeStatics || !Flags.isStatic(flags))
 						) {
@@ -581,15 +581,15 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 		// Create a node for each attribute
 		for (IField attribute : attributes) {
 			String handle = attribute.getHandleIdentifier();
-			CallGraphNode node = createNode(handle);
-			node.setSimpleName(attribute.getElementName());
-			node.setNodeType(NodeType.FIELD);
 			try {
-				String className = attribute.getDeclaringType()
-						.getFullyQualifiedName();
+				String className = attribute.getTypeSignature();
+				//getDeclaringType().getFullyQualifiedName();
 				int flags = attribute.getFlags();
 				if ((includeStatics || !Flags.isStatic(flags))
-						&& (includeLoggers || !LOGGER_CLASS.equals(className))) {
+						&& (includeLoggers || (className.indexOf("Logger") < 0))) {
+					CallGraphNode node = createNode(handle);
+					node.setSimpleName(attribute.getElementName());
+					node.setNodeType(NodeType.FIELD);
 					node.setMemberFlags(flags);
 					IType declaringType = attribute.getDeclaringType();
 
@@ -703,7 +703,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 		for (CallGraphNode node : vertices) {
 			String label = node.getLabel();
 			
-			if (EclipseUtils.isObjectMethod(label)) {
+			if (EclipseUtils.isRedefinedObjectMethod(label)) {
 				toRemove.add(node);
 			}
 		}
@@ -723,9 +723,11 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 	public JavaCallGraph getAltGraphUsingParams()
 	throws JavaModelException {
 		//TODO handle inherited members
+		getParameters();
 		String handle = getHandle();
 		String graphName = getName();
-		JavaCallGraph newGraph = this;
+		JavaCallGraph newGraph = new JavaCallGraph(handle, defaultEdgeType);
+
 		
 		if (condenseImposed) {
 			IJavaElement element = JavaCore.create(handle);
@@ -736,12 +738,12 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 				if (!includeObjectMethods) {
 					removeObjectsMethods();
 				}
-				newGraph = GraphCondenser.condenseRequiredMethods(this,
+				newGraph = GraphCondenser.condenseRequiredMethods(newGraph,
 						type, condenseObjectsMethods);
 				//TODO handle inherited
 			}
 		} else {
-			newGraph = new JavaCallGraph(handle, defaultEdgeType);
+//			newGraph = new JavaCallGraph(handle, defaultEdgeType);
 //			if (!includeObjectMethods) {
 //				newGraph.removeObjectsMethods();
 //			}

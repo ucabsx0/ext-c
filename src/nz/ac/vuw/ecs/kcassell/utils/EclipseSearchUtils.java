@@ -316,7 +316,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 			if (method != null) {
 				String methodHandle = method.getHandleIdentifier();
 				int flags = method.getFlags();
-				if ((includeObjectMethods || !EclipseUtils.isObjectMethod(methodHandle))
+				if ((includeObjectMethods || !EclipseUtils.isRedefinedObjectMethod(methodHandle))
 						&& (includeConstructors || !method.isConstructor())
 						&& (includeStatic || !Flags.isStatic(flags))
 						) {

@@ -43,9 +43,9 @@ public interface ClusterUIConstants {
 			new Color(100, 140, 255), new Color(60, 220, 220),
 			new Color(30, 250, 100) };
 
+	public static final String CONDENSE_CYCLES = "Cycles";
 	public static final String CONDENSE_OBJECTS_METHODS = "Methods from Object";
 	public static final String CONDENSE_REQUIRED_METHODS = "Required Methods";
-	public static final String CONDENSE_CYCLES = "Cycles";
 	public static final String INCLUDE_CONSTRUCTORS = " Constructors";
 	public static final String INCLUDE_INHERITED = " Inherited Members";
 	public static final String INCLUDE_INNERS = " Inner Class Members";
