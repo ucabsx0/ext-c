@@ -496,11 +496,6 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 
         // TODO be smarter about when to create new graphs vs. relayout
     	try {
-        	String sEdgeType =
-        		parameters.getParameter(EDGE_TYPE_KEY, EdgeType.DIRECTED.toString());
-        	EdgeType edgeType = EdgeType.valueOf(sEdgeType);
-            String handle = callGraph.getHandle();
-    		//graph = new JavaCallGraph(handle, edgeType);
     		graph = callGraph.getAltGraphUsingParams();
 		} catch (Exception e) {
 			String msg =

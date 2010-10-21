@@ -725,9 +725,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 		//TODO handle inherited members
 		getParameters();
 		String handle = getHandle();
-		String graphName = getName();
 		JavaCallGraph newGraph = new JavaCallGraph(handle, defaultEdgeType);
-
 		
 		if (condenseImposed) {
 			IJavaElement element = JavaCore.create(handle);
@@ -742,14 +740,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 						type, condenseObjectsMethods);
 				//TODO handle inherited
 			}
-		} else {
-//			newGraph = new JavaCallGraph(handle, defaultEdgeType);
-//			if (!includeObjectMethods) {
-//				newGraph.removeObjectsMethods();
-//			}
-		}
-		newGraph.setName(graphName);
-		return newGraph;
+		}		return newGraph;
 	}
 
 }
