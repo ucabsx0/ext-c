@@ -411,8 +411,12 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 */
 	protected JavaCallGraph getGraphFromHandle(
 			String classHandle) throws JavaModelException {
-		JavaCallGraph callGraph =
-			new JavaCallGraph(classHandle, EdgeType.DIRECTED);
+		// A temporary graph to use for calling getAltGraphUsingParams
+		JavaCallGraph callGraph = new JavaCallGraph();
+//			new JavaCallGraph(classHandle, EdgeType.DIRECTED);
+		callGraph.setHandle(classHandle);
+		callGraph.setDefaultEdgeType(EdgeType.DIRECTED);
+		callGraph = callGraph.getAltGraphUsingParams();
 		return callGraph;
 	}
 
