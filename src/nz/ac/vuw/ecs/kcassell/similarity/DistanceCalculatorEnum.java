@@ -39,6 +39,7 @@ package nz.ac.vuw.ecs.kcassell.similarity;
  *
  */
 public enum DistanceCalculatorEnum {
+	Betweenness,
 	Czibula,
 	GoogleDistance,
 	Identifier,

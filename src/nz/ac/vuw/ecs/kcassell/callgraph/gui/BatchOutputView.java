@@ -77,11 +77,18 @@ import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class BatchOutputView implements ActionListener, ParameterConstants {
 	private static final String AGGLOMERATE_BUTTON_LABEL = "Agglomerate";
+
+	/** The label used for the button to initiate a count of the
+	 * number of disconnected subgraphs.  */
 	private static final String DISCONNECTED_BUTTON_LABEL =
 		"Disconnected Subgraphs";
+
+	/** The label used for the button to initiate a count of the
+	 * number of disconnected subgraphs after a single split based
+	 * on betweenness clustering.  */
+	private static final String DISCONNECTED1_BUTTON_LABEL =
+		"Disconnected Subgraphs (1 Split)";
 	private static final String DISTANCES_BUTTON_LABEL = "Compute Distances";
-//	private static final String DISCONNECTED_C_BUTTON_LABEL =
-//		"Disconnected (Constrained) Subgraphs";
 	
 	private static final Dimension BUTTON_SIZE = new Dimension(150, 60);
 	private static final String  CLASS_SEPARATOR =
@@ -145,14 +152,14 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		subgraphButton.setPreferredSize(BUTTON_SIZE);
 		subgraphButton.addActionListener(this);
 		leftPanel.add(subgraphButton);
+		JButton subgraph1Button = new JButton(DISCONNECTED1_BUTTON_LABEL);
+		subgraph1Button.setPreferredSize(BUTTON_SIZE);
+		subgraph1Button.addActionListener(this);
+		leftPanel.add(subgraph1Button);
 		JButton distancesButton = new JButton(DISTANCES_BUTTON_LABEL);
 		distancesButton.setPreferredSize(BUTTON_SIZE);
 		distancesButton.addActionListener(this);
 		leftPanel.add(distancesButton);
-//		JButton subgraphConstrainedButton = new JButton(DISCONNECTED_C_BUTTON_LABEL);
-//		subgraphConstrainedButton.setPreferredSize(BUTTON_SIZE);
-//		subgraphConstrainedButton.addActionListener(this);
-//		leftPanel.add(subgraphConstrainedButton);
 		progressLabel = new JLabel("Progress:");
 		progressLabel.setVisible(false);
 		progressLabel.setPreferredSize(BUTTON_SIZE);
@@ -177,6 +184,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		}
 		else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
 			countAllDisconnectedSubgraphs(mainPanel);
+		}
+		else if (DISCONNECTED1_BUTTON_LABEL.equals(command)) {
+			clusterAllSelections(mainPanel);
 		}
 		else if (DISTANCES_BUTTON_LABEL.equals(command)){
 			collectDistances(mainPanel);
@@ -252,6 +262,14 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 							"Error Clustering", JOptionPane.WARNING_MESSAGE);
 					}
 				}
+			} else if (ClustererEnum.BETWEENNESS.toString()
+					.equalsIgnoreCase(sClusterer)) {
+				Collection<CallGraphNode> clusters =
+					clusterUsingBetweenness(callGraph);
+				buf.append("Final clusters for " + callGraph.getName());
+				appendClusterSizes(clusters);
+				String sClusters = toOutputString(clusters);
+				buf.append(":\n" + sClusters);
 			} else if (ClustererEnum.MIXED_MODE.toString()
 					.equalsIgnoreCase(sClusterer)) {
 				Collection<CallGraphNode> clusters =
@@ -290,6 +308,43 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		}
 		buf.delete(buf.length()-2, buf.length()); // omit last ", "
 		buf.append(")");
+	}
+
+	/**
+	 * Cluster using the BetweennessClusterer.
+	 * @param callGraph
+	 * @throws JavaModelException
+	 */
+	public static Collection<CallGraphNode> clusterUsingBetweenness(JavaCallGraph callGraph)
+	throws JavaModelException {
+		JavaCallGraph undirectedGraph =
+			JavaCallGraph.toUndirectedGraph(callGraph);
+		BetweennessClusterer clusterer = new BetweennessClusterer(undirectedGraph);
+
+		// Get intial group sizes, without clustering
+		Collection<CallGraphNode> clusters = clusterer.cluster(0);
+		List<Integer> sizes =
+			CallGraphCluster.getClusterSizes(clusters);
+		Collections.sort(sizes);
+		int clusterCount = sizes.size();
+		
+		// If there are disconnected groups before clustering, check their
+		// sizes
+		if (clusterCount > 1) {
+			Integer largest2 = sizes.get(clusterCount - 2);
+			
+			// If the second largest cluster is above the threshold for new
+			// class size, do no more.  
+			if (largest2 < 7) { 
+				clusters = clusterer.cluster();
+			}
+		} else { // Break up the single group
+			clusters = clusterer.cluster();
+		}
+		ArrayList<CallGraphNode> nodeClusters =
+			new ArrayList<CallGraphNode>(clusters);
+		Collections.sort(nodeClusters, BetweennessClusterer.getSizeComparator());
+		return nodeClusters;
 	}
 
 	/**
@@ -455,9 +510,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	/**
 	 * Determine the disconnected subgraphs for each class and print the sizes
 	 * of them.
-	 * @param mainPane the component on which to put the wait cursor
+	 * @param component the component on which to put the wait cursor
 	 */
-	public void countAllDisconnectedSubgraphs(final Component mainPane) {
+	public void countAllDisconnectedSubgraphs(final Component component) {
 		System.out.println("counting subgraphs...");
 
 		Thread worker = new Thread("SubgraphsThread") {
@@ -466,15 +521,15 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 
 				try {
 					try {
-						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
+						component.setCursor(RefactoringConstants.WAIT_CURSOR);
 						countDisconnectedSubgraphs();
 					} finally {
-						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+						component.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 					}
 				} catch (Exception e) {
 					String msg = "Problem while counting subgraphs: "
 							+ e.getMessage();
-					JOptionPane.showMessageDialog(mainPane, msg,
+					JOptionPane.showMessageDialog(component, msg,
 							"Error Clustering", JOptionPane.WARNING_MESSAGE);
 				}
 			}

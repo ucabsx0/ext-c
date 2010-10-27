@@ -42,6 +42,7 @@ import java.util.TreeSet;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
+import nz.ac.vuw.ecs.kcassell.callgraph.ClusterSizeComparator;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.callgraph.ScoreComparator;
 import nz.ac.vuw.ecs.kcassell.callgraph.ScoreType;
@@ -67,8 +68,16 @@ public class BetweennessClusterer implements ClustererIfc<CallGraphNode> {
 	/** The edges removed (in order) thus far. */
 	private List<CallGraphLink> edgesRemoved = null;
 
+	/** A comparator for sorting clusters by size. */
+	private static ClusterSizeComparator sizeComparator =
+		new ClusterSizeComparator();
+	
 	private static UtilLogger utilLogger =
 		new UtilLogger("BetweennessCalculator");
+
+	{
+		sizeComparator.setAscending(false);
+	}
 
 	public BetweennessClusterer(JavaCallGraph callGraph) {
 		this.callGraph = callGraph;
@@ -90,6 +99,10 @@ public class BetweennessClusterer implements ClustererIfc<CallGraphNode> {
 		return edgesRemoved;
 	}
 
+	public static ClusterSizeComparator getSizeComparator() {
+		return sizeComparator;
+	}
+
 	/**
 	 * Form the number of new clusters specified by the
 	 *  user preferences/parameters (or 1 if not specified).
@@ -97,11 +110,8 @@ public class BetweennessClusterer implements ClustererIfc<CallGraphNode> {
 	 */
 	public Collection<CallGraphNode> cluster() {
         Graph<CallGraphNode, CallGraphLink> jungGraph = callGraph.getJungGraph();
-//        BetweennessClusterer clusterer = new BetweennessClusterer(callGraph); //TODO why create a new clusterer?
         int numEdgesToRemove = 0;
         Collection<CallGraphNode> clusters = cluster(numEdgesToRemove);
-//        Collection<CallGraphNode> clusters = clusterer.cluster(numEdgesToRemove);
-//        logger.info("Original clusters = " + clusters);
         int origClusterCount = clusters.size();
         int lastClusterCount = origClusterCount;
 //    	List<Integer> sizes = CallGraphCluster.getClusterSizes(clusters);
@@ -116,7 +126,6 @@ public class BetweennessClusterer implements ClustererIfc<CallGraphNode> {
         {
             numEdgesToRemove++;
             clusters = cluster(numEdgesToRemove);
-//            clusters = clusterer.cluster(numEdgesToRemove);
             
             // When a new cluster is produced, update the output
             if (clusters.size() > lastClusterCount)
