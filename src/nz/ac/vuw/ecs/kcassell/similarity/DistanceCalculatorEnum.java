@@ -46,5 +46,6 @@ public enum DistanceCalculatorEnum {
 	IntraClass,
 	Levenshtein,
 //	MixedMode,
-	Simon
+	Simon,
+	VectorSpaceModel
 }
