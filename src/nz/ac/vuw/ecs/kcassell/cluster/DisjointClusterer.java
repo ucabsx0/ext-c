@@ -75,7 +75,7 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 		originalSeed2 = seed2;
 		try {
 			distanceCalculator = setUpSpecifiedCalculator(classHandle);
-		} catch (JavaModelException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			distanceCalculator = setUpLevenshteinClustering();

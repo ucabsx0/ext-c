@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,6 +50,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
@@ -98,6 +100,14 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 
     protected static final UtilLogger logger =
     	new UtilLogger("MatrixBasedAgglomerativeClusterer");
+    
+    /**
+     * The name of the file that contains
+	 * one member per line.  The first token is the member handle, and the 
+	 * remaining tokens are the stemmed words found in identifiers and comments.
+     */
+    private static String vectorSpaceModelInputFile = null;
+    // TODO this is temporary until we create the vsm inputs at run time
 
     /**
      * For use by subclasses.
@@ -149,6 +159,14 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	 */
 	public Collection<String> getClusters() {
 		return distanceMatrix.getHeaders();
+	}
+
+	public static String getVectorSpaceModelInputFile() {
+		return vectorSpaceModelInputFile;
+	}
+
+	public static void setVectorSpaceModelInputFile(String vectorSpaceModelInputFile) {
+		MatrixBasedAgglomerativeClusterer.vectorSpaceModelInputFile = vectorSpaceModelInputFile;
 	}
 
 	/**
@@ -379,7 +397,7 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 
 			cluster = clusterer.getSingleCluster();
 			System.out.println("Final cluster:\n" + cluster.toNestedString());
-		} catch (JavaModelException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -470,7 +488,7 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 
 
 	protected static DistanceCalculatorIfc<String> setUpSpecifiedCalculator(
-			String classHandle) throws JavaModelException {
+			String classHandle) throws Exception {
 		ApplicationParameters parameters =
 			ApplicationParameters.getSingleton();
 		String sCalc =
@@ -488,10 +506,19 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			calc = setUpLevenshteinClustering();
 		} else if (DistanceCalculatorEnum.Simon.toString().equals(sCalc)) {
 			calc = setUpSimonClustering(classHandle);
+		} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equals(sCalc)) {
+			calc = setUpVectorSpaceModelClustering(classHandle);
 		}
 		return calc;
 	}
 	
+	private static DistanceCalculatorIfc<String> setUpVectorSpaceModelClustering(
+			String classHandle) throws IOException {
+		VectorSpaceModelCalculator calc =
+			new VectorSpaceModelCalculator(vectorSpaceModelInputFile);
+		return null;
+	}
+
 	/**
 	 * Set up a IdentifierDistanceCalculator
 	 * @return the calculator

@@ -34,139 +34,69 @@ implements DistanceCalculatorIfc<String> {
 		new HashMap<String, Integer>();
 
 	/**
-	 * A simple test
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		try {
-			VectorSpaceModelCalculator vectorSpaceModelCalculator =
-				new VectorSpaceModelCalculator();
-			//testCohesionTests(semanticAnalyzer);
-			testFreecol(vectorSpaceModelCalculator);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private static void testCohesionTests(VectorSpaceModelCalculator vectorSpaceModelCalculator)
-			throws IOException {
-		String classMethodsFileName =
-			"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/methods";
-		vectorSpaceModelCalculator.initializeVectorSpace(classMethodsFileName);
-		String documentMethod0 =
-			"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~document~QAffineTransform;";
-		String documentMethod1 =
-			"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~document~QAffineTransform;~D";
-		String documentMethod2 =
-			"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~getBounds";
-		String documentMethod3 =
-			"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~intersects~D~D~D~D";
-		Integer documentInt0 = vectorSpaceModelCalculator.memberHandleToDocumentNumber.get(documentMethod0);
-		Integer documentInt1 = vectorSpaceModelCalculator.memberHandleToDocumentNumber.get(documentMethod1);
-		Integer documentInt2 = vectorSpaceModelCalculator.memberHandleToDocumentNumber.get(documentMethod2);
-		Integer documentInt3 = vectorSpaceModelCalculator.memberHandleToDocumentNumber.get(documentMethod3);
-		DoubleVector vector0 = vectorSpaceModelCalculator.vectorSpaceModel.getDocumentVector(documentInt0);
-		DoubleVector vector1 = vectorSpaceModelCalculator.vectorSpaceModel.getDocumentVector(documentInt1);
-		DoubleVector vector2 = vectorSpaceModelCalculator.vectorSpaceModel.getDocumentVector(documentInt2);
-		DoubleVector vector3 = vectorSpaceModelCalculator.vectorSpaceModel.getDocumentVector(documentInt3);
-		double similarity01 = Similarity.cosineSimilarity(vector0, vector1);
-		double similarity12 = Similarity.cosineSimilarity(vector1, vector2);
-		double similarity23 = Similarity.cosineSimilarity(vector2, vector3);
-		double similarity13 = Similarity.cosineSimilarity(vector1, vector3);
-		System.out.println("similarity01: " + similarity01);
-		System.out.println("similarity12: " + similarity12);
-		System.out.println("similarity23: " + similarity23);
-		System.out.println("similarity13: " + similarity13);
-	}
-
-	private static void testFreecol(
-			VectorSpaceModelCalculator vectorSpaceModelCalculator)
-			throws IOException {
-		String classMethodsFileName = "c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/FreecolSVNTrunk/methods";
-		vectorSpaceModelCalculator.initializeVectorSpace(classMethodsFileName);
-		String documentMethod0 = "=FreecolSVNTrunk/src<net.sf.freecol.client{FreeColClient.java[FreeColClient~loadClientOptions~QFile;";
-		String documentMethod1 = "=FreecolSVNTrunk/src<net.sf.freecol.client{FreeColClient.java[FreeColClient~saveClientOptions";
-		String documentMethod2 = "=FreecolSVNTrunk/src<net.sf.freecol.client{FreeColClient.java[FreeColClient~setMapEditor~Z";
-		String documentMethod3 = "=FreecolSVNTrunk/src<net.sf.freecol.client{FreeColClient.java[FreeColClient~canSaveCurrentGame";
-		Integer documentInt0 = vectorSpaceModelCalculator.memberHandleToDocumentNumber
-				.get(documentMethod0);
-		Integer documentInt1 = vectorSpaceModelCalculator.memberHandleToDocumentNumber
-				.get(documentMethod1);
-		Integer documentInt2 = vectorSpaceModelCalculator.memberHandleToDocumentNumber
-				.get(documentMethod2);
-		Integer documentInt3 = vectorSpaceModelCalculator.memberHandleToDocumentNumber
-				.get(documentMethod3);
-		DoubleVector vector0 = vectorSpaceModelCalculator.vectorSpaceModel
-				.getDocumentVector(documentInt0);
-		DoubleVector vector1 = vectorSpaceModelCalculator.vectorSpaceModel
-				.getDocumentVector(documentInt1);
-		DoubleVector vector2 = vectorSpaceModelCalculator.vectorSpaceModel
-				.getDocumentVector(documentInt2);
-		DoubleVector vector3 = vectorSpaceModelCalculator.vectorSpaceModel
-				.getDocumentVector(documentInt3);
-		double similarity01 = Similarity.cosineSimilarity(vector0, vector1);
-		System.out.println("similarity01: " + similarity01);
-		double similarity12 = Similarity.cosineSimilarity(vector1, vector2);
-		System.out.println("similarity12: " + similarity12);
-		double similarity23 = Similarity.cosineSimilarity(vector2, vector3);
-		System.out.println("similarity23: " + similarity23);
-		double similarity13 = Similarity.cosineSimilarity(vector1, vector3);
-		System.out.println("similarity13: " + similarity13);
-		double similarity03 = Similarity.cosineSimilarity(vector0, vector3);
-		System.out.println("similarity03: " + similarity03);
-	}
-
-	/**
-	 * Process a file that contains all of the methods in a class.
-	 * @param classMethodsFileName the name of the file that contains
-	 * one method per line.  The first token is the member handle, and the 
-	 * remaining tokens are the words found in identifiers and comments.
+	 * Construct the calculator, building the vector space model
+	 * based on the contents of the file provided
+	 * @param fileName the name of the file that contains
+	 * one member per line.  The first token is the member handle, and the 
+	 * remaining tokens are the stemmed words found in identifiers and comments.
 	 * @throws IOException
 	 */
-	public VectorSpaceModel initializeVectorSpace(String classMethodsFileName)
+	public VectorSpaceModelCalculator(String fileName)
+	throws IOException {
+		initializeVectorSpace(fileName);
+	}
+	
+	
+	/**
+	 * Process a file that contains all of the members in a class.
+	 * @param classMembersFileName the name of the file that contains
+	 * one member per line.  The first token is the member handle, and the 
+	 * remaining tokens are the stemmed words found in identifiers and comments.
+	 * @throws IOException
+	 */
+	public VectorSpaceModel initializeVectorSpace(String classMembersFileName)
 	throws IOException {
 		vectorSpaceModel = new VectorSpaceModel();
 		BufferedReader documentFileReader = new BufferedReader(new FileReader(
-				classMethodsFileName));
+				classMembersFileName));
 		int lineNum = 0;
 		String line = null;
-		String methodName = null;
+		String memberName = null;
 		while ((line = documentFileReader.readLine()) != null) {
-			methodName = processMethodDocument(vectorSpaceModel, line);
-			memberHandleToDocumentNumber.put(methodName, lineNum++);
+			memberName = processMemberDocument(vectorSpaceModel, line);
+			memberHandleToDocumentNumber.put(memberName, lineNum++);
 		}
 		vectorSpaceModel.processSpace(System.getProperties());
 		return vectorSpaceModel;
 	}
 
 	/**
-	 * Process a line from a file that contains all of the methods in a class.
+	 * Process a line from a file that contains all of the members in a class.
 	 * @param vsm
-	 * @param line the first token is the method handle, and the 
+	 * @param line the first token is the member handle, and the 
 	 * remaining tokens are the words found in identifiers and comments.
 	 * @throws IOException
 	 */
-	private static String processMethodDocument(VectorSpaceModel vsm,
+	private static String processMemberDocument(VectorSpaceModel vsm,
 			String line) throws IOException {
-		String methodName;
-		String restOfMethod;
+		String memberName;
+		String restOfMember;
 		int spaceIndex = line.indexOf(' ');
 		if (spaceIndex > -1) {
-			methodName = line.substring(0, spaceIndex);
+			memberName = line.substring(0, spaceIndex);
 			if (spaceIndex < line.length() - 2) {
-				restOfMethod = line.substring(spaceIndex + 1);
+				restOfMember = line.substring(spaceIndex + 1);
 			} else {
-				restOfMethod = "";
+				restOfMember = "";
 			}
-			StringReader stringReader = new StringReader(restOfMethod);
-			BufferedReader methodTokensReader =
+			StringReader stringReader = new StringReader(restOfMember);
+			BufferedReader memberTokensReader =
 				new BufferedReader(stringReader);
-			vsm.processDocument(methodTokensReader);
+			vsm.processDocument(memberTokensReader);
 		} else {
-			methodName = line;
+			memberName = line;
 		}
-		return methodName;
+		return memberName;
 	}
 
 	/**
@@ -204,4 +134,85 @@ implements DistanceCalculatorIfc<String> {
 	public DistanceCalculatorEnum getType() {
 		return DistanceCalculatorEnum.VectorSpaceModel;
 	}
+	
+	/**
+	 * A simple test
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		try {
+			VectorSpaceModelCalculator calculator =
+				new VectorSpaceModelCalculator("c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/FreecolSVNTrunk/methods");
+			//testCohesionTests(semanticAnalyzer);
+			calculator.testFreecol();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+//	private static void testCohesionTests(VectorSpaceModelCalculator vectorSpaceModelCalculator)
+//			throws IOException {
+//		String classMembersFileName =
+//			"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/methods";
+//		vectorSpaceModelCalculator.initializeVectorSpace(classMembersFileName);
+//		String documentMember0 =
+//			"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~document~QAffineTransform;";
+//		String documentMember1 =
+//			"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~document~QAffineTransform;~D";
+//		String documentMember2 =
+//			"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~getBounds";
+//		String documentMember3 =
+//			"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~intersects~D~D~D~D";
+//		Integer documentInt0 = vectorSpaceModelCalculator.memberHandleToDocumentNumber.get(documentMember0);
+//		Integer documentInt1 = vectorSpaceModelCalculator.memberHandleToDocumentNumber.get(documentMember1);
+//		Integer documentInt2 = vectorSpaceModelCalculator.memberHandleToDocumentNumber.get(documentMember2);
+//		Integer documentInt3 = vectorSpaceModelCalculator.memberHandleToDocumentNumber.get(documentMember3);
+//		DoubleVector vector0 = vectorSpaceModelCalculator.vectorSpaceModel.getDocumentVector(documentInt0);
+//		DoubleVector vector1 = vectorSpaceModelCalculator.vectorSpaceModel.getDocumentVector(documentInt1);
+//		DoubleVector vector2 = vectorSpaceModelCalculator.vectorSpaceModel.getDocumentVector(documentInt2);
+//		DoubleVector vector3 = vectorSpaceModelCalculator.vectorSpaceModel.getDocumentVector(documentInt3);
+//		double similarity01 = Similarity.cosineSimilarity(vector0, vector1);
+//		double similarity12 = Similarity.cosineSimilarity(vector1, vector2);
+//		double similarity23 = Similarity.cosineSimilarity(vector2, vector3);
+//		double similarity13 = Similarity.cosineSimilarity(vector1, vector3);
+//		System.out.println("similarity01: " + similarity01);
+//		System.out.println("similarity12: " + similarity12);
+//		System.out.println("similarity23: " + similarity23);
+//		System.out.println("similarity13: " + similarity13);
+//	}
+
+	private void testFreecol() throws IOException {
+		String documentMember0 = "=FreecolSVNTrunk/src<net.sf.freecol.client{FreeColClient.java[FreeColClient~loadClientOptions~QFile;";
+		String documentMember1 = "=FreecolSVNTrunk/src<net.sf.freecol.client{FreeColClient.java[FreeColClient~saveClientOptions";
+		String documentMember2 = "=FreecolSVNTrunk/src<net.sf.freecol.client{FreeColClient.java[FreeColClient~setMapEditor~Z";
+		String documentMember3 = "=FreecolSVNTrunk/src<net.sf.freecol.client{FreeColClient.java[FreeColClient~canSaveCurrentGame";
+		Integer documentInt0 = memberHandleToDocumentNumber
+				.get(documentMember0);
+		Integer documentInt1 = memberHandleToDocumentNumber
+				.get(documentMember1);
+		Integer documentInt2 = memberHandleToDocumentNumber
+				.get(documentMember2);
+		Integer documentInt3 = memberHandleToDocumentNumber
+				.get(documentMember3);
+		DoubleVector vector0 = vectorSpaceModel
+				.getDocumentVector(documentInt0);
+		DoubleVector vector1 = vectorSpaceModel
+				.getDocumentVector(documentInt1);
+		DoubleVector vector2 = vectorSpaceModel
+				.getDocumentVector(documentInt2);
+		DoubleVector vector3 = vectorSpaceModel
+				.getDocumentVector(documentInt3);
+		double similarity01 = Similarity.cosineSimilarity(vector0, vector1);
+		System.out.println("similarity01: " + similarity01);
+		double similarity12 = Similarity.cosineSimilarity(vector1, vector2);
+		System.out.println("similarity12: " + similarity12);
+		double similarity23 = Similarity.cosineSimilarity(vector2, vector3);
+		System.out.println("similarity23: " + similarity23);
+		double similarity13 = Similarity.cosineSimilarity(vector1, vector3);
+		System.out.println("similarity13: " + similarity13);
+		double similarity03 = Similarity.cosineSimilarity(vector0, vector3);
+		System.out.println("similarity03: " + similarity03);
+	}
+
+
 }
