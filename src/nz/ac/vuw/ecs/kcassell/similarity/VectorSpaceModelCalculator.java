@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 import edu.ucla.sspace.common.SemanticSpace;
 import edu.ucla.sspace.common.Similarity;
 import edu.ucla.sspace.matrix.Matrices;
@@ -64,9 +65,16 @@ implements DistanceCalculatorIfc<String> {
 		String memberName = null;
 		while ((line = documentFileReader.readLine()) != null) {
 			memberName = processMemberDocument(vectorSpaceModel, line);
-			memberHandleToDocumentNumber.put(memberName, lineNum++);
+			
+			if (vectorSpaceModel.processedDocument) {
+				memberHandleToDocumentNumber.put(memberName, lineNum++);
+			} else {
+				System.out.println("processMemberDocument failed for " + line);
+			}
 		}
 		vectorSpaceModel.processSpace(System.getProperties());
+		int vsmColumns = vectorSpaceModel.getVectorLength();
+		int docsRead = memberHandleToDocumentNumber.size();
 		return vectorSpaceModel;
 	}
 
@@ -123,11 +131,18 @@ implements DistanceCalculatorIfc<String> {
 	}
 
 	public Number calculateDistance(String handle1, String handle2) {
+		double distance = RefactoringConstants.UNKNOWN_DISTANCE.doubleValue();
 		Integer documentInt1 = memberHandleToDocumentNumber.get(handle1);
 		Integer documentInt2 = memberHandleToDocumentNumber.get(handle2);
-		DoubleVector vector1 = vectorSpaceModel.getDocumentVector(documentInt1);
-		DoubleVector vector2 = vectorSpaceModel.getDocumentVector(documentInt2);
-		double distance = 1 - Similarity.cosineSimilarity(vector1, vector2);
+		
+		if (documentInt1 != null && documentInt2 != null) {
+			DoubleVector vector1 = vectorSpaceModel.getDocumentVector(documentInt1);
+			DoubleVector vector2 = vectorSpaceModel.getDocumentVector(documentInt2);
+			distance = 1 - Similarity.cosineSimilarity(vector1, vector2);
+			if (distance < 0.0 && distance != RefactoringConstants.UNKNOWN_DISTANCE.doubleValue()) {
+				distance = 0.0;
+			}
+		}
 		return distance;
 	}
 

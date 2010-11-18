@@ -106,7 +106,8 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	 * one member per line.  The first token is the member handle, and the 
 	 * remaining tokens are the stemmed words found in identifiers and comments.
      */
-    private static String vectorSpaceModelInputFile = null;
+    private static String vectorSpaceModelInputFile =
+    	"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/members";
     // TODO this is temporary until we create the vsm inputs at run time
 
     /**
@@ -145,6 +146,7 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			for (int col = 0; col <= row; col++) {
 				String obj2 = elements.get(col);
 				Number distance = calculateDistance(obj1, obj2);
+				distance = Math.max(0.0, distance.doubleValue());
 				distanceMatrix.setDistance(obj1, obj2, distance);
 			}
 		}
@@ -423,8 +425,16 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			if (cluster1 == null) {
 				// Cluster1 and cluster2 are single elements (handles)
 				if (cluster2 == null) {
-					String name1 = EclipseUtils.getNameFromHandle(s1);
-					String name2 = EclipseUtils.getNameFromHandle(s2);
+					String name1, name2;
+					// VectorSpaceModelCalculator uses handles, not "simple names"
+					if (distanceCalculator instanceof VectorSpaceModelCalculator) {
+						name1 = s1;
+						name2 = s2;
+					} else {
+						//TODO other calculators should probably work off of handles too
+						name1 = EclipseUtils.getNameFromHandle(s1);
+						name2 = EclipseUtils.getNameFromHandle(s2);
+					}
 					Number nDistance = distanceCalculator.calculateDistance(name1, name2);
 					if (nDistance != null) {
 						result = nDistance.doubleValue();
@@ -516,7 +526,7 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			String classHandle) throws IOException {
 		VectorSpaceModelCalculator calc =
 			new VectorSpaceModelCalculator(vectorSpaceModelInputFile);
-		return null;
+		return calc;
 	}
 
 	/**

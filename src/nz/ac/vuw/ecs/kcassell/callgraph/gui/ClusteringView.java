@@ -58,6 +58,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
@@ -206,6 +207,24 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 					sCalc)) {
 				LevenshteinDistanceCalculator calc = new LevenshteinDistanceCalculator();
 				String sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				agglomerativePostProcessing(aggApplet);
+			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
+					sCalc)) {
+				// TODO eliminate hard-coding
+				String fileName =
+		    	"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/members";
+				String classHandle =
+					"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.personcars{PersonCarDisjoint.java[PersonCarDisjoint";
+//					"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.personcars{PersonCarDisjoint.java";
+				
+				VectorSpaceModelCalculator calc = new VectorSpaceModelCalculator(fileName);
+				List<String> names =
+					EclipseUtils.getFilteredMemberHandles(classHandle);
+				MatrixBasedAgglomerativeClusterer clusterer =
+					new MatrixBasedAgglomerativeClusterer(names, calc);
+				MemberCluster cluster = clusterer.getSingleCluster();
+				String sCluster = cluster.toNestedString();
 				clustersTextArea.setText("Final cluster:\n" + sCluster);
 				agglomerativePostProcessing(aggApplet);
 			} else {
