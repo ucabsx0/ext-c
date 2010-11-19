@@ -107,7 +107,8 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	 * remaining tokens are the stemmed words found in identifiers and comments.
      */
     private static String vectorSpaceModelInputFile =
-    	"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/members";
+    	RefactoringConstants.DATA_DIR + "MemberDocuments/freecolMembers.txt";
+    	//"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/members";
     // TODO this is temporary until we create the vsm inputs at run time
 
     /**

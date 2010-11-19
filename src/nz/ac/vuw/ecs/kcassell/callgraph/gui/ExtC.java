@@ -91,7 +91,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 	 * Records last directory used, so we can use that as the default starting
 	 * point next time
 	 */
-	private static String lastDirWritten = PROJECT_ROOT;
+	private static String lastDirAccessed = PROJECT_ROOT;
 
 	/** The GUI frame */
 	protected JFrame frame = new JFrame();
@@ -141,7 +141,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		 * file and loads it.
 		 */
 		public void actionPerformed(ActionEvent e) {
-			JFileChooser chooser = new JFileChooser(lastDirWritten);
+			JFileChooser chooser = new JFileChooser(lastDirAccessed);
 			GraphFileFilter filter = new GraphFileFilter();
 			// Java 1.6 FileNameExtensionFilter filter =
 			// new FileNameExtensionFilter("PajekNet & GraphML",
@@ -186,14 +186,14 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		 * file and loads it.
 		 */
 		public void actionPerformed(ActionEvent event) {
-			JFileChooser chooser = new JFileChooser(lastDirWritten);
+			JFileChooser chooser = new JFileChooser(lastDirAccessed);
 			GraphFileFilter filter = new GraphFileFilter();
 			chooser.setFileFilter(filter);
 			int option = chooser.showSaveDialog(extC.frame);
 
 			if (option == JFileChooser.APPROVE_OPTION) {
 				File file = chooser.getSelectedFile();
-				lastDirWritten = file.getParent();
+				lastDirAccessed = file.getParent();
 				try {
 					String fileName = file.getAbsolutePath();
 
@@ -337,6 +337,14 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 	 */
 	public ApplicationParameters getApplicationParameters() {
 		return applicationParameters;
+	}
+
+	public static String getLastDirAccessed() {
+		return lastDirAccessed;
+	}
+
+	public static void setLastDirAccessed(String lastDirAccessed) {
+		ExtC.lastDirAccessed = lastDirAccessed;
 	}
 
 	public void clear() {

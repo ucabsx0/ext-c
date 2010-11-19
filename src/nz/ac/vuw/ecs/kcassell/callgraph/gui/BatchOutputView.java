@@ -37,12 +37,15 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -54,6 +57,7 @@ import javax.swing.JTextArea;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
+import nz.ac.vuw.ecs.kcassell.callgraph.io.GraphFileFilter;
 import nz.ac.vuw.ecs.kcassell.cluster.BetweennessClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
@@ -66,6 +70,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.DistanceCollector;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
@@ -111,6 +116,11 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
     
 	private JLabel progressLabel = null;
     private JProgressBar progressBar = null;
+    
+    /** The file in which the member "document" data is stored
+     * (for use with the VectorSpaceModelCalculator).
+     */
+    private String memberDocumentFile = null;
 
     /** Accumulates the clustering results. */
 	private StringBuffer buf = new StringBuffer(RUN_SEPARATOR);
@@ -180,6 +190,24 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	public void actionPerformed(ActionEvent event) {
 		String command = event.getActionCommand();
 		if (AGGLOMERATE_BUTTON_LABEL.equals(command)) {
+			ApplicationParameters params =
+				ApplicationParameters.getSingleton();
+			String sClusterer = params.getParameter(
+					CALCULATOR_KEY, DistanceCalculatorEnum.Identifier.toString());
+			
+			// If we're using the vector space model, we need to locate the
+			// file containing the "member documents" for the class.
+			if (DistanceCalculatorEnum.VectorSpaceModel.toString().equals(sClusterer)) {
+				JFileChooser chooser =
+					new JFileChooser(ExtC.getLastDirAccessed());
+				int option = chooser.showOpenDialog(app.frame);
+
+				if (option == JFileChooser.APPROVE_OPTION) {
+					File file = chooser.getSelectedFile();
+					memberDocumentFile = file.getAbsolutePath();
+					ExtC.setLastDirAccessed(file.getParent());
+				}
+			}
 			clusterAllSelections(mainPanel);
 		}
 		else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
@@ -258,6 +286,23 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 								+ cluster.toNestedString());
 					} catch (Exception e) {
 						String msg = "Unable to calculate distances.  (No web access?)";
+						JOptionPane.showMessageDialog(mainPanel, msg,
+							"Error Clustering", JOptionPane.WARNING_MESSAGE);
+					}
+				} else if (DistanceCalculatorEnum.VectorSpaceModel.toString()
+						.equalsIgnoreCase(sCalc)) {
+					DistanceCalculatorIfc<String> calc;
+					try {
+						calc = new VectorSpaceModelCalculator(memberDocumentFile);
+						List<String> memberHandles =
+							EclipseUtils.getFilteredMemberNames(handle);
+						MatrixBasedAgglomerativeClusterer clusterer =
+							new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
+						MemberCluster cluster = clusterer.getSingleCluster();
+						buf.append("Final cluster:\n"
+								+ cluster.toNestedString());
+					} catch (Exception e) {
+						String msg = "Problem with the VectorSpaceModelCalculator: " + e;
 						JOptionPane.showMessageDialog(mainPanel, msg,
 							"Error Clustering", JOptionPane.WARNING_MESSAGE);
 					}
