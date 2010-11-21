@@ -214,10 +214,10 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
 					sCalc)) {
 				// TODO eliminate hard-coding
-				String fileName =
-		    	"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/members";
-				String classHandle =
-					"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.personcars{PersonCarDisjoint.java[PersonCarDisjoint";
+				String fileName = null;
+		    	//"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/members";
+				String classHandle = callGraph.getHandle();
+				//"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.personcars{PersonCarDisjoint.java[PersonCarDisjoint";
 
 				// If we're using the vector space model, we need to locate the
 				// file containing the "member documents" for the class.
