@@ -526,7 +526,7 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	private static DistanceCalculatorIfc<String> setUpVectorSpaceModelClustering(
 			String classHandle) throws IOException {
 		VectorSpaceModelCalculator calc =
-			new VectorSpaceModelCalculator(vectorSpaceModelInputFile);
+			new VectorSpaceModelCalculator(classHandle);
 		return calc;
 	}
 

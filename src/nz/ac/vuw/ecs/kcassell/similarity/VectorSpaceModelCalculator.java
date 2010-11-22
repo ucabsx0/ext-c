@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 import edu.ucla.sspace.common.SemanticSpace;
 import edu.ucla.sspace.common.Similarity;
@@ -42,12 +43,22 @@ implements DistanceCalculatorIfc<String> {
 	 * remaining tokens are the stemmed words found in identifiers and comments.
 	 * @throws IOException
 	 */
-	public VectorSpaceModelCalculator(String fileName)
+	public VectorSpaceModelCalculator(String handle)
 	throws IOException {
+		String fileName = getMemberDataFileFromHandle(handle);
 		initializeVectorSpace(fileName);
 	}
 	
 	
+	private static String getMemberDataFileFromHandle(String handle) {
+		String className = EclipseUtils.getNameFromHandle(handle);
+		String projectName = EclipseUtils.getProjectNameFromHandle(handle);
+	    String memberDocumentFile = RefactoringConstants.DATA_DIR +
+			"MemberDocuments/" + projectName + "/" +
+			className + "Members.txt";
+	    return memberDocumentFile;
+	}
+
 	/**
 	 * Process a file that contains all of the members in a class.
 	 * @param classMembersFileName the name of the file that contains
@@ -157,7 +168,7 @@ implements DistanceCalculatorIfc<String> {
 	public static void main(String[] args) {
 		try {
 			VectorSpaceModelCalculator calculator =
-				new VectorSpaceModelCalculator("c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/FreecolSVNTrunk/methods");
+				new VectorSpaceModelCalculator("=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~document~QAffineTransform;");
 			//testCohesionTests(semanticAnalyzer);
 			calculator.testFreecol();
 		} catch (IOException e) {

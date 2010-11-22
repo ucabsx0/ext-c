@@ -40,8 +40,6 @@ import java.util.Set;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
-import org.eclipse.jdt.core.JavaModelException;
-
 /**
  * This clusterer adds objects to one or the other of
  * two seed clusters.
@@ -107,7 +105,8 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 	protected void separateSeeds() {
 		String seed1Name = this.seed1.getClusterName();
 		String seed2Name = this.seed2.getClusterName();
-		distanceMatrix.setDistance(seed1Name, seed2Name, RefactoringConstants.MAX_DISTANCE);
+		distanceMatrix.setDistance(seed1Name, seed2Name,
+				RefactoringConstants.MAX_DISTANCE);
 	}
 
     /**
@@ -158,15 +157,18 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 		logger.info("createCluster from " + near1 + ", " + near2);
 		addChildToCluster(cluster, near1);
 		addChildToCluster(cluster, near2);
-		String clusterName =
-			nameCluster(cluster, (near1.compareTo(near2) < 0) ? near1 : near2);
+		
+		// Name the new cluster based on the seed name, if possible
+		String seed1Name = seed1.getClusterName();
+		String seed2Name = seed2.getClusterName();
+		String nameBase =
+			(seed1Name.equals(near1) || seed2Name.equals(near1)) ? near1 : near2;
+		String clusterName = nameCluster(cluster, nameBase);
 		clusterHistory.put(clusterName, cluster);
 //		MemberCluster justAdded = clusterHistory.get(clusterName);
 //		Set<String> justElements = justAdded.getElements(clusterHistory);
 		
 		// Reset a seed cluster if necessary
-		String seed1Name = seed1.getClusterName();
-		String seed2Name = seed2.getClusterName();
 		if (seed1Name.equals(near1) || seed1Name.equals(near2)) {
 			seed1 = cluster;
 		} else if (seed2Name.equals(near1) || seed2Name.equals(near2)) {
