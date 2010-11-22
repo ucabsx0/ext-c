@@ -35,12 +35,10 @@ package nz.ac.vuw.ecs.kcassell.callgraph.gui;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -213,27 +211,8 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
 					sCalc)) {
-				// TODO eliminate hard-coding
-				String fileName = null;
-		    	//"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/members";
 				String classHandle = callGraph.getHandle();
-				//"=CohesionTests/src<nz.ac.vuw.ecs.kcassell.personcars{PersonCarDisjoint.java[PersonCarDisjoint";
-
-				// If we're using the vector space model, we need to locate the
-				// file containing the "member documents" for the class.
-				if (DistanceCalculatorEnum.VectorSpaceModel.toString().equals(sCalc)) {
-					JFileChooser chooser = new JFileChooser(ExtC.getLastDirAccessed());
-					int option = chooser.showOpenDialog(app.frame);
-
-					if (option == JFileChooser.APPROVE_OPTION) {
-						File file = chooser.getSelectedFile();
-						fileName = file.getAbsolutePath();
-						ExtC.setLastDirAccessed(file.getParent());
-					}
-				}
-
-				
-				VectorSpaceModelCalculator calc = new VectorSpaceModelCalculator(fileName);
+				VectorSpaceModelCalculator calc = new VectorSpaceModelCalculator(classHandle);
 				List<String> names =
 					EclipseUtils.getFilteredMemberHandles(classHandle);
 				MatrixBasedAgglomerativeClusterer clusterer =

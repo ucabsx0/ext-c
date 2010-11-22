@@ -77,7 +77,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class BatchOutputView implements ActionListener, ParameterConstants {
-	private static final String AGGLOMERATE_BUTTON_LABEL = "Agglomerate";
+	private static final String CLUSTER_BUTTON_LABEL = "Cluster";
 
 	/** The label used for the button to initiate a count of the
 	 * number of disconnected subgraphs.  */
@@ -145,7 +145,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	protected void setUpView() {
 		leftPanel = new JPanel();
 		leftPanel.setLayout(new GridLayout(12, 1));
-		JButton aggButton = new JButton(AGGLOMERATE_BUTTON_LABEL);
+		JButton aggButton = new JButton(CLUSTER_BUTTON_LABEL);
 		aggButton.setPreferredSize(BUTTON_SIZE);
 		aggButton.addActionListener(this);
 		leftPanel.add(aggButton);
@@ -180,7 +180,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 */
 	public void actionPerformed(ActionEvent event) {
 		String command = event.getActionCommand();
-		if (AGGLOMERATE_BUTTON_LABEL.equals(command)) {
+		if (CLUSTER_BUTTON_LABEL.equals(command)) {
 			clusterAllSelections(mainPanel);
 		}
 		else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
@@ -265,12 +265,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				} else if (DistanceCalculatorEnum.VectorSpaceModel.toString()
 						.equalsIgnoreCase(sCalc)) {
 					try {
-						String className = EclipseUtils.getNameFromHandle(handle);
-					    //TODO remove hard-code of the file in which the member "document" data is stored
-					    String memberDocumentFile = RefactoringConstants.DATA_DIR +
-							"MemberDocuments/FreeCol/" + className;
 					    DistanceCalculatorIfc<String> calc =
-					    	new VectorSpaceModelCalculator(memberDocumentFile);
+					    	new VectorSpaceModelCalculator(handle);
 						List<String> memberHandles =
 							EclipseUtils.getFilteredMemberNames(handle);
 						MatrixBasedAgglomerativeClusterer clusterer =
