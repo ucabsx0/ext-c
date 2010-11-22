@@ -125,6 +125,23 @@ public class EclipseUtils {
 		return name;
 	}
 	
+	/**
+	 * @param handle The Eclipse handle for a Java element
+	 * @return the name of the project containing the handle
+	 */
+	public static String getProjectNameFromHandle(String handle) {
+    	String name = null;
+        IJavaElement element = JavaCore.create(handle);
+        if (element == null) {
+            System.err.println("EclipseUtils.getProjectNameFromHandle:" + 
+            		" No element created from " + handle);
+            name = handle;
+        } else {
+            name = element.getJavaProject().getElementName();
+        }
+		return name;
+	}
+	
 	public static IType getTypeInEditor() {
 		IType iType = null;
 		IWorkbench workbench = PlatformUI.getWorkbench();
