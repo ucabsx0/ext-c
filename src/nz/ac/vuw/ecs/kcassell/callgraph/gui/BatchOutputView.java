@@ -153,10 +153,10 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		subgraphButton.setPreferredSize(BUTTON_SIZE);
 		subgraphButton.addActionListener(this);
 		leftPanel.add(subgraphButton);
-		JButton subgraph1Button = new JButton(DISCONNECTED1_BUTTON_LABEL);
-		subgraph1Button.setPreferredSize(BUTTON_SIZE);
-		subgraph1Button.addActionListener(this);
-		leftPanel.add(subgraph1Button);
+//		JButton subgraph1Button = new JButton(DISCONNECTED1_BUTTON_LABEL);
+//		subgraph1Button.setPreferredSize(BUTTON_SIZE);
+//		subgraph1Button.addActionListener(this);
+//		leftPanel.add(subgraph1Button);
 		JButton distancesButton = new JButton(DISTANCES_BUTTON_LABEL);
 		distancesButton.setPreferredSize(BUTTON_SIZE);
 		distancesButton.addActionListener(this);
