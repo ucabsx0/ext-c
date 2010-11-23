@@ -132,7 +132,7 @@ public class DistanceMatrix<V> implements RefactoringConstants {
 			if (isSymmetric && index2 > index1) {
 				distance = matrix.get(index2, index1);
 			} else {
-			distance = matrix.get(index1, index2);
+				distance = matrix.get(index1, index2);
 			}
 		}
 		return distance;

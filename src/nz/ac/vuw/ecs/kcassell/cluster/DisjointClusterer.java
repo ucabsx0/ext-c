@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
+import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 /**
@@ -47,6 +48,10 @@ import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
  */
 public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 
+	/** The original distance matrix that contains the distances between
+	 * the elements. */
+	protected DistanceMatrix<String> originalMatrix = null;
+	
 	/** One of the two major groups. */
 	protected MemberCluster seed1 = null;
 	protected MemberCluster originalSeed1 = null;
@@ -73,6 +78,10 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 		originalSeed2 = seed2;
 		try {
 			distanceCalculator = setUpSpecifiedCalculator(classHandle);
+			List<String> memberHandles =
+				EclipseUtils.getFilteredMemberHandles(classHandle);
+			originalMatrix = new DistanceMatrix<String>(memberHandles);
+			originalMatrix.fillMatrix(distanceCalculator);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -120,6 +129,16 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 			previousIteration++;
 		}
 		return getClusters();
+	}
+
+	/**
+	 * Add a new level of clustering
+	 */
+	protected MemberCluster clusterOnce() {
+		Distance<String> nearest = distanceMatrix.findNearest();
+		MemberCluster cluster = createCluster(nearest);
+		modifyMatrix(cluster);
+		return cluster;
 	}
 
 	/**

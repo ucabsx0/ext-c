@@ -269,6 +269,13 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 				String sCluster = clusterUsingIdentifiers(callGraph, calc);
 				clustersTextArea.setText("Final cluster:\n" + sCluster);
 				agglomerativePostProcessing(aggApplet);
+			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
+					sCalc)) {
+				String handle = callGraph.getHandle();
+				VectorSpaceModelCalculator calc = new VectorSpaceModelCalculator(handle);
+				String sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				agglomerativePostProcessing(aggApplet);
 			} else {
 				String msg = "Unable to set up agglomerative clustering using " + sCalc;
 				JOptionPane.showMessageDialog(mainPanel, msg,
@@ -292,9 +299,12 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			DistanceCalculatorIfc<String> calc)
 	throws JavaModelException {
 		// TODO handles or simple names?
-		List<String> names =
-			EclipseUtils.getFilteredMemberNames(callGraph.getHandle());
-//			EclipseUtils.getMemberHandles(callGraph.getHandle());
+		List<String> names = null;
+		if ((calc instanceof VectorSpaceModelCalculator)) {
+			names = EclipseUtils.getFilteredMemberHandles(callGraph.getHandle());
+		} else {
+			names = EclipseUtils.getFilteredMemberNames(callGraph.getHandle());
+		}
 		MatrixBasedAgglomerativeClusterer clusterer =
 			new MatrixBasedAgglomerativeClusterer(names, calc);
 		MemberCluster cluster = clusterer.getSingleCluster();

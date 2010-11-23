@@ -84,8 +84,8 @@ implements DistanceCalculatorIfc<String> {
 			}
 		}
 		vectorSpaceModel.processSpace(System.getProperties());
-		int vsmColumns = vectorSpaceModel.getVectorLength();
-		int docsRead = memberHandleToDocumentNumber.size();
+//		int vsmColumns = vectorSpaceModel.getVectorLength();
+//		int docsRead = memberHandleToDocumentNumber.size();
 		return vectorSpaceModel;
 	}
 
