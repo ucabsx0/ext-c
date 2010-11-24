@@ -42,6 +42,7 @@ import java.util.Set;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
+import nz.ac.vuw.ecs.kcassell.similarity.ClusterDistanceUtils;
 import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
@@ -409,15 +410,15 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	 * Calculates the distance between the objects corresponding
 	 * to the identifiers.  When an identifier corresponds to a cluster,
 	 * we calculate all distances for the objects within that cluster
-	 * and return the smallest.  TODO make configurable (single link, etc.).
+	 * and return the smallest.
 	 * We ignore the case of the letters in the comparison.
 	 * @return between 0 (identical) and 1 (completely different)
 	 */
 	protected Number calculateDistance(String s1, String s2) {
-		Double result = 1.0;
+		Double result =(whichLink == ClusterCombinationEnum.SINGLE_LINK)
+		    ? 1.0 : 0.0;
 
 		if (s1 != null && s2 != null) {
-
 			// VectorSpaceModelCalculator uses handles, not "simple names"
 			if (! (distanceCalculator instanceof VectorSpaceModelCalculator)) {
 				//TODO some other calculators should probably use handles too
@@ -434,25 +435,31 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 				if (cluster2 == null) {
 					result = calculateDistanceBetweenIndividuals(s1, s2, result);
 				} else { // cluster2 is a true cluster
-					Set<String> ids = cluster2.getElements();
-					result = getDistanceToGroup(s1, ids, result);
+					result = getDistanceToGroup(s1, cluster2, result);
 				}
 			}	// if (cluster1 == null)
 			// Cluster1 is a true cluster
 			else { // cluster2 is a single element
 				if (cluster2 == null) {
-					Set<String> ids = cluster1.getElements();
-					result = getDistanceToGroup(s2, ids, result);
+					result = getDistanceToGroup(s2, cluster1, result);
 				} else { // Both s1 and s2 are clusters
 					Set<String> ids1 = cluster1.getElements();
 					for (String id1 : ids1) {
-						Set<String> ids2 = cluster2.getElements();
 						Double distance =
-							getDistanceToGroup(id1, ids2, result);
-						if (distance.compareTo(result) < 0) {
+							getDistanceToGroup(id1, cluster2, result);
+						if ((whichLink == ClusterCombinationEnum.SINGLE_LINK)
+								&& distance.compareTo(result) < 0) {
 							result = distance;
+						} else if ((whichLink == ClusterCombinationEnum.COMPLETE_LINK)
+								&& distance.compareTo(result) > 0) {
+							result = distance;
+						} else if ((whichLink == ClusterCombinationEnum.AVERAGE_LINK)) {
+							result += distance;
 						}
 					}	// for
+					if ((whichLink == ClusterCombinationEnum.AVERAGE_LINK)) {
+						result /= ids1.size();
+					}
 				}	// Both s1 and s2 are clusters
 			}	// cluster2 is a single element
 		}	// if both non-null
@@ -471,34 +478,30 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	}
 
 	/**
-	 * Get the smallest distance found from the element specified
+	 * Get the distance from the element specified
 	 * to any member of the group.
 	 * @param s1 the single element
 	 * @param ids the group
-	 * @param result the smallest distance so far
-	 * @return the smallest distance
+	 * @param result the distance so far
+	 * @return the distance
 	 */
 	protected Double getDistanceToGroup(String s1,
-			Collection<String> ids, Double result) {
-		for (String id : ids) {
-			if (id != null) {
-				// VectorSpaceModelCalculator uses handles, not "simple names"
-				if (! (distanceCalculator instanceof VectorSpaceModelCalculator)) {
-					//TODO some other calculators should probably use handles too
-					s1 = EclipseUtils.getNameFromHandle(s1);
-					id = EclipseUtils.getNameFromHandle(id);
-				}
-				Double distance =
-					distanceCalculator.calculateDistance(s1, id).doubleValue();
-				if (distance.compareTo(result) < 0) {
-					result = distance;
-				}
-			}
+			MemberCluster cluster, Double oldResult) {
+		Double newResult = null;
+		if (whichLink == ClusterCombinationEnum.SINGLE_LINK) {
+			newResult = ClusterDistanceUtils.singleLinkDistance(
+					s1, cluster, originalMatrix, distanceCalculator);
+			newResult = Math.min(newResult, oldResult);
+		} else if (whichLink == ClusterCombinationEnum.COMPLETE_LINK) {
+			newResult = ClusterDistanceUtils.completeLinkDistance(
+					s1, cluster, originalMatrix, distanceCalculator);
+			newResult = Math.max(newResult, oldResult);
+		} else if ((whichLink == ClusterCombinationEnum.AVERAGE_LINK)) {
+			newResult = ClusterDistanceUtils.averageLinkDistance(
+					s1, cluster, originalMatrix, distanceCalculator);
 		}
-		return result;
+		return newResult;
 	}
-
-
 
 	protected static DistanceCalculatorIfc<String> setUpSpecifiedCalculator(
 			String classHandle) throws Exception {

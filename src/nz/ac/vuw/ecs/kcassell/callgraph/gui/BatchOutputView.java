@@ -516,6 +516,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				} catch (Exception e) {
 					String msg = "Problem while clustering: "
 							+ e.getMessage();
+					e.printStackTrace();
 					JOptionPane.showMessageDialog(mainPane, msg,
 							"Error Clustering", JOptionPane.WARNING_MESSAGE);
 				}

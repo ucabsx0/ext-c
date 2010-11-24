@@ -193,20 +193,22 @@ public class MatrixBasedAgglomerativeClustererTest extends TestCase {
 	@Test
 	public void testGetSmallestDistanceToGroup() {
 		ArrayList<String> fieldVec = new ArrayList<String>();
-        fieldVec.add("abcd");
+		MemberCluster cluster = new MemberCluster();
+		fieldVec.add("abcd");
         fieldVec.add("12345678");
         fieldVec.add("abcd5678");
+        cluster.addElements(fieldVec);
 		LevenshteinDistanceCalculator levCalc =
 			new LevenshteinDistanceCalculator();
 		clusterer = new MatrixBasedAgglomerativeClusterer(fieldVec, levCalc);
 
-		assertEquals(1.0, clusterer.getDistanceToGroup("", fieldVec, 1.0));
-		assertEquals(0.5, clusterer.getDistanceToGroup("", fieldVec, 0.5));
-		assertEquals(0.0, clusterer.getDistanceToGroup("abcd", fieldVec, 1.0));
-		assertEquals(0.25, clusterer.getDistanceToGroup("abc", fieldVec, 1.0));
-		assertEquals(0.5, clusterer.getDistanceToGroup("5678", fieldVec, 1.0));
-		assertEquals(0.25, clusterer.getDistanceToGroup("123ab678", fieldVec, 1.0));
-		assertEquals(0.25, clusterer.getDistanceToGroup("123a567", fieldVec, 1.0));
+		assertEquals(1.0, clusterer.getDistanceToGroup("", cluster, 1.0));
+		assertEquals(0.5, clusterer.getDistanceToGroup("", cluster, 0.5));
+		assertEquals(0.0, clusterer.getDistanceToGroup("abcd", cluster, 1.0));
+		assertEquals(0.25, clusterer.getDistanceToGroup("abc", cluster, 1.0));
+		assertEquals(0.5, clusterer.getDistanceToGroup("5678", cluster, 1.0));
+		assertEquals(0.25, clusterer.getDistanceToGroup("123ab678", cluster, 1.0));
+		assertEquals(0.25, clusterer.getDistanceToGroup("123a567", cluster, 1.0));
 	}
 
 	@Test
@@ -225,7 +227,8 @@ public class MatrixBasedAgglomerativeClustererTest extends TestCase {
 
         MemberCluster cluster2 = new MemberCluster();
         clusterer.clusterHistory.put("cluster2", cluster2);
-		assertEquals(1.0, clusterer.calculateDistance("cluster1", "cluster2"));
+        Number distance = clusterer.calculateDistance("cluster1", "cluster2");
+		assertEquals(1.0, distance.doubleValue());
 		cluster2.addElement("abcd1234");
 		assertEquals(0.5, clusterer.calculateDistance("cluster1", "cluster2"));
 		cluster2.addElement("5678");
