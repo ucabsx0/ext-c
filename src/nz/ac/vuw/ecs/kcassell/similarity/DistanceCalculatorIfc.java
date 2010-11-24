@@ -33,8 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package nz.ac.vuw.ecs.kcassell.similarity;
 
 /**
- * This class is used to calculate a distance indicating some kind of strength
- * of relationship between objects.
+ * This interface specifies methods for calculating distances between
+ * individuals (not intended for groups/clusters).
  * @author Keith
  * @see edu.uci.ics.jung.algorithms.shortestpath.Distance<V>
  *      edu.uci.ics.jung.algorithms.shortestpath.DistanceStatistics

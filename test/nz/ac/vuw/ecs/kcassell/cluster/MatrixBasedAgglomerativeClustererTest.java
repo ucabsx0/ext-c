@@ -200,13 +200,13 @@ public class MatrixBasedAgglomerativeClustererTest extends TestCase {
 			new LevenshteinDistanceCalculator();
 		clusterer = new MatrixBasedAgglomerativeClusterer(fieldVec, levCalc);
 
-		assertEquals(1.0, clusterer.getSmallestDistanceToGroup("", fieldVec, 1.0));
-		assertEquals(0.5, clusterer.getSmallestDistanceToGroup("", fieldVec, 0.5));
-		assertEquals(0.0, clusterer.getSmallestDistanceToGroup("abcd", fieldVec, 1.0));
-		assertEquals(0.25, clusterer.getSmallestDistanceToGroup("abc", fieldVec, 1.0));
-		assertEquals(0.5, clusterer.getSmallestDistanceToGroup("5678", fieldVec, 1.0));
-		assertEquals(0.25, clusterer.getSmallestDistanceToGroup("123ab678", fieldVec, 1.0));
-		assertEquals(0.25, clusterer.getSmallestDistanceToGroup("123a567", fieldVec, 1.0));
+		assertEquals(1.0, clusterer.getDistanceToGroup("", fieldVec, 1.0));
+		assertEquals(0.5, clusterer.getDistanceToGroup("", fieldVec, 0.5));
+		assertEquals(0.0, clusterer.getDistanceToGroup("abcd", fieldVec, 1.0));
+		assertEquals(0.25, clusterer.getDistanceToGroup("abc", fieldVec, 1.0));
+		assertEquals(0.5, clusterer.getDistanceToGroup("5678", fieldVec, 1.0));
+		assertEquals(0.25, clusterer.getDistanceToGroup("123ab678", fieldVec, 1.0));
+		assertEquals(0.25, clusterer.getDistanceToGroup("123a567", fieldVec, 1.0));
 	}
 
 	@Test

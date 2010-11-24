@@ -14,6 +14,20 @@ import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
  */
 public class ClusterDistanceUtils {
 
+	/** A constant to indicate that agglomeration is via average link clustering.
+	 */
+	public static String AVERAGE_LINK = "average";
+	
+	/** A constant to indicate that agglomeration is via complete link clustering.
+	 * @see Jain, Murphy, and Flynn, "Data clustering: a review",
+	 * ACM Computing Surveys, 1999	 */
+	public static String COMPLETE_LINK = "complete";
+	
+	/** A constant to indicate that agglomeration is via single link clustering.
+	 * @see Jain, Murphy, and Flynn, "Data clustering: a review",
+	 * ACM Computing Surveys, 1999	 */
+	public static String SINGLE_LINK = "single";
+	
 	/**
 	 * Returns the smallest distance between any element in cluster1
 	 * and any element in cluster2

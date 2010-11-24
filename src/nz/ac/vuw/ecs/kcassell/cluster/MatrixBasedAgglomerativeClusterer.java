@@ -73,24 +73,21 @@ import edu.uci.ics.jung.graph.util.EdgeType;
  */
 public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	
-	/** A constant to indicate that agglomeration is via complete link clustering.
-	 * @see Jain, Murphy, and Flynn, "Data clustering: a review",
-	 * ACM Computing Surveys, 1999	 */
-	public static String COMPLETE_LINK = "complete";
-	
-	/** A constant to indicate that agglomeration is via single link clustering.
-	 * @see Jain, Murphy, and Flynn, "Data clustering: a review",
-	 * ACM Computing Surveys, 1999	 */
-	public static String SINGLE_LINK = "single";
-	
 	/** Calculates distances between nodes. */
 	protected DistanceCalculatorIfc<String> distanceCalculator = null;
 	
 	/** Keeps track of how many clustering steps have occurred. */ 
 	protected int previousIteration = 0;
 	
-	/** The distances between the existing clusters */
+	/** The distances between the existing clusters and/or individuals */
 	protected DistanceMatrix<String> distanceMatrix = null;
+	
+	/** The distances between the original individuals */
+	protected DistanceMatrix<String> originalMatrix = null;
+	
+	/** Indicates how to determine whether groups should be combined, e.g.
+	 * single link (based on the nearest members of the group).	 */
+	ClusterCombinationEnum whichLink = ClusterCombinationEnum.SINGLE_LINK;
 	
 	/** This keeps track of the clusters that have been seen.  The key
 	 * is the cluster name; the value is the cluster.  "Elements"
@@ -131,6 +128,7 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			clusterHistory.put(element, null);
 		}
 		buildDistanceMatrix(elements);
+		originalMatrix = distanceMatrix;
 		logger.info(distanceMatrix.toString());
 	}
 
@@ -419,6 +417,14 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 		Double result = 1.0;
 
 		if (s1 != null && s2 != null) {
+
+			// VectorSpaceModelCalculator uses handles, not "simple names"
+			if (! (distanceCalculator instanceof VectorSpaceModelCalculator)) {
+				//TODO some other calculators should probably use handles too
+				s1 = EclipseUtils.getNameFromHandle(s1);
+				s2 = EclipseUtils.getNameFromHandle(s2);
+			}
+
 			MemberCluster cluster1 = clusterHistory.get(s1);
 			MemberCluster cluster2 = clusterHistory.get(s2);
 			
@@ -426,47 +432,40 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			if (cluster1 == null) {
 				// Cluster1 and cluster2 are single elements (handles)
 				if (cluster2 == null) {
-					String name1, name2;
-					// VectorSpaceModelCalculator uses handles, not "simple names"
-					if (distanceCalculator instanceof VectorSpaceModelCalculator) {
-						name1 = s1;
-						name2 = s2;
-					} else {
-						//TODO other calculators should probably work off of handles too
-						name1 = EclipseUtils.getNameFromHandle(s1);
-						name2 = EclipseUtils.getNameFromHandle(s2);
-					}
-					Number nDistance = distanceCalculator.calculateDistance(name1, name2);
-					if (nDistance != null) {
-						result = nDistance.doubleValue();
-					} else {
-						System.err.println("s1 =" + s1);
-					}
+					result = calculateDistanceBetweenIndividuals(s1, s2, result);
 				} else { // cluster2 is a true cluster
 					Set<String> ids = cluster2.getElements();
-					result = getSmallestDistanceToGroup(s1, ids, result);
+					result = getDistanceToGroup(s1, ids, result);
 				}
 			}	// if (cluster1 == null)
 			// Cluster1 is a true cluster
-			else {
-				// cluster2 is a single element
+			else { // cluster2 is a single element
 				if (cluster2 == null) {
 					Set<String> ids = cluster1.getElements();
-					result = getSmallestDistanceToGroup(s2, ids, result);
-				}
-				// Both s1 and s2 are clusters
-				else {
+					result = getDistanceToGroup(s2, ids, result);
+				} else { // Both s1 and s2 are clusters
 					Set<String> ids1 = cluster1.getElements();
 					for (String id1 : ids1) {
 						Set<String> ids2 = cluster2.getElements();
 						Double distance =
-							getSmallestDistanceToGroup(id1, ids2, result);
+							getDistanceToGroup(id1, ids2, result);
 						if (distance.compareTo(result) < 0) {
 							result = distance;
 						}
-					}
-				}
-			}
+					}	// for
+				}	// Both s1 and s2 are clusters
+			}	// cluster2 is a single element
+		}	// if both non-null
+		return result;
+	}
+
+	private Double calculateDistanceBetweenIndividuals(String s1, String s2,
+			Double result) {
+		Number nDistance = distanceCalculator.calculateDistance(s1, s2);
+		if (nDistance != null) {
+			result = nDistance.doubleValue();
+		} else {
+			System.err.println("name1 =" + s1);
 		}
 		return result;
 	}
@@ -479,15 +478,18 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	 * @param result the smallest distance so far
 	 * @return the smallest distance
 	 */
-	protected Double getSmallestDistanceToGroup(String s1,
+	protected Double getDistanceToGroup(String s1,
 			Collection<String> ids, Double result) {
 		for (String id : ids) {
 			if (id != null) {
-				String name1 = EclipseUtils.getNameFromHandle(s1);
-				String name2 = EclipseUtils.getNameFromHandle(id);
+				// VectorSpaceModelCalculator uses handles, not "simple names"
+				if (! (distanceCalculator instanceof VectorSpaceModelCalculator)) {
+					//TODO some other calculators should probably use handles too
+					s1 = EclipseUtils.getNameFromHandle(s1);
+					id = EclipseUtils.getNameFromHandle(id);
+				}
 				Double distance =
-					distanceCalculator.calculateDistance(name1, name2)
-						.doubleValue();
+					distanceCalculator.calculateDistance(s1, id).doubleValue();
 				if (distance.compareTo(result) < 0) {
 					result = distance;
 				}
