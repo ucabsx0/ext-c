@@ -88,7 +88,8 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	
 	/** Indicates how to determine whether groups should be combined, e.g.
 	 * single link (based on the nearest members of the group).	 */
-	ClusterCombinationEnum whichLink = ClusterCombinationEnum.SINGLE_LINK;
+	protected ClusterCombinationEnum whichLink =
+		ClusterCombinationEnum.AVERAGE_LINK;
 	
 	/** This keeps track of the clusters that have been seen.  The key
 	 * is the cluster name; the value is the cluster.  "Elements"
@@ -196,6 +197,14 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	 */
 	public HashMap<String, MemberCluster> getClusterHistory() {
 		return clusterHistory;
+	}
+
+	public ClusterCombinationEnum getWhichLink() {
+		return whichLink;
+	}
+
+	public void setWhichLink(ClusterCombinationEnum whichLink) {
+		this.whichLink = whichLink;
 	}
 
 	/**
