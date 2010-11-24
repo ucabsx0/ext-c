@@ -208,7 +208,9 @@ public class CallGraphCluster extends CallGraphNode
         		MemberCluster memCluster = new MemberCluster();
         		String memberName = node.getSimpleName();
 				memCluster.setClusterName(memberName);
-				memCluster.addElement(memberName);
+        		String nodeLabel = node.getLabel();
+				memCluster.addElement(nodeLabel);
+				//memCluster.addElement(memberName);
     			memberClusters.add(memCluster);
         	}
         }

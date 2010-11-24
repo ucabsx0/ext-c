@@ -548,8 +548,7 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 						&& (includeConstructors || !method.isConstructor())
 						&& (includeStatics || !Flags.isStatic(flags))
 						) {
-					String handle = method.getHandleIdentifier();
-					CallGraphNode node = createNode(handle);
+					CallGraphNode node = createNode(methodHandle);
 					node.setSimpleName(method.getElementName());
 					node.setNodeType(NodeType.METHOD);
 					try {
