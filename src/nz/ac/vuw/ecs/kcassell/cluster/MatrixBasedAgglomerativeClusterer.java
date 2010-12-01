@@ -126,6 +126,10 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	public MatrixBasedAgglomerativeClusterer(List<String> elements,
 			DistanceCalculatorIfc<String> calc) {
 		distanceCalculator = calc;
+		ApplicationParameters parameters = ApplicationParameters.getSingleton();
+		String linkage = parameters.getParameter(ParameterConstants.LINKAGE_KEY,
+				ClusterCombinationEnum.AVERAGE_LINK.toString());
+		whichLink = ClusterCombinationEnum.valueOf(linkage);
 		for (String element : elements) {
 			clusterHistory.put(element, null);
 		}

@@ -59,6 +59,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
+import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClustererIfc;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
@@ -71,12 +72,16 @@ public class AgglomerativeApplet extends ClusteringGraphApplet
 implements ClusterUIConstants, ParameterConstants {
 	
 	public static final String CALCULATOR_COMBO = "DistanceCombo";
+	public static final String LINK_COMBO = "LinkCombo";
 
 	protected static final long serialVersionUID = 1L;
 	protected Layout<CallGraphNode, CallGraphLink> layout = null;
 
 	/** Where the user selects the distance calculator. */
 	protected JComboBox calculatorBox = null;
+
+	/** Where the user selects the group linkage type. */
+	protected JComboBox groupLinkageBox = null;
 
 	JPanel southPanel = null;
 
@@ -105,6 +110,20 @@ implements ClusterUIConstants, ParameterConstants {
 		displayGraphClusterText();
 		visualizer.validate();
 		visualizer.repaint();
+	}
+
+	private JComboBox createLinkageCombo() {
+		Vector<String> menuItems = new Vector<String>();
+		for (ClusterCombinationEnum linkage : ClusterCombinationEnum.values()) {
+			menuItems.add(linkage.toString());
+		}
+		JComboBox linkageBox = new JComboBox(menuItems);
+		String sLink = parameters.getParameter(
+				LINKAGE_KEY,
+				ClusterCombinationEnum.AVERAGE_LINK.toString());
+		linkageBox.setSelectedItem(sLink);
+		linkageBox.setName(LINK_COMBO);
+		return linkageBox;
 	}
 
 	private JComboBox createCalculatorCombo() {
@@ -161,14 +180,21 @@ implements ClusterUIConstants, ParameterConstants {
 
 	protected JPanel setUpSouthPanel() {
 		southPanel = new JPanel();
-		JPanel grid = new JPanel(new GridLayout(1, 4));
+		JPanel grid = new JPanel(new GridLayout(1, 6));
 
-		JLabel calcLabel = new JLabel("DistanceCalculator: ");
+		JLabel calcLabel = new JLabel("Distance Calculator: ");
 		calcLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		grid.add(calcLabel);
 		calculatorBox = createCalculatorCombo();
 		calculatorBox.addActionListener(view);
 		grid.add(calculatorBox);
+
+		JLabel groupLinkageLabel = new JLabel("Group Linkage: ");
+		groupLinkageLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		grid.add(groupLinkageLabel);
+		groupLinkageBox = createLinkageCombo();
+		groupLinkageBox.addActionListener(view);
+		grid.add(groupLinkageBox);
 
 		TitledBorder sliderBorder = setUpSliderPanel();
 		addChangeListenerToSlider(sliderBorder);

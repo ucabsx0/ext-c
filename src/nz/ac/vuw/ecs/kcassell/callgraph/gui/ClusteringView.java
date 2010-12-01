@@ -153,7 +153,10 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			sourceName = box.getName();
 			if (AgglomerativeApplet.CALCULATOR_COMBO.equals(sourceName)) {
 				handleCalculatorRequest(box);
+			} else if (AgglomerativeApplet.LINK_COMBO.equals(sourceName)) {
+				handleGroupLinkageRequest(box);
 			}
+
 		}
 	}
 
@@ -163,6 +166,24 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
 		parameters.setParameter(ParameterConstants.CALCULATOR_KEY,
 				sCalculator);
+		JavaCallGraph callGraph = clusteringApplet.getGraph();
+		if (callGraph == null) {
+			callGraph = app.graphView.getGraph();
+		}
+		if (callGraph == null) {
+			String msg = "Choose a class for agglomerative clustering.";
+			JOptionPane.showMessageDialog(mainPanel, msg,
+					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			setUpAgglomerativeClustering(callGraph);
+		}
+	}
+
+	protected void handleGroupLinkageRequest(JComboBox box) {
+		Object selectedItem = box.getSelectedItem();
+		String sLinkage = selectedItem.toString();
+		ApplicationParameters parameters = ApplicationParameters.getSingleton();
+		parameters.setParameter(ParameterConstants.LINKAGE_KEY, sLinkage);
 		JavaCallGraph callGraph = clusteringApplet.getGraph();
 		if (callGraph == null) {
 			callGraph = app.graphView.getGraph();
@@ -282,10 +303,12 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 						"Calculator Specification Error", JOptionPane.WARNING_MESSAGE);
 			}
 		} catch (Exception e) {
-			String msg = "Unable to set up agglomerative clustering";
+			String msg = "Unable to set up agglomerative clustering: " + e;
 			JOptionPane.showMessageDialog(mainPanel, msg,
 					"UI Error", JOptionPane.WARNING_MESSAGE);
 			e.printStackTrace();
+			clustersTextArea.setText("");
+			agglomerativePostProcessing(aggApplet);
 		}
 		mainPanel.setDividerLocation(0.25);
 	}

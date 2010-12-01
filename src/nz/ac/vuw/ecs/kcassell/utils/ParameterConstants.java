@@ -68,6 +68,10 @@ public interface ParameterConstants {
 	public static final String IDENTIFIER_PARTS_TO_IGNORE_KEY =
 		"identifierPartsToIgnore";
 	
+	/** The key for determining the group linkage to
+    use in agglomerative clustering. */
+	public static final String LINKAGE_KEY = "groupLinkage";
+
 	/** The key for determining the max size threshold for the number of members
 	 * in a class.  */
 	public static final String MAX_MEMBERS_KEY = "maxMembers";
