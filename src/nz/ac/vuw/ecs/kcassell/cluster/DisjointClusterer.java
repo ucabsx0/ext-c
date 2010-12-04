@@ -48,10 +48,6 @@ import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
  */
 public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 
-	/** The original distance matrix that contains the distances between
-	 * the elements. */
-	protected DistanceMatrix<String> originalMatrix = null;
-	
 	/** One of the two major groups. */
 	protected MemberCluster seed1 = null;
 	protected MemberCluster originalSeed1 = null;
