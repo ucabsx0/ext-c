@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -536,18 +535,11 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 		} else if (DistanceCalculatorEnum.Simon.toString().equals(sCalc)) {
 			calc = setUpSimonClustering(classHandle);
 		} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equals(sCalc)) {
-			calc = setUpVectorSpaceModelClustering(classHandle);
+			calc = VectorSpaceModelCalculator.getCalculator(classHandle);
 		}
 		return calc;
 	}
 	
-	private static DistanceCalculatorIfc<String> setUpVectorSpaceModelClustering(
-			String classHandle) throws IOException {
-		VectorSpaceModelCalculator calc =
-			new VectorSpaceModelCalculator(classHandle);
-		return calc;
-	}
-
 	/**
 	 * Set up a IdentifierDistanceCalculator
 	 * @return the calculator

@@ -266,7 +266,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						.equalsIgnoreCase(sCalc)) {
 					try {
 					    DistanceCalculatorIfc<String> calc =
-					    	new VectorSpaceModelCalculator(handle);
+					    	VectorSpaceModelCalculator.getCalculator(handle);
 						List<String> memberHandles =
 							EclipseUtils.getFilteredMemberNames(handle);
 						MatrixBasedAgglomerativeClusterer clusterer =

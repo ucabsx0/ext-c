@@ -233,7 +233,8 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
 					sCalc)) {
 				String classHandle = callGraph.getHandle();
-				VectorSpaceModelCalculator calc = new VectorSpaceModelCalculator(classHandle);
+				VectorSpaceModelCalculator calc =
+			    	VectorSpaceModelCalculator.getCalculator(classHandle);
 				List<String> names =
 					EclipseUtils.getFilteredMemberHandles(classHandle);
 				MatrixBasedAgglomerativeClusterer clusterer =
@@ -293,7 +294,8 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
 					sCalc)) {
 				String handle = callGraph.getHandle();
-				VectorSpaceModelCalculator calc = new VectorSpaceModelCalculator(handle);
+				VectorSpaceModelCalculator calc =
+			    	VectorSpaceModelCalculator.getCalculator(handle);
 				String sCluster = clusterUsingIdentifiers(callGraph, calc);
 				clustersTextArea.setText("Final cluster:\n" + sCluster);
 				agglomerativePostProcessing(aggApplet);
