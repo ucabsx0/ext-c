@@ -1,6 +1,7 @@
 package nz.ac.vuw.ecs.kcassell.similarity;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
@@ -100,8 +101,8 @@ implements DistanceCalculatorIfc<String>, Serializable {
 //		String className = EclipseUtils.getNameFromHandle(handle);
 		projectName = EclipseUtils.getProjectNameFromHandle(handle);
 	    String memberDocumentFile = RefactoringConstants.DATA_DIR +
-			"MemberDocuments/" + projectName + "Members.txt";
-//		"MemberDocuments/" + projectName + "/" +
+			"MemberDocuments/" + projectName + "/" +
+			projectName + "Members.txt";
 //		className + "Members.txt";
 	    return memberDocumentFile;
 	}
@@ -111,7 +112,7 @@ implements DistanceCalculatorIfc<String>, Serializable {
 	 */
 	public void save() {
 		String serializationFile = RefactoringConstants.DATA_DIR +
-			"MemberDocuments/" + projectName + ".ser";
+			"MemberDocuments/" + projectName + "/" + projectName + ".ser";
 		try {
 			ObjectPersistence.saveToFile(this, serializationFile);
 		} catch (Exception e) {
@@ -127,13 +128,14 @@ implements DistanceCalculatorIfc<String>, Serializable {
 	public static VectorSpaceModelCalculator restore(String name) {
 		VectorSpaceModelCalculator calc = null;
 		String serializationFile = RefactoringConstants.DATA_DIR +
-			"MemberDocuments/" + name + ".ser";
+			"MemberDocuments/" + name + "/" + name + ".ser";
 		try {
 			Object object = ObjectPersistence.readFromFile(serializationFile);
 			calc = (VectorSpaceModelCalculator)object;
+		} catch (FileNotFoundException e) {
 		} catch (Exception e) {
 			ObjectPersistence.handleSerializationException(
-					"Unable to read from " + serializationFile, e);
+					"Unable to read VectorSpaceModelCalculator from " + serializationFile, e);
 		}
 		return calc;
 	}
