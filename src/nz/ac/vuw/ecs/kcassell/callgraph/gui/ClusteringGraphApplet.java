@@ -348,14 +348,8 @@ implements ClusterUIConstants, ParameterConstants
 			buf.append(node.getSimpleName()).append(":\n");
 			if (node instanceof CallGraphCluster) {
 				CallGraphCluster cluster = (CallGraphCluster)node;
-				SortedSet<CallGraphNode> subnodes = cluster.getElements();
-				ArrayList<CallGraphNode> subNodeList =
-					new ArrayList<CallGraphNode>(subnodes);
-				Collections.sort(subNodeList, nodeNameComparator);
-				
-				for (CallGraphNode subnode : subNodeList) {
-					buf.append("  ").append(subnode.getSimpleName()).append("\n");
-				}
+				cluster.toNestedString(1, buf);
+				//clusterToFlatGroupString(buf, cluster);
 			} else { // Regular CallGraphNode
 				buf.append("  ").append(node.getSimpleName()).append("\n");
 			}
@@ -363,6 +357,18 @@ implements ClusterUIConstants, ParameterConstants
 		}
 		String clustersString = buf.toString();
 		return clustersString;
+	}
+
+	protected void clusterToFlatGroupString(StringBuffer buf,
+			CallGraphCluster cluster) {
+		SortedSet<CallGraphNode> subnodes = cluster.getElements();
+		ArrayList<CallGraphNode> subNodeList =
+			new ArrayList<CallGraphNode>(subnodes);
+		Collections.sort(subNodeList, nodeNameComparator);
+		
+		for (CallGraphNode subnode : subNodeList) {
+			buf.append("  ").append(subnode.getSimpleName()).append("\n");
+		}
 	}
 
 	public void setView(ClusteringView clusteringView) {
