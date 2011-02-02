@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package nz.ac.vuw.ecs.kcassell.callgraph.gui.transformers;
 
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
@@ -224,8 +225,14 @@ VisualizationViewer<V,E>(BasicVisualizationServer<V,E>).renderGraph(Graphics2D) 
 			} else if (node instanceof CallGraphCluster) {
 				CallGraphCluster cluster = (CallGraphCluster)node;
 				int nodeCount = cluster.getElementCount();
-				shape = factory.getRegularPolygon(node,
-						(nodeCount > numClusterSides) ? nodeCount : numClusterSides);
+				if (nodeCount == 2) {
+					Ellipse2D ellipse = factory.getEllipse(cluster);
+					shape = new Ellipse2D.Double(ellipse.getX(), ellipse.getY(),
+							                     ellipse.getWidth(), ellipse.getHeight() * 0.6);
+				} else {
+					shape = factory.getRegularPolygon(node,
+							(nodeCount > numClusterSides) ? nodeCount : numClusterSides);
+				}
 			} else if (node.getNodeType() == NodeType.CLUSTER) {
 				shape = factory.getRegularPolygon(node, numClusterSides);
 			} else { // METHOD
