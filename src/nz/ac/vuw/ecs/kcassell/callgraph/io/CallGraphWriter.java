@@ -64,8 +64,10 @@ public class CallGraphWriter {
 			throws IOException {
 		Graph<CallGraphNode, CallGraphLink> graph = callGraph.getJungGraph();
 		Writer fileWriter = new FileWriter(fileName);
-		GraphMLWriter<CallGraphNode, CallGraphLink> mlWriter = new GraphMLWriter<CallGraphNode, CallGraphLink>();
-		TreeMap<String, GraphMLMetadata<CallGraphNode>> map = new TreeMap<String, GraphMLMetadata<CallGraphNode>>();
+		GraphMLWriter<CallGraphNode, CallGraphLink> mlWriter =
+			new GraphMLWriter<CallGraphNode, CallGraphLink>();
+		TreeMap<String, GraphMLMetadata<CallGraphNode>> map =
+			new TreeMap<String, GraphMLMetadata<CallGraphNode>>();
 		map.put(CallGraphNode.GRAPHML_LABEL, CallGraphNode
 				.getGraphMLLabelMetaData());
 		map.put(CallGraphNode.GRAPHML_MEMBER_TYPE, CallGraphNode

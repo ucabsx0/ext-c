@@ -32,6 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.callgraph;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -322,7 +325,12 @@ public class CallGraphNode {
 	public static class GraphMLLabelMetadataWriter implements
 			Transformer<CallGraphNode, String> {
 		public String transform(CallGraphNode node) {
-			return node.getLabel();
+			String nodeLabel = node.getLabel();
+			try {
+				nodeLabel = URLEncoder.encode(nodeLabel, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+			}
+			return nodeLabel;
 		}
 	}
 
@@ -348,7 +356,15 @@ public class CallGraphNode {
 			CallGraphNode node = new CallGraphNode();
 			Map<String, String> properties = metadata.getProperties();
 			String label = properties.get(GRAPHML_LABEL);
-			node.setLabel((label != null) ? label : ("CGNode" + n++));
+			if (label == null) {
+				label = "CGNode" + n++;
+			} else {
+				try {
+					label = URLDecoder.decode(label, "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+				}
+			}
+			node.setLabel(label);
 			String sScore = properties.get(GRAPHML_SCORE);
 			double score = 0.0;
 			try {
