@@ -61,6 +61,7 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import edu.uci.ics.jung.algorithms.util.MapSettableTransformer;
 import edu.uci.ics.jung.algorithms.util.SettableTransformer;
+import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -418,6 +419,33 @@ implements Cloneable, ParameterConstants, RefactoringConstants {
 
 	public CallGraphLink createLink(CallGraphNode node1, CallGraphNode node2) {
 		return createLink(node1, node2, defaultEdgeType);
+	}
+
+	public static JavaCallGraph toDirectedGraph(JavaCallGraph graphIn) {
+		Graph<CallGraphNode, CallGraphLink> jungGraphIn = graphIn.getJungGraph();
+		JavaCallGraph graphOut = null;
+		if (jungGraphIn instanceof DirectedSparseMultigraph<?, ?>) {
+			graphOut = graphIn;
+		} else {
+			graphOut = new JavaCallGraph();
+			graphOut.jungGraph = new DirectedSparseMultigraph<CallGraphNode, CallGraphLink>();
+			graphOut.setHandle(graphIn.getHandle());
+			graphOut.setName(graphIn.getName());
+
+			for (CallGraphNode node : graphIn.getNodes()) {
+				graphOut.addNode(node);
+			}
+			
+			// Add directed edges
+			for (CallGraphNode node : graphIn.getNodes()) {
+				Collection<CallGraphNode> successors =
+					graphIn.jungGraph.getSuccessors(node);
+				for (CallGraphNode successor : successors) {
+					graphOut.createLink(node, successor, EdgeType.DIRECTED);
+				}
+			}
+		}
+		return graphOut;
 	}
 
 	public static JavaCallGraph toUndirectedGraph(JavaCallGraph graphIn) {
