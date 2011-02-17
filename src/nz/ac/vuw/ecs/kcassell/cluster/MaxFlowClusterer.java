@@ -97,7 +97,7 @@ public class MaxFlowClusterer implements ClustererIfc<CallGraphNode> {
 			Set<CallGraphNode> sourcePartition = maxFlowAlgo.getNodesInSourcePartition();
 			CallGraphCluster sourceCluster = new CallGraphCluster(sourcePartition);
 			clusters.add(sourceCluster);
-		}
+		} // TODO create directed equivalent of undirected graph by having two edges per one
 		return clusters;
 	}
 

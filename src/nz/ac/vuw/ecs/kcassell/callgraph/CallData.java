@@ -222,7 +222,7 @@ public class CallData implements ParameterConstants {
 		for (IMethod method : methods) {
 			// Update the methodCalledByMap for typeMethods[i]
 			try {
-				Set<IMethod> callers = EclipseSearchUtils.getCallingMethods(method, scope);
+				Set<IMethod> callers = EclipseSearchUtils.calculateCallingMethods(method, scope);
 				methodCalledByMap.put(method, new HashSet<IMethod>(callers));
 
 				// Update the methodsCalledMap for method
@@ -276,7 +276,7 @@ public class CallData implements ParameterConstants {
 		for (IField attribute : attributes) {
 			// Update the fieldCalledByMap for attribute
 			try {
-				Set<IMethod> callers = EclipseSearchUtils.getCallingMethods(
+				Set<IMethod> callers = EclipseSearchUtils.calculateCallingMethods(
 						attribute, scope);
 				attributeAccessedByMap.put(attribute, new HashSet<IMethod>(
 						callers));

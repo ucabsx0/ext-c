@@ -86,19 +86,21 @@ implements IJavaSearchConstants, RefactoringConstants {
 	 * Find all classes that access methods or fields in this class
 	 * from within the same project.
 	 * @param source metrics for a particular IType
+	 * @param scope the elements being examined, e.g. this class or this package
 	 * @return the handles of the classes that have methods that
 	 *  reference methods or fields in this class
 	 */
-	public static Set<String> calculateCallingClasses(IType aType)
+	public static Set<String> calculateCallingClasses(IType aType,
+			IJavaSearchScope scope)
 			throws CoreException {
+//		IJavaSearchScope scope = createProjectSearchScope(aType);
 		Set<String> clients = null;
-		SearchPattern pattern = SearchPattern.createPattern(aType,
-				REFERENCES);
-		IJavaSearchScope scope = createProjectSearchScope(aType);
+		SearchPattern pattern =
+			SearchPattern.createPattern(aType, REFERENCES);
 		SearchEngine engine = new SearchEngine();
 		ClientClassCollector collector = new ClientClassCollector();
-		SearchParticipant[] participants = new SearchParticipant[] { SearchEngine
-				.getDefaultSearchParticipant() };
+		SearchParticipant[] participants =
+			new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() };
 		engine.search(pattern, participants, scope, collector, null);
 		clients = collector.getResult();
 		return clients;
@@ -421,7 +423,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 	 * @param scope the elements being examined, e.g. this class or this package
 	 * @return the collection of methods that access the indicated member
 	 */
-	public static Set<IMethod> getCallingMethods(
+	public static Set<IMethod> calculateCallingMethods(
 			IMember member,
 			IJavaSearchScope scope)
 			throws CoreException {
