@@ -84,7 +84,7 @@ public class JaccardCalculator {
 	 * @return Jaccard similarity between 0 (no shared properties) and 1
 	 *         (identical properties)
 	 */
-	public double calculateSimilarity(Set<String> properties1,
+	public static double calculateSimilarity(Set<String> properties1,
 			Set<String> properties2) {
 		Set<String> intersection = new HashSet<String>(properties1);
 		intersection.retainAll(properties2);

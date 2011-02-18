@@ -59,6 +59,7 @@ import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
 import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
+import nz.ac.vuw.ecs.kcassell.similarity.ClientDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
@@ -87,8 +88,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	/** The label used for the button to initiate a count of the
 	 * number of disconnected subgraphs after a single split based
 	 * on betweenness clustering.  */
-	private static final String DISCONNECTED1_BUTTON_LABEL =
-		"Disconnected Subgraphs (1 Split)";
+	private static final String TEST_BUTTON = "Test of the Day";
 	private static final String DISTANCES_BUTTON_LABEL = "Compute Distances";
 	
 	private static final Dimension BUTTON_SIZE = new Dimension(150, 60);
@@ -153,10 +153,6 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		subgraphButton.setPreferredSize(BUTTON_SIZE);
 		subgraphButton.addActionListener(this);
 		leftPanel.add(subgraphButton);
-//		JButton subgraph1Button = new JButton(DISCONNECTED1_BUTTON_LABEL);
-//		subgraph1Button.setPreferredSize(BUTTON_SIZE);
-//		subgraph1Button.addActionListener(this);
-//		leftPanel.add(subgraph1Button);
 		JButton distancesButton = new JButton(DISTANCES_BUTTON_LABEL);
 		distancesButton.setPreferredSize(BUTTON_SIZE);
 		distancesButton.addActionListener(this);
@@ -165,6 +161,11 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		progressLabel.setVisible(false);
 		progressLabel.setPreferredSize(BUTTON_SIZE);
 		leftPanel.add(progressLabel);
+		
+		JButton subgraph1Button = new JButton(TEST_BUTTON);
+		subgraph1Button.setPreferredSize(BUTTON_SIZE);
+		subgraph1Button.addActionListener(this);
+		leftPanel.add(subgraph1Button);
 
 		textArea = new JTextArea();
 		textArea.setEditable(false);
@@ -186,12 +187,34 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
 			countAllDisconnectedSubgraphs(mainPanel);
 		}
-		else if (DISCONNECTED1_BUTTON_LABEL.equals(command)) {
-			clusterAllSelections(mainPanel);
-		}
 		else if (DISTANCES_BUTTON_LABEL.equals(command)){
 			collectDistances(mainPanel);
 		}
+		else if (TEST_BUTTON.equals(command)) {
+			GraphView graphView = app.getGraphView();
+			JavaCallGraph callGraph = graphView.getGraph();
+
+			if (callGraph == null) {
+				String msg = "Choose a class.";
+				JOptionPane.showMessageDialog(mainPanel, msg,
+					"No class chosen", JOptionPane.WARNING_MESSAGE);
+			} else {
+				ClientDistanceCalculator calculator = new ClientDistanceCalculator();
+				List<CallGraphNode> nodes = callGraph.getNodes();
+				CallGraphNode prevNode = null;
+				for (CallGraphNode node : nodes) {
+					if (prevNode != null) {
+						String handle1 = node.getLabel();
+						String handle2 = prevNode.getLabel();
+						Number distance = calculator.calculateDistance(handle1, handle2);
+						textArea.append("Distance from " + node.getSimpleName() + " to "
+								+ prevNode.getSimpleName() + " =\t" + distance + "\n");
+					}
+					prevNode = node;
+				}	// for
+			}	// else
+			textArea.repaint();
+		}	// TEST_BUTTON
 		textArea.repaint();
 	}
 

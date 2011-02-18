@@ -32,8 +32,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.similarity;
 
+import java.util.Set;
+
+import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
+import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
+
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.search.IJavaSearchScope;
 
 public class ClientDistanceCalculator
 implements DistanceCalculatorIfc<String> {
@@ -45,10 +52,21 @@ implements DistanceCalculatorIfc<String> {
 	 * @param handle2 the Eclipse handle for the second member
 	 */
 	public Number calculateDistance(String handle1, String handle2) {
+		Number distance = RefactoringConstants.UNKNOWN_DISTANCE;
         IJavaElement member1 = JavaCore.create(handle1);
         IJavaElement member2 = JavaCore.create(handle2);
-		// TODO Auto-generated method stub
-		return null;
+        try {
+			IJavaSearchScope scope = EclipseSearchUtils.createProjectSearchScope(member1);
+			Set<String> callers1 =
+				EclipseSearchUtils.calculateCallingClasses(member1, scope);
+			Set<String> callers2 =
+				EclipseSearchUtils.calculateCallingClasses(member2, scope);
+			// TODO replace with cosine sim
+			distance = JaccardCalculator.calculateSimilarity(callers1, callers2);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return distance;
 	}
 
 	public DistanceCalculatorEnum getType() {

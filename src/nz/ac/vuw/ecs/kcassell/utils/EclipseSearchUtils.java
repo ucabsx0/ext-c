@@ -74,12 +74,25 @@ implements IJavaSearchConstants, RefactoringConstants {
 	 */
 	public static Set<String> calculateCalledClasses(IJavaElement caller)
 			throws CoreException {
-		Set<String> servers = null;
 		SearchEngine engine = new SearchEngine();
 		ServerClassCollector collector = new ServerClassCollector(caller);
 		engine.searchDeclarationsOfReferencedTypes(caller, collector, null);
-		servers = collector.getResult();
+		Set<String> servers = collector.getResult();
 		return servers;
+	}
+	
+	/**
+	 * Find all methods that this element accesses.
+	 * @param caller the calling compilation unit or source type/method/field
+	 * @return the methods called by this element
+	 */
+	public static Set<IMethod> calculateCalledMethods(IJavaElement caller)
+			throws CoreException {
+		SearchEngine engine = new SearchEngine();
+		MethodCollector collector = new MethodCollector();
+		engine.searchDeclarationsOfSentMessages(caller, collector, null);
+		Set<IMethod> called = collector.getResults();
+		return called;
 	}
 	
 	/**
@@ -90,37 +103,46 @@ implements IJavaSearchConstants, RefactoringConstants {
 	 * @return the handles of the classes that have methods that
 	 *  reference methods or fields in this class
 	 */
-	public static Set<String> calculateCallingClasses(IType aType,
+	public static Set<String> calculateCallingClasses(IJavaElement element,
 			IJavaSearchScope scope)
 			throws CoreException {
-//		IJavaSearchScope scope = createProjectSearchScope(aType);
-		Set<String> clients = null;
-		SearchPattern pattern =
-			SearchPattern.createPattern(aType, REFERENCES);
 		SearchEngine engine = new SearchEngine();
-		ClientClassCollector collector = new ClientClassCollector();
 		SearchParticipant[] participants =
 			new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() };
-		engine.search(pattern, participants, scope, collector, null);
-		clients = collector.getResult();
+		SearchPattern pattern =
+			SearchPattern.createPattern(element, REFERENCES);
+		ClientClassCollector collector = new ClientClassCollector();
+		try{
+			engine.search(pattern, participants, scope, collector, null);
+		} catch (Exception e) {
+			System.err.println(e.toString() + " for " + element.getElementName());
+		}
+		Set<String> clients = collector.getResult();
 		return clients;
 	}
 
 	/**
-	 * Find all methods that this element accesses.
-	 * @param caller the calling compilation unit or source type/method/field
-	 * @return the methods called by this element
+	 * Collects the methods that access the specified member
+	 * @param element the field or method whose accessors are being determined
+	 * @param scope the elements being examined, e.g. this class or this package
+	 * @return the collection of methods that access the indicated member
 	 */
-	public static Set<IMethod> calculateCalledMethods(IJavaElement caller)
+	public static Set<IMethod> calculateCallingMethods(
+			IJavaElement element,
+			IJavaSearchScope scope)
 			throws CoreException {
-		Set<IMethod> called = null;
-
-		SearchEngine engine = new SearchEngine();
-		MethodCollector collector = new MethodCollector();
-		engine.searchDeclarationsOfSentMessages(caller, collector, null);
-		called = collector.getResults();
-		return called;
+		SearchEngine searchEngine = new SearchEngine();
+		SearchParticipant[] participants =
+			new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() };
+		SearchPattern callingMethodPattern = SearchPattern.createPattern(
+				element, REFERENCES);
+		MethodCollector methodCollector = new MethodCollector();
+		searchEngine.search(callingMethodPattern, participants, scope,
+				methodCollector, null);
+		Set<IMethod> callers = methodCollector.getResults();
+		return callers;
 	}
+
 	
 	/**
 	 * Create a search scope consisting of this element's project.
@@ -417,29 +439,6 @@ implements IJavaSearchConstants, RefactoringConstants {
 		return embedded;
 	}
 
-	/**
-	 * Collects the methods that access the specified member
-	 * @param member the field or method whose accessors are being determined
-	 * @param scope the elements being examined, e.g. this class or this package
-	 * @return the collection of methods that access the indicated member
-	 */
-	public static Set<IMethod> calculateCallingMethods(
-			IMember member,
-			IJavaSearchScope scope)
-			throws CoreException {
-		MethodCollector methodCollector = new MethodCollector();
-		SearchEngine searchEngine = new SearchEngine();
-		SearchParticipant[] participants =
-			new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() };
-		SearchPattern callingMethodPattern = SearchPattern.createPattern(
-				member, REFERENCES);
-		searchEngine.search(callingMethodPattern, participants, scope,
-				methodCollector, null);
-		Set<IMethod> callers = methodCollector.getResults();
-		return callers;
-	}
-
-	
 	/**
 	 * Uses the JDT SearchEngine to collect all ITypes
 	 * that directly depend on members in the specified IType
