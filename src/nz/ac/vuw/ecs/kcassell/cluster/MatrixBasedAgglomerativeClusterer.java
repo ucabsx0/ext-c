@@ -100,16 +100,6 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
     	new UtilLogger("MatrixBasedAgglomerativeClusterer");
     
     /**
-     * The name of the file that contains
-	 * one member per line.  The first token is the member handle, and the 
-	 * remaining tokens are the stemmed words found in identifiers and comments.
-     */
-    private static String vectorSpaceModelInputFile =
-    	RefactoringConstants.DATA_DIR + "MemberDocuments/freecolMembers.txt";
-    	//"c:/Tools/runtime-New_configuration/.metadata/.plugins/edu.wm.topicxp/CohesionTests/members";
-    // TODO this is temporary until we create the vsm inputs at run time
-
-    /**
      * For use by subclasses.
      */
     protected MatrixBasedAgglomerativeClusterer() {
@@ -165,14 +155,6 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 	 */
 	public Collection<String> getClusters() {
 		return distanceMatrix.getHeaders();
-	}
-
-	public static String getVectorSpaceModelInputFile() {
-		return vectorSpaceModelInputFile;
-	}
-
-	public static void setVectorSpaceModelInputFile(String vectorSpaceModelInputFile) {
-		MatrixBasedAgglomerativeClusterer.vectorSpaceModelInputFile = vectorSpaceModelInputFile;
 	}
 
 	/**

@@ -32,19 +32,71 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.similarity;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
+import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
+import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 
 public class ClientDistanceCalculator
 implements DistanceCalculatorIfc<String> {
+	
+	protected JavaCallGraph callGraph = null;
 
+	public ClientDistanceCalculator(JavaCallGraph callGraph) {
+		this.callGraph = callGraph;
+	}
+	
+	/**
+	 * Create a file where each line is a "document".  The first token of
+	 * the line is the member handle.  Subsequent tokens are the names of the
+	 * calling classes.
+	 * @param fileName the name of the document file
+	 */
+	public void buildDocuments(String fileName) {
+		StringBuffer buf = new StringBuffer();
+		List<CallGraphNode> nodes = callGraph.getNodes();
+		for (CallGraphNode node : nodes) {
+			String memberHandle = node.getLabel();
+			buf.append(memberHandle).append(' ');
+			try {
+				IJavaElement member = JavaCore.create(memberHandle);
+				// TODO - node is not a member, e.g. a cluster
+				IJavaSearchScope scope =
+					EclipseSearchUtils.createProjectSearchScope(member);
+				Set<String> callers =
+					EclipseSearchUtils.calculateCallingClasses(member, scope);
+				for (String caller : callers) {
+//					String callerName = EclipseUtils.getNameFromHandle(caller);
+//					buf.append(callerName).append(' ');
+					buf.append(caller).append(' ');
+				}
+				buf.deleteCharAt(buf.length() - 1); // remove last space
+				buf.append("\n");
+			} catch (Exception e) {
+				System.err.println(e.toString());
+			}
+		}
+		try {
+			BufferedWriter writer
+			   = new BufferedWriter(new FileWriter(fileName));
+			writer.write(buf.toString());
+			writer.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Calculates the distance between two members based on the similarity of the external
 	 * clients each member has.  
@@ -53,6 +105,7 @@ implements DistanceCalculatorIfc<String> {
 	 */
 	public Number calculateDistance(String handle1, String handle2) {
 		Number distance = RefactoringConstants.UNKNOWN_DISTANCE;
+        // TODO - node is not a member, e.g. a cluster
         IJavaElement member1 = JavaCore.create(handle1);
         IJavaElement member2 = JavaCore.create(handle2);
         try {

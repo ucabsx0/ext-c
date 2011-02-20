@@ -199,7 +199,16 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				JOptionPane.showMessageDialog(mainPanel, msg,
 					"No class chosen", JOptionPane.WARNING_MESSAGE);
 			} else {
-				ClientDistanceCalculator calculator = new ClientDistanceCalculator();
+				ClientDistanceCalculator calculator =
+					new ClientDistanceCalculator(callGraph);
+				String classHandle = callGraph.getHandle();
+				String className = EclipseUtils.getNameFromHandle(classHandle);
+				String projectName = EclipseUtils.getProjectNameFromHandle(classHandle);
+			    String memberClientsFile = RefactoringConstants.DATA_DIR +
+					"MemberDocuments/" + projectName + "/" +
+					className + "Clients.txt";
+				calculator.buildDocuments(memberClientsFile);
+				/*
 				List<CallGraphNode> nodes = callGraph.getNodes();
 				CallGraphNode prevNode = null;
 				for (CallGraphNode node : nodes) {
@@ -212,6 +221,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					}
 					prevNode = node;
 				}	// for
+				*/
 			}	// else
 			textArea.repaint();
 		}	// TEST_BUTTON
