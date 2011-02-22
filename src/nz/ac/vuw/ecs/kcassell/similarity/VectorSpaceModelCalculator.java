@@ -15,28 +15,43 @@ import nz.ac.vuw.ecs.kcassell.utils.ObjectPersistence;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 import edu.ucla.sspace.common.Similarity;
 import edu.ucla.sspace.vector.DoubleVector;
+import edu.ucla.sspace.vector.Vector;
 import edu.ucla.sspace.vsm.VectorSpaceModel;
 
+/**
+ * The VectorSpaceModelCalculator calculates distances between "documents"
+ * based on the "terms" in those documents.  Examples:
+ * (1) A "document" could be a Java identifier with its terms being the 
+ * stemmed parts of the identifier.
+ * (2) A "document" could be a Java class with its terms being the members 
+ * it accesses.
+ * @author kcassell
+ *
+ */
 public class VectorSpaceModelCalculator 
-implements DistanceCalculatorIfc<String>, Serializable {
+implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static transient Hashtable<String, VectorSpaceModelCalculator> calculatorMap =
+	protected static transient Hashtable<String, VectorSpaceModelCalculator> calculatorMap =
 		new Hashtable<String, VectorSpaceModelCalculator>();
 	
 	/** The name of the project can be used to identify the
 	 * serialized calculator. 	 */
-	private String projectName = null;
+	protected String projectName = null;
+	
+	/** The handle of the Eclipse member for which we're constructing
+	 * the vector space model. */
+	protected String vsmHandle = null;
 
 	/** The vector space model maintains document vectors
 	 * where class members are documents and the "words" are
 	 * stemmed parts of identifiers. */
-	private VectorSpaceModel vectorSpaceModel = null;
+	protected VectorSpaceModel vectorSpaceModel = null;
 	
 	/** Maintains a mapping from the member handle to the S-Space
 	 * VectorSpaceModel's document number. */
-	private Map<String, Integer> memberHandleToDocumentNumber =
+	protected Map<String, Integer> memberHandleToDocumentNumber =
 		new HashMap<String, Integer>();
 
 	/**
@@ -49,7 +64,8 @@ implements DistanceCalculatorIfc<String>, Serializable {
 	 */
 	protected VectorSpaceModelCalculator(String handle)
 	throws IOException {
-		String fileName = getMemberDataFileFromHandle(handle);
+		vsmHandle = handle;
+		String fileName = getDataFileNameFromHandle(handle);
 		initializeVectorSpace(fileName);
 		calculatorMap.put(projectName, this);
 	}
@@ -97,10 +113,10 @@ implements DistanceCalculatorIfc<String>, Serializable {
 	 * @param handle an Eclipse handle
 	 * @return the file name of the corpus
 	 */
-	private String getMemberDataFileFromHandle(String handle) {
+	public String getDataFileNameFromHandle(String handle) {
 //		String className = EclipseUtils.getNameFromHandle(handle);
 		projectName = EclipseUtils.getProjectNameFromHandle(handle);
-	    String memberDocumentFile = RefactoringConstants.DATA_DIR +
+	    String memberDocumentFile = DATA_DIR +
 			"MemberDocuments/" + projectName + "/" +
 			projectName + "Members.txt";
 //		className + "Members.txt";
@@ -111,7 +127,7 @@ implements DistanceCalculatorIfc<String>, Serializable {
 	 * Save the serialized version of this calculator.
 	 */
 	public void save() {
-		String serializationFile = RefactoringConstants.DATA_DIR +
+		String serializationFile = DATA_DIR +
 			"MemberDocuments/" + projectName + "/" + projectName + ".ser";
 		try {
 			ObjectPersistence.saveToFile(this, serializationFile);
@@ -127,7 +143,7 @@ implements DistanceCalculatorIfc<String>, Serializable {
 	 */
 	public static VectorSpaceModelCalculator restore(String name) {
 		VectorSpaceModelCalculator calc = null;
-		String serializationFile = RefactoringConstants.DATA_DIR +
+		String serializationFile = DATA_DIR +
 			"MemberDocuments/" + name + "/" + name + ".ser";
 		try {
 			Object object = ObjectPersistence.readFromFile(serializationFile);
@@ -147,7 +163,7 @@ implements DistanceCalculatorIfc<String>, Serializable {
 	 * remaining tokens are the stemmed words found in identifiers.
 	 * @throws IOException
 	 */
-	private VectorSpaceModel initializeVectorSpace(String fileName)
+	protected VectorSpaceModel initializeVectorSpace(String fileName)
 	throws IOException {
 		vectorSpaceModel = new VectorSpaceModel();
 		BufferedReader documentFileReader = new BufferedReader(new FileReader(
@@ -177,7 +193,7 @@ implements DistanceCalculatorIfc<String>, Serializable {
 	 * remaining tokens are the words found in identifiers and comments.
 	 * @throws IOException
 	 */
-	private static String processMemberDocument(VectorSpaceModel vsm,
+	protected static String processMemberDocument(VectorSpaceModel vsm,
 			String line) throws IOException {
 		String memberName;
 		String restOfMember;
@@ -221,20 +237,62 @@ implements DistanceCalculatorIfc<String>, Serializable {
 //		MatrixIO.writeMatrix(wordMatrix, outputMatrixFile, fmt);
 //		// Reminder, if you still want the word-to-row mapping, write out the words array too
 //	}
-
+	
 	public Number calculateDistance(String handle1, String handle2) {
-		double distance = RefactoringConstants.UNKNOWN_DISTANCE.doubleValue();
+		Number distance = UNKNOWN_DISTANCE;
+		distance = calculateDistanceBetweenDocuments(handle1, handle2);
+		return distance;
+	}
+
+	/**
+	 * Calculates the distance between two documents, e.g. two identifiers, based
+	 * on the similarity of the words in the documents
+	 * @param handle1 the Eclipse handle of a class member
+	 * @param handle2 the Eclipse handle of a class member
+	 * @return the distance between the documents corresponding to the handles
+	 */
+	public Number calculateDistanceBetweenDocuments(String handle1, String handle2) {
+		double distance = UNKNOWN_DISTANCE.doubleValue();
 		Integer documentInt1 = memberHandleToDocumentNumber.get(handle1);
 		Integer documentInt2 = memberHandleToDocumentNumber.get(handle2);
 		
 		if (documentInt1 != null && documentInt2 != null) {
 			DoubleVector vector1 = vectorSpaceModel.getDocumentVector(documentInt1);
 			DoubleVector vector2 = vectorSpaceModel.getDocumentVector(documentInt2);
-			distance = 1 - Similarity.cosineSimilarity(vector1, vector2);
-			if (distance < 0.0 && distance != RefactoringConstants.UNKNOWN_DISTANCE.doubleValue()) {
-				distance = 0.0;
-			}
+			distance = calculateCosineDistance(vector1, vector2);
 		}
+		return distance;
+	}
+
+	/**
+	 * Returns a number between 0 and 1 indicating how distant (dissimilar)
+	 * two vectors are.
+	 * @param vector1
+	 * @param vector2
+	 * @return the distance - 0 distance indicates maximum similarity;
+	 * 1 indicates minimal similarity
+	 */
+	protected static double calculateCosineDistance(Vector<?> vector1,
+			Vector<?> vector2) {
+		double distance = 1 - Similarity.cosineSimilarity(vector1, vector2);
+		if (distance < 0.0 && distance != UNKNOWN_DISTANCE.doubleValue()) {
+			distance = 0.0;
+		}
+		return distance;
+	}
+
+	/**
+	 * Calculates the distance between two terms, e.g. two class members, based
+	 * on the similarity of the documents (e.g. classes) that contain them
+	 * @param handle1 the Eclipse handle of a class member
+	 * @param handle2 the Eclipse handle of a class member
+	 * @return the distance between the documents corresponding to the handles
+	 */
+	public Number calculateDistanceBetweenTerms(String handle1, String handle2) {
+		double distance = UNKNOWN_DISTANCE.doubleValue();
+		Vector<?> vector1 = vectorSpaceModel.getVector(handle1);
+		Vector<?> vector2 = vectorSpaceModel.getVector(handle2);
+		distance = calculateCosineDistance(vector1, vector2);
 		return distance;
 	}
 

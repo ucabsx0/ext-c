@@ -67,22 +67,21 @@ public class JaccardCalculatorTest extends TestCase
     @Test
     public void testCalculateSimilarity()
     {
-        JaccardCalculator calculator = new JaccardCalculator();
         HashSet<String> properties1 = new HashSet<String>();
         HashSet<String> properties2 = new HashSet<String>();
-        Double similarity = calculator.calculateSimilarity(properties1, properties2);
+        Double similarity = JaccardCalculator.calculateSimilarity(properties1, properties2);
         assertEquals((Double)0.0, similarity);
         properties1.add("a");
-        similarity = calculator.calculateSimilarity(properties1, properties2);
+        similarity = JaccardCalculator.calculateSimilarity(properties1, properties2);
         assertEquals((Double)0.0, similarity);
         properties2.add("a");
-        similarity = calculator.calculateSimilarity(properties1, properties2);
+        similarity = JaccardCalculator.calculateSimilarity(properties1, properties2);
         assertEquals((Double)1.0, similarity);
         properties1.add("b");
-        similarity = calculator.calculateSimilarity(properties1, properties2);
+        similarity = JaccardCalculator.calculateSimilarity(properties1, properties2);
         assertEquals((Double)0.5, similarity);
         properties2.add("b");
-        similarity = calculator.calculateSimilarity(properties1, properties2);
+        similarity = JaccardCalculator.calculateSimilarity(properties1, properties2);
         assertEquals((Double)1.0, similarity);
     }
 

@@ -41,28 +41,40 @@ import java.util.Set;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
+import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 
-public class ClientDistanceCalculator
-implements DistanceCalculatorIfc<String> {
+public class ClientDistanceCalculator 
+extends VectorSpaceModelCalculator {
 	
+	private static final long serialVersionUID = -8788415900559905880L;
+
 	protected JavaCallGraph callGraph = null;
 
-	public ClientDistanceCalculator(JavaCallGraph callGraph) {
+	/**
+	 * Construct the calculator, building the vector space model
+	 * based on the contents of the file provided
+	 * @param fileName the name of the file that contains
+	 * one member per line.  The first token is the member handle, and the 
+	 * remaining tokens are the stemmed words found in identifiers and comments.
+	 * @throws IOException
+	 */
+	public ClientDistanceCalculator(JavaCallGraph callGraph) throws IOException {
+		super(callGraph.getHandle());
 		this.callGraph = callGraph;
 	}
 	
 	/**
 	 * Create a file where each line is a "document".  The first token of
-	 * the line is the member handle.  Subsequent tokens are the names of the
+	 * the line is the member handle.  Subsequent tokens are the
 	 * calling classes.
 	 * @param fileName the name of the document file
 	 */
-	public void buildDocuments(String fileName) {
+	public static void buildDocuments(JavaCallGraph callGraph, String fileName) {
 		StringBuffer buf = new StringBuffer();
 		List<CallGraphNode> nodes = callGraph.getNodes();
 		for (CallGraphNode node : nodes) {
@@ -98,33 +110,58 @@ implements DistanceCalculatorIfc<String> {
 	}
 	
 	/**
-	 * Calculates the distance between two members based on the similarity of the external
-	 * clients each member has.  
-	 * @param handle1 the Eclipse handle for the first member
-	 * @param handle2 the Eclipse handle for the second member
+	 * Based on an Eclipse handle, retrieve the file name for the
+	 * text file containing the corpus of documents.
+	 * @param handle an Eclipse handle
+	 * @return the file name of the corpus
 	 */
-	public Number calculateDistance(String handle1, String handle2) {
-		Number distance = RefactoringConstants.UNKNOWN_DISTANCE;
-        // TODO - node is not a member, e.g. a cluster
-        IJavaElement member1 = JavaCore.create(handle1);
-        IJavaElement member2 = JavaCore.create(handle2);
-        try {
-			IJavaSearchScope scope = EclipseSearchUtils.createProjectSearchScope(member1);
-			Set<String> callers1 =
-				EclipseSearchUtils.calculateCallingClasses(member1, scope);
-			Set<String> callers2 =
-				EclipseSearchUtils.calculateCallingClasses(member2, scope);
-			// TODO replace with cosine sim
-			distance = JaccardCalculator.calculateSimilarity(callers1, callers2);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return distance;
+	public String getDataFileNameFromHandle(String handle) {
+		String memberClientsFile = getClientDataFileNameFromHandle(handle);
+	    return memberClientsFile;
 	}
 
+	/**
+	 * Based on an Eclipse handle, retrieve the file name for the
+	 * text file containing the corpus of documents.
+	 * @param handle an Eclipse handle
+	 * @return the file name of the corpus
+	 */
+	public static String getClientDataFileNameFromHandle(String handle) {
+		String className = EclipseUtils.getNameFromHandle(handle);
+		String projectName = EclipseUtils.getProjectNameFromHandle(handle);
+	    String memberClientsFile = RefactoringConstants.DATA_DIR +
+			"MemberDocuments/" + projectName + "/" +
+			className + "Clients.txt";
+	    return memberClientsFile;
+	}
+
+//	/**
+//	 * Calculates the distance between two members based on the similarity of the external
+//	 * clients each member has.  
+//	 * @param handle1 the Eclipse handle for the first member
+//	 * @param handle2 the Eclipse handle for the second member
+//	 */
+//	public Number calculateDistance(String handle1, String handle2) {
+//		Number distance = RefactoringConstants.UNKNOWN_DISTANCE;
+//        // TODO - node is not a member, e.g. a cluster
+//        IJavaElement member1 = JavaCore.create(handle1);
+//        IJavaElement member2 = JavaCore.create(handle2);
+//        try {
+//			IJavaSearchScope scope = EclipseSearchUtils.createProjectSearchScope(member1);
+//			Set<String> callers1 =
+//				EclipseSearchUtils.calculateCallingClasses(member1, scope);
+//			Set<String> callers2 =
+//				EclipseSearchUtils.calculateCallingClasses(member2, scope);
+//			// TODO replace with cosine sim
+//			distance = JaccardCalculator.calculateSimilarity(callers1, callers2);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return distance;
+//	}
+
 	public DistanceCalculatorEnum getType() {
-		// TODO Auto-generated method stub
-		return null;
+		return DistanceCalculatorEnum.ClientDistance;
 	}
 
 }

@@ -37,6 +37,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -199,29 +200,31 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				JOptionPane.showMessageDialog(mainPanel, msg,
 					"No class chosen", JOptionPane.WARNING_MESSAGE);
 			} else {
-				ClientDistanceCalculator calculator =
-					new ClientDistanceCalculator(callGraph);
-				String classHandle = callGraph.getHandle();
-				String className = EclipseUtils.getNameFromHandle(classHandle);
-				String projectName = EclipseUtils.getProjectNameFromHandle(classHandle);
-			    String memberClientsFile = RefactoringConstants.DATA_DIR +
-					"MemberDocuments/" + projectName + "/" +
-					className + "Clients.txt";
-				calculator.buildDocuments(memberClientsFile);
-				/*
-				List<CallGraphNode> nodes = callGraph.getNodes();
-				CallGraphNode prevNode = null;
-				for (CallGraphNode node : nodes) {
-					if (prevNode != null) {
-						String handle1 = node.getLabel();
-						String handle2 = prevNode.getLabel();
-						Number distance = calculator.calculateDistance(handle1, handle2);
-						textArea.append("Distance from " + node.getSimpleName() + " to "
-								+ prevNode.getSimpleName() + " =\t" + distance + "\n");
-					}
-					prevNode = node;
-				}	// for
-				*/
+				ClientDistanceCalculator calculator;
+				try {
+					String classHandle = callGraph.getHandle();
+					String memberClientsFile = 
+						ClientDistanceCalculator.getClientDataFileNameFromHandle(classHandle);
+					ClientDistanceCalculator.buildDocuments(callGraph, memberClientsFile);
+					calculator = new ClientDistanceCalculator(callGraph);
+					/*
+					List<CallGraphNode> nodes = callGraph.getNodes();
+					CallGraphNode prevNode = null;
+					for (CallGraphNode node : nodes) {
+						if (prevNode != null) {
+							String handle1 = node.getLabel();
+							String handle2 = prevNode.getLabel();
+							Number distance = calculator.calculateDistance(handle1, handle2);
+							textArea.append("Distance from " + node.getSimpleName() + " to "
+									+ prevNode.getSimpleName() + " =\t" + distance + "\n");
+						}
+						prevNode = node;
+					}	// for
+					*/
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}	// else
 			textArea.repaint();
 		}	// TEST_BUTTON
