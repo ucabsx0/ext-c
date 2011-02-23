@@ -33,6 +33,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
+	/** Maps a project name to the calculator for that project. */
 	protected static transient Hashtable<String, VectorSpaceModelCalculator> calculatorMap =
 		new Hashtable<String, VectorSpaceModelCalculator>();
 	
@@ -65,8 +66,9 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	protected VectorSpaceModelCalculator(String handle)
 	throws IOException {
 		vsmHandle = handle;
-		String fileName = getDataFileNameFromHandle(handle);
-		initializeVectorSpace(fileName);
+		projectName = EclipseUtils.getProjectNameFromHandle(handle);
+//		String fileName = getDataFileNameFromHandle(handle);
+//		initializeVectorSpace(fileName);
 		calculatorMap.put(projectName, this);
 	}
 	
@@ -93,6 +95,8 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 			if (calculator == null) {
 				try {
 					calculator = new VectorSpaceModelCalculator(handle);
+					String fileName = calculator.getDataFileNameFromHandle(handle);
+					calculator.initializeVectorSpace(fileName);
 					calculator.save();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -163,7 +167,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 * remaining tokens are the stemmed words found in identifiers.
 	 * @throws IOException
 	 */
-	protected VectorSpaceModel initializeVectorSpace(String fileName)
+	public VectorSpaceModel initializeVectorSpace(String fileName)
 	throws IOException {
 		vectorSpaceModel = new VectorSpaceModel();
 		BufferedReader documentFileReader = new BufferedReader(new FileReader(
@@ -306,8 +310,11 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 */
 	public static void main(String[] args) {
 		try {
+			String handle = "=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~document~QAffineTransform;";
 			VectorSpaceModelCalculator calculator =
-				new VectorSpaceModelCalculator("=CohesionTests/src<nz.ac.vuw.ecs.kcassell.geometry{PointShape.java[PointShape~document~QAffineTransform;");
+				new VectorSpaceModelCalculator(handle);
+			String fileName = calculator.getDataFileNameFromHandle(handle);
+			calculator.initializeVectorSpace(fileName);
 			//testCohesionTests(semanticAnalyzer);
 			calculator.testFreecol();
 		} catch (IOException e) {
