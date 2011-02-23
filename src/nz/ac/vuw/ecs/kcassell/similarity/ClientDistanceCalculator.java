@@ -35,6 +35,7 @@ package nz.ac.vuw.ecs.kcassell.similarity;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -44,8 +45,12 @@ import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 
 public class ClientDistanceCalculator 
@@ -54,6 +59,10 @@ extends VectorSpaceModelCalculator {
 	private static final long serialVersionUID = -8788415900559905880L;
 
 	protected JavaCallGraph callGraph = null;
+	
+	/** The list of method handles whose clients are to be considered
+	 *  in the clustering. */
+	protected List<String> memberHandles = new ArrayList<String>();
 
 	/**
 	 * Construct the calculator, building the vector space model
@@ -73,27 +82,24 @@ extends VectorSpaceModelCalculator {
 	 * the line is the member handle.  Subsequent tokens are the
 	 * calling classes.
 	 * @param fileName the name of the document file
+	 * @return the documents
 	 */
-	public static void buildDocuments(JavaCallGraph callGraph, String fileName) {
+	public String buildDocumentsForPublicMethods(
+			JavaCallGraph callGraph, String fileName) {
+		String documents = "";
 		StringBuffer buf = new StringBuffer();
 		List<CallGraphNode> nodes = callGraph.getNodes();
 		for (CallGraphNode node : nodes) {
 			String memberHandle = node.getLabel();
-			buf.append(memberHandle).append(' ');
 			try {
 				IJavaElement member = JavaCore.create(memberHandle);
 				// TODO - node is not a member, e.g. a cluster
-				IJavaSearchScope scope =
-					EclipseSearchUtils.createProjectSearchScope(member);
-				Set<String> callers =
-					EclipseSearchUtils.calculateCallingClasses(member, scope);
-				for (String caller : callers) {
-//					String callerName = EclipseUtils.getNameFromHandle(caller);
-//					buf.append(callerName).append(' ');
-					buf.append(caller).append(' ');
+				
+				// Create a line with the member handle followed by the client classes
+				if (passesFilter(member)) {
+					makeLine(buf, memberHandle, member);
+					memberHandles.add(memberHandle);
 				}
-				buf.deleteCharAt(buf.length() - 1); // remove last space
-				buf.append("\n");
 			} catch (Exception e) {
 				System.err.println(e.toString());
 			}
@@ -101,14 +107,62 @@ extends VectorSpaceModelCalculator {
 		try {
 			BufferedWriter writer
 			   = new BufferedWriter(new FileWriter(fileName));
-			writer.write(buf.toString());
+			documents = buf.toString();
+			writer.write(documents);
 			writer.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return documents;
+	}
+
+	/**
+	 * Create a line with the member handle followed by the client classes
+	 * @param buf
+	 * @param memberHandle
+	 * @param member
+	 * @throws JavaModelException
+	 * @throws CoreException
+	 */
+	private static void makeLine(StringBuffer buf, String memberHandle,
+			IJavaElement member) throws JavaModelException, CoreException {
+		buf.append(memberHandle).append(' ');
+		IJavaSearchScope scope =
+			EclipseSearchUtils.createProjectSearchScope(member);
+		Set<String> callers =
+			EclipseSearchUtils.calculateCallingClasses(member, scope);
+		for (String caller : callers) {
+//						String callerName = EclipseUtils.getNameFromHandle(caller);
+//						buf.append(callerName).append(' ');
+			buf.append(caller).append(' ');
+		}
+		buf.deleteCharAt(buf.length() - 1); // remove last space
+		buf.append("\n");
 	}
 	
+	/**
+	 * Methods that are public and non-static pass.
+	 * @param element
+	 * @return true if the element is a public, non-static method;
+	 *  false otherwise
+	 */
+	private static boolean passesFilter(IJavaElement element) {
+		boolean isPublic = false;
+		
+		if (element instanceof IMethod) {
+			IMethod member = (IMethod)element;
+			try {
+				int flags = member.getFlags();
+				isPublic = Flags.isPublic(flags) && !Flags.isStatic(flags);
+			} catch (JavaModelException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return isPublic;
+	}
+
 	/**
 	 * Based on an Eclipse handle, retrieve the file name for the
 	 * text file containing the corpus of documents.
@@ -162,6 +216,10 @@ extends VectorSpaceModelCalculator {
 
 	public DistanceCalculatorEnum getType() {
 		return DistanceCalculatorEnum.ClientDistance;
+	}
+
+	public List<String> getMemberHandles() {
+		return memberHandles;
 	}
 
 }

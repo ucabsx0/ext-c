@@ -37,7 +37,6 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -202,11 +201,29 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			} else {
 				ClientDistanceCalculator calculator;
 				try {
+					textArea.setText("");
+					// initialize the calculator and build the data file
 					String classHandle = callGraph.getHandle();
+					calculator = new ClientDistanceCalculator(callGraph);
 					String memberClientsFile = 
 						ClientDistanceCalculator.getClientDataFileNameFromHandle(classHandle);
-					ClientDistanceCalculator.buildDocuments(callGraph, memberClientsFile);
-					calculator = new ClientDistanceCalculator(callGraph);
+					String documents = calculator
+						.buildDocumentsForPublicMethods(callGraph, memberClientsFile);
+					textArea.setText(documents);
+					String fileName = calculator.getDataFileNameFromHandle(classHandle);
+					calculator.initializeVectorSpace(fileName);
+					
+					// Aggl. clustering using the ClientDistanceCalculator
+					List<String> memberHandles = calculator.getMemberHandles();
+					MatrixBasedAgglomerativeClusterer clusterer =
+						new MatrixBasedAgglomerativeClusterer(
+							memberHandles, calculator);
+					MemberCluster cluster = clusterer.getSingleCluster();
+					buf.append("Final cluster:\n"
+							+ cluster.toNestedString());
+					String clusterString = buf.toString();
+					textArea.append(clusterString);
+
 					/*
 					List<CallGraphNode> nodes = callGraph.getNodes();
 					CallGraphNode prevNode = null;
@@ -221,7 +238,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						prevNode = node;
 					}	// for
 					*/
-				} catch (IOException e) {
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
