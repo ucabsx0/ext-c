@@ -55,6 +55,9 @@ public class MemberCluster implements ClusterIfc<String> {
 	
 	/** How many elements are in the cluster (including those in subclusters. */
 	protected int elementCount = 0;
+	
+	/** A user comment.  It can be anything, e.g. a distance. */
+	protected String comment = "";
 
 	protected String clusterName = "";
 	
@@ -70,6 +73,14 @@ public class MemberCluster implements ClusterIfc<String> {
 	 */
 	public void setClusterName(String clusterName) {
 		this.clusterName = clusterName;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -180,7 +191,7 @@ public class MemberCluster implements ClusterIfc<String> {
 				// get the iteration number
 				if (indexPlus >= 0) {
 					String it = name.substring(indexPlus + 1);
-	                buf.append("|+" + it + "\n");
+	                buf.append("|+" + it + " (" + comment + ")\n");
 				}
 				else {
 	                buf.append("|+" + name + "\n");
