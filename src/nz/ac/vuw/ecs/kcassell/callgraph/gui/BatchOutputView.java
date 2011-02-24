@@ -204,7 +204,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					textArea.setText("");
 					// initialize the calculator and build the data file
 					String classHandle = callGraph.getHandle();
-					calculator = new ClientDistanceCalculator(callGraph);
+					calculator = new ClientDistanceCalculator(classHandle);
 					String memberClientsFile = 
 						ClientDistanceCalculator.getClientDataFileNameFromHandle(classHandle);
 					String documents = calculator
@@ -219,25 +219,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						new MatrixBasedAgglomerativeClusterer(
 							memberHandles, calculator);
 					MemberCluster cluster = clusterer.getSingleCluster();
-					buf.append("Final cluster:\n"
-							+ cluster.toNestedString());
-					String clusterString = buf.toString();
+					String clusterString = cluster.toNestedString();
+					buf.append("Final cluster:\n" + clusterString);
 					textArea.append(clusterString);
-
-					/*
-					List<CallGraphNode> nodes = callGraph.getNodes();
-					CallGraphNode prevNode = null;
-					for (CallGraphNode node : nodes) {
-						if (prevNode != null) {
-							String handle1 = node.getLabel();
-							String handle2 = prevNode.getLabel();
-							Number distance = calculator.calculateDistance(handle1, handle2);
-							textArea.append("Distance from " + node.getSimpleName() + " to "
-									+ prevNode.getSimpleName() + " =\t" + distance + "\n");
-						}
-						prevNode = node;
-					}	// for
-					*/
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

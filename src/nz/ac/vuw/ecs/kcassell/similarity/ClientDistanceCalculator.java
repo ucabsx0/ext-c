@@ -58,23 +58,17 @@ extends VectorSpaceModelCalculator {
 	
 	private static final long serialVersionUID = -8788415900559905880L;
 
-	protected JavaCallGraph callGraph = null;
-	
 	/** The list of method handles whose clients are to be considered
 	 *  in the clustering. */
 	protected List<String> memberHandles = new ArrayList<String>();
 
 	/**
-	 * Construct the calculator, building the vector space model
-	 * based on the contents of the file provided
-	 * @param fileName the name of the file that contains
-	 * one member per line.  The first token is the member handle, and the 
-	 * remaining tokens are the stemmed words found in identifiers and comments.
+	 * Construct the calculator
+	 * @param handle the handle of the class whose clients we're interested in
 	 * @throws IOException
 	 */
-	public ClientDistanceCalculator(JavaCallGraph callGraph) throws IOException {
-		super(callGraph.getHandle());
-		this.callGraph = callGraph;
+	public ClientDistanceCalculator(String handle) throws IOException {
+		super(handle);
 	}
 	
 	/**
@@ -133,8 +127,6 @@ extends VectorSpaceModelCalculator {
 		Set<String> callers =
 			EclipseSearchUtils.calculateCallingClasses(member, scope);
 		for (String caller : callers) {
-//						String callerName = EclipseUtils.getNameFromHandle(caller);
-//						buf.append(callerName).append(' ');
 			buf.append(caller).append(' ');
 		}
 		buf.deleteCharAt(buf.length() - 1); // remove last space
@@ -188,31 +180,6 @@ extends VectorSpaceModelCalculator {
 			className + "Clients.txt";
 	    return memberClientsFile;
 	}
-
-//	/**
-//	 * Calculates the distance between two members based on the similarity of the external
-//	 * clients each member has.  
-//	 * @param handle1 the Eclipse handle for the first member
-//	 * @param handle2 the Eclipse handle for the second member
-//	 */
-//	public Number calculateDistance(String handle1, String handle2) {
-//		Number distance = RefactoringConstants.UNKNOWN_DISTANCE;
-//        // TODO - node is not a member, e.g. a cluster
-//        IJavaElement member1 = JavaCore.create(handle1);
-//        IJavaElement member2 = JavaCore.create(handle2);
-//        try {
-//			IJavaSearchScope scope = EclipseSearchUtils.createProjectSearchScope(member1);
-//			Set<String> callers1 =
-//				EclipseSearchUtils.calculateCallingClasses(member1, scope);
-//			Set<String> callers2 =
-//				EclipseSearchUtils.calculateCallingClasses(member2, scope);
-//			// TODO replace with cosine sim
-//			distance = JaccardCalculator.calculateSimilarity(callers1, callers2);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		return distance;
-//	}
 
 	public DistanceCalculatorEnum getType() {
 		return DistanceCalculatorEnum.ClientDistance;

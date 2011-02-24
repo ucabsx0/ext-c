@@ -43,7 +43,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	
 	/** The handle of the Eclipse member for which we're constructing
 	 * the vector space model. */
-	protected String vsmHandle = null;
+//	protected String vsmHandle = null;
 
 	/** The vector space model maintains document vectors
 	 * where class members are documents and the "words" are
@@ -65,7 +65,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 */
 	protected VectorSpaceModelCalculator(String handle)
 	throws IOException {
-		vsmHandle = handle;
+//		vsmHandle = handle;
 		projectName = EclipseUtils.getProjectNameFromHandle(handle);
 //		String fileName = getDataFileNameFromHandle(handle);
 //		initializeVectorSpace(fileName);
@@ -176,6 +176,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 		String line = null;
 		String memberName = null;
 		while ((line = documentFileReader.readLine()) != null) {
+			vectorSpaceModel.processedDocument = false;  // reset flag for new iteration
 			memberName = processMemberDocument(vectorSpaceModel, line);
 			
 			if (vectorSpaceModel.processedDocument) {
@@ -261,9 +262,17 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 		Integer documentInt2 = memberHandleToDocumentNumber.get(handle2);
 		
 		if (documentInt1 != null && documentInt2 != null) {
-			DoubleVector vector1 = vectorSpaceModel.getDocumentVector(documentInt1);
-			DoubleVector vector2 = vectorSpaceModel.getDocumentVector(documentInt2);
-			distance = calculateCosineDistance(vector1, vector2);
+			try {
+				DoubleVector vector1 = vectorSpaceModel.getDocumentVector(documentInt1);
+				try {
+					DoubleVector vector2 = vectorSpaceModel.getDocumentVector(documentInt2);
+					distance = calculateCosineDistance(vector1, vector2);
+				} catch (IllegalArgumentException e) {
+					System.err.println("No document vector found for " + handle2);
+				}
+			} catch (IllegalArgumentException e) {
+				System.err.println("No document vector found for " + handle1);
+			}
 		}
 		return distance;
 	}
