@@ -140,7 +140,11 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			for (int col = 0; col <= row; col++) {
 				String obj2 = elements.get(col);
 				Number distance = calculateDistance(obj1, obj2);
-				distance = Math.max(0.0, distance.doubleValue());
+				if (distance.equals(RefactoringConstants.UNKNOWN_DISTANCE)) {
+					distance = 1.0;
+				} else {
+					distance = Math.max(0.0, distance.doubleValue());
+				}
 				distanceMatrix.setDistance(obj1, obj2, distance);
 			}
 		}
