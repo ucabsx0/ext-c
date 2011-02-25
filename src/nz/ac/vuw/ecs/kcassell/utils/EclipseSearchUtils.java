@@ -111,7 +111,9 @@ implements IJavaSearchConstants, RefactoringConstants {
 			new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() };
 		SearchPattern pattern =
 			SearchPattern.createPattern(element, REFERENCES);
-		ClientClassCollector collector = new ClientClassCollector();
+		IType enclosingType =
+			(IType)element.getAncestor(IJavaElement.TYPE);
+		ClientClassCollector collector = new ClientClassCollector(enclosingType);
 		try{
 			engine.search(pattern, participants, scope, collector, null);
 		} catch (Exception e) {
@@ -441,14 +443,18 @@ implements IJavaSearchConstants, RefactoringConstants {
 
 	/**
 	 * Uses the JDT SearchEngine to collect all ITypes
-	 * that directly depend on members in the specified IType
+	 * that are different than the provided IType
 	 */
 	private static class ClientClassCollector extends SearchRequestor {
 
 		/** The set of handles of ITypes (the calling classes). */
 		private Set<String> results = null;
+		
+		/** The type containing the java element whose clients we seek. */
+		IType serverType = null;
 
-		public ClientClassCollector() {
+		public ClientClassCollector(IType serverType) {
+			this.serverType = serverType;
 		}
 
 		/** @return The set of handles of ITypes (the calling classes). */
@@ -467,6 +473,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 
 		/**
 		 * Adds the handle of the IType that contains this element to the results.
+		 * The IType itself and its descendants will not be considered.
 		 * @see org.eclipse.jdt.core.search.SearchRequestor#acceptSearchMatch(org
 		 * .eclipse.jdt.core.search.SearchMatch)
 		 */
@@ -474,10 +481,12 @@ implements IJavaSearchConstants, RefactoringConstants {
 		public void acceptSearchMatch(SearchMatch match) throws CoreException {
 			IJavaElement enclosingElement = (IJavaElement) match.getElement();
 			if (enclosingElement != null) {
-				IJavaElement element =
-					enclosingElement.getAncestor(IJavaElement.TYPE);
-				if (element != null) {
-					results.add(element.getHandleIdentifier());
+				IType typeElement =
+					(IType)enclosingElement.getAncestor(IJavaElement.TYPE);
+				if ((typeElement != null)
+						&& !typeElement.equals(serverType)
+						&& !hasSupertype(typeElement, serverType)) {
+					results.add(typeElement.getHandleIdentifier());
 				}
 			}
 		}
