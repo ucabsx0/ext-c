@@ -172,26 +172,26 @@ public class MemberCluster implements ClusterIfc<String> {
     
     protected void toNestedString(int indentLevel, StringBuffer buf)
     {
-    	String leadSpaces = StringUtils.SPACES140.substring(0, 2*indentLevel);
-        
     	// If this is a top level (visible) node, print its name
     	if (indentLevel == 0) {
     		buf.append(clusterName).append("\n");
     	}
+    	indentLevel++;
+    	String leadSpaces = StringUtils.SPACES140.substring(0, 2*indentLevel);
     	
         for (Object component : children)
         {
-        	indentLevel++;
         	if (component instanceof MemberCluster) {
             	buf.append(leadSpaces);
         		MemberCluster cluster = (MemberCluster)component;
 				String name = cluster.getClusterName();
 				// Makes use of a naming convention oneName+OtherCount
 				int indexPlus = name.lastIndexOf("+");
-				// get the iteration number
+				// If the name of the cluster matches the "+ convention",
+				// extract the iteration number
 				if (indexPlus >= 0) {
 					String it = name.substring(indexPlus + 1);
-	                buf.append("|+" + it + " (" + comment + ")\n");
+	                buf.append("|+" + it + " (" + cluster.comment + ")\n");
 				}
 				else {
 	                buf.append("|+" + name + "\n");
