@@ -32,8 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -54,6 +56,26 @@ public class AprioriClustererTest extends TestCase {
 		fail("Not yet implemented");
 	}
 
+	@Test
+	public void testGetCombinations() {
+		ArrayList<Integer> items = new ArrayList<Integer>();
+		items.add(1);
+		items.add(2);
+		items.add(3);
+		items.add(4);
+		items.add(5);
+		List<List<Integer>> combinations =
+			AprioriClusterer.getCombinations(items);
+//		System.out.println("combinations = " + combinations);
+		assertEquals(5, combinations.size());
+		String results = combinations.toString();
+		assertTrue(results.indexOf("1, 2, 3, 4") > -1);
+		assertTrue(results.indexOf("1, 2, 3, 5") > -1);
+		assertTrue(results.indexOf("1, 2, 4, 5") > -1);
+		assertTrue(results.indexOf("1, 3, 4, 5") > -1);
+		assertTrue(results.indexOf("2, 3, 4, 5") > -1);
+	}
+	
 	@Test
 	public void testJoinPriorItemSets() {
 		Set<ItemSet<Integer>> candidates = new HashSet<ItemSet<Integer>>();

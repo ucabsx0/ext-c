@@ -39,10 +39,10 @@ public interface RefactoringConstants {
 	public static final String LOGGER_CLASS = "java.util.logging.Logger";
 	
 	public static final String PROJECT_ROOT_HOME =
-		"C:/Tools/eclipseWorkspace/ClassRefactoringPluginG/";
+		"C:/Tools/eclipseWorkspace/ClassRefactoringPlugin/";
 	
 	public static final String PROJECT_ROOT_VUW =
-		"/vol/elvis/kcassell/workspace/ClassRefactoringPluginG/";
+		"/vol/elvis/kcassell/workspace/ClassRefactoringPlugin/";
 	
 	public static final String PROJECT_ROOT =
 		System.getProperty("extc.project.root",

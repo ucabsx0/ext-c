@@ -98,43 +98,35 @@ public class AprioriClusterer<T> {
 		return candidates;
 	}
 
-	private boolean passesSubsetTest(ItemSet<T> itemSet,
+	protected boolean passesSubsetTest(ItemSet<T> itemSet,
 			Set<ItemSet<T>> priorItemSets) {
-		// TODO Auto-generated method stub
-		return false;
+		SortedSet<? extends T> items = itemSet.getItems();
+		ArrayList<T> itemList = new ArrayList<T>(items);
+		List<List<T>> combinations = getCombinations(itemList);
+		boolean allIn = true;
+		
+		// make sure all 
+		for(int i = 0; i < combinations.size() && allIn; i++) {
+			List<T> subList = combinations.get(i);
+			allIn = items.containsAll(subList);
+		}
+		return allIn;
 	}
 
-    /** Returns all combinations of items of the specified size from the source
-     *  list. Order is preserved, such as if a is always before b in the source,
-     *  there will not be a combination where a is after b. Unlike permutations,
-     *  order is not significant such that [a,b] is equivalent to the combination
-     *  [b,a] and therefore latter will not be returned unless a or b appears
-     *  more than once in the source list. */
-    public static <T> List<List<T>> getCombinations(List<T> source, int size) {
-        if (size < 0 || size > source.size())
-            throw new IllegalArgumentException("Combination size must be greater " +
-                "than or equal to 0 and less than or equal to the size of the " +
-                "source list (" + source.size() + "). Current size of " + size +
-                " is invalid.");
-
-        List<List<T>> combinations = new ArrayList<List<T>>();
-        if (size == 0)
-            combinations.add(new ArrayList<T>());
-            
-        else if (size == source.size())
-            combinations.add(new ArrayList<T>(source));
-
-        else
-            for (int i = 0; i < source.size() - size + 1; i++) {
-                T head = source.get(i);
-                List<T> subList = source.subList(i + 1, source.size());
-                for (List<T> subCombination: getCombinations(subList, size - 1)) {
-                    subCombination.add(0, head);
-                    combinations.add(subCombination);
-                }
-            }
-        
-        return combinations;
-    }
+	/**
+	 * @param items a list of items
+	 * @return all sublists of items where each sublist has one fewer element
+	 * than items
+	 */
+	protected static <T> List<List<T>> getCombinations(List<T> items) {
+		List<List<T>> combinations = new ArrayList<List<T>>();
+		
+		for (int i = 0; i < items.size(); i++) {
+			ArrayList<T> sublist = new ArrayList<T>(items);
+			sublist.remove(i);
+			combinations.add(sublist);
+		}
+		return combinations;
+	}
 
 }
