@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster;
 
+import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -43,6 +44,7 @@ import java.util.TreeSet;
 public class ItemSet<T> {
 	
 	/** The sorted collection of items. */
+//	protected List<T> items = new ArrayList<T>();
 	protected SortedSet<T> items = new TreeSet<T>();
 	
 	/** The number of "transactions" that contain this item set.
@@ -83,5 +85,18 @@ public class ItemSet<T> {
 	
 	public String toString() {
 		return items.toString();
+	}
+
+	public T getItem(int i) {
+		T result = null;
+		if (i < items.size()) {
+			ArrayList<T> list = new ArrayList<T>(items);
+			result = list.get(i);
+		}
+		return result;
+	}
+
+	public int size() {
+		return items.size();
 	}
 }

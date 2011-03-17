@@ -33,24 +33,132 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package nz.ac.vuw.ecs.kcassell.cluster;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
  * Based on the Apriori algorithm described in
- * "Fast Algorithms for Mining Association Rules", R. Agrawal, R. Srikant, 1994.
+ * Rakesh Agrawal and Ramakrishnan Srikant. "Fast algorithms for mining
+ * association rules in large databases", Proceedings of the 20th International
+ * Conference on Very Large Data Bases, VLDB, pages 487-499, Santiago, Chile,
+ * September 1994.
  * 
  * @author kcassell
+ * @see http://www.google.com/codesearch/p?hl=en#3XkT1SrHFLU/trunk/src/entities/InterHashTree.java&q=apriori%20hashtree%20lang:java&d=0
  * 
  */
 public class AprioriClusterer<T> {
+	
+	/**
+	 * Candidate item sets are stored in a hash tree which consists
+	 * of interior nodes and leaf nodes.
+	 * @author Keith Cassell
+	 * @param <T>
+	 */
+	protected class HashTree {
+		/** The root of the tree is depth 1 as per Agrawal. */
+		protected InteriorNode<T> root = new InteriorNode<T>(1);;
 
-	protected Set<ItemSet<T>> generateCandidates(Set<ItemSet<T>> priorItemSets) {
-		Set<ItemSet<T>> candidates = joinPriorItemSets(priorItemSets);
+		public HashTree() {
+		}
+
+		public void insert(ItemSet<T> itemSet) {
+			root.insert(itemSet);
+		}
+	}
+
+	protected abstract static class HashTreeNode<T>
+	{
+		protected int depth;
+		
+        public abstract void insert(ItemSet<T> itemSet);
+	}
+
+	/**
+	 * An InteriorNode provides efficient access for locating an item
+	 * set based on its members.  It hashes based on the item set's element
+	 * stored at the specified depth.
+	 */
+	protected static class InteriorNode<T> extends HashTreeNode<T>
+	{
+		/** The nodes at the next depth level. */
+		HashMap<T, HashTreeNode<T>> childNodes =
+			new HashMap<T, AprioriClusterer.HashTreeNode<T>>();
+
+		/**
+		 * @param depth
+		 */
+		public InteriorNode(int depth) {
+			super();
+			this.depth = depth;
+		}
+
+		public void insert(ItemSet<T> itemSet) {
+			T itemAtDepth = itemSet.getItem(depth);
+			HashTreeNode<T> child = childNodes.get(itemAtDepth);
+			if (child == null) {
+				int nextDepth = depth + 1;
+				if (nextDepth < itemSet.size() - 1) {
+					child = new InteriorNode<T>(nextDepth);
+				} else {
+					child = new LeafNode<T>(nextDepth);
+				}
+				childNodes.put(itemAtDepth, child);
+			}
+			child.insert(itemSet);
+		}
+	
+	}
+
+	/**
+	 * A LeafNode contains item sets
+	 */
+	protected static class LeafNode<T> extends HashTreeNode<T>
+	{
+		protected HashMap<T, ItemSet<T>> itemSets
+		    = new HashMap<T, ItemSet<T>>();
+
+		public LeafNode(int d) {
+			super();
+			depth = d;
+		}
+
+		@Override
+		public void insert(ItemSet<T> itemSet) {
+            itemSets.put(itemSet.getItem(depth), itemSet);
+		}
+	}	// end class LeafNode
+	
+	
+	public List<ItemSet<T>> generateItemSets(Collection<ItemSet<T>> transactions,
+			int support) {
+		ArrayList<ItemSet<T>> itemSets = new ArrayList<ItemSet<T>>();
+		Collection<ItemSet<T>> largeItemSets =
+			generateLargeOneItemSets(transactions, support);
+		for (int k = 2; largeItemSets.size() > 0; k++) {
+			Collection<ItemSet<T>> candidates =
+				generateCandidates(largeItemSets);
+			// for all transactions
+			//   Ct = subset(Ck, t) // candidates contained in t
+			//   for all candidates, candidate.count++
+			// largeItemSets = all candidate with count > support
+		}
+		return itemSets;
+	}
+
+	private List<ItemSet<T>> generateLargeOneItemSets(Collection<ItemSet<T>> transactions,
+			int support) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	protected Collection<ItemSet<T>> generateCandidates(Collection<ItemSet<T>> priorItemSets) {
+		Collection<ItemSet<T>> candidates = joinPriorItemSets(priorItemSets);
 		candidates = pruneCandidates(candidates, priorItemSets);		
 		return candidates;
 	}
@@ -61,8 +169,8 @@ public class AprioriClusterer<T> {
 	 * @return candidate items sets with k members
 	 */
 	@SuppressWarnings("unchecked")
-	protected Set<ItemSet<T>> joinPriorItemSets(Set<ItemSet<T>> priorItemSets) {
-		Set<ItemSet<T>> candidates = new HashSet<ItemSet<T>>();
+	protected Collection<ItemSet<T>> joinPriorItemSets(Collection<ItemSet<T>> priorItemSets) {
+		Collection<ItemSet<T>> candidates = new HashSet<ItemSet<T>>();
 		
 		for (ItemSet<T> itemSet1 : priorItemSets) {
 			T last1 = itemSet1.last();
@@ -86,8 +194,8 @@ public class AprioriClusterer<T> {
 		return candidates;
 	}
 	
-	protected Set<ItemSet<T>> pruneCandidates(Set<ItemSet<T>> candidates,
-			Set<ItemSet<T>> priorItemSets) {
+	protected Collection<ItemSet<T>> pruneCandidates(Collection<ItemSet<T>> candidates,
+			Collection<ItemSet<T>> priorItemSets) {
 		Iterator<ItemSet<T>> iterator = candidates.iterator();
 		while (iterator.hasNext()) {
 			ItemSet<T> itemSet = iterator.next();
@@ -99,17 +207,29 @@ public class AprioriClusterer<T> {
 	}
 
 	protected boolean passesSubsetTest(ItemSet<T> itemSet,
-			Set<ItemSet<T>> priorItemSets) {
+			Collection<ItemSet<T>> priorItemSets) {
 		SortedSet<? extends T> items = itemSet.getItems();
 		ArrayList<T> itemList = new ArrayList<T>(items);
 		List<List<T>> combinations = getCombinations(itemList);
 		boolean allIn = true;
 		
-		// make sure all 
+		// make sure all subsets of the item set of size k - 1
+		// are present in the priorItemSets
 		for(int i = 0; i < combinations.size() && allIn; i++) {
 			List<T> subList = combinations.get(i);
-			allIn = items.containsAll(subList);
+			allIn = inPriorItemSets(subList, priorItemSets);
 		}
+		return allIn;
+	}
+
+	protected boolean inPriorItemSets(List<T> subList,
+			Collection<ItemSet<T>> priorItemSets) {
+		boolean allIn = true;
+		Iterator<ItemSet<T>> iterator = priorItemSets.iterator();
+//		while (allIn && iterator.hasNext()) {
+//			ItemSet<T> itemSet = iterator.next();
+//			allIn = 
+//		}
 		return allIn;
 	}
 
