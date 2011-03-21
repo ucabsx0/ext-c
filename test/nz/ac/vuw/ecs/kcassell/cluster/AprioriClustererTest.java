@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package nz.ac.vuw.ecs.kcassell.cluster;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -116,7 +117,7 @@ public class AprioriClustererTest extends TestCase {
 		candidates.add(candidate234);
 		
 		AprioriClusterer<Integer> apriori = new AprioriClusterer<Integer>();
-		Set<ItemSet<Integer>> itemSets = apriori.joinPriorItemSets(candidates);
+		Collection<ItemSet<Integer>> itemSets = apriori.joinPriorItemSets(candidates);
 //		System.out.println("itemSets = " + itemSets);
 		assertEquals(2, itemSets.size()); // {1,2,3,4} and {1,3,4,5}
 		Iterator<ItemSet<Integer>> iterator = itemSets.iterator();
