@@ -50,10 +50,10 @@ import nz.ac.vuw.ecs.kcassell.utils.StringUtils;
 public class MemberCluster implements ClusterIfc<String> {
 	
 	/** The subcomponents are either string elements or MemberClusters */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Set children = new TreeSet(new ClusterComparator());
 	
-	/** How many elements are in the cluster (including those in subclusters. */
+	/** The number of elements are in the cluster (including those in subclusters). */
 	protected int elementCount = 0;
 	
 	/** A user comment.  It can be anything, e.g. a distance. */
