@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  * This class associates a transaction's (client class's calls) items (class members)
@@ -33,7 +32,7 @@ public class ItemSupportList {
 	
 	/** Keeps track of the support for each item (called method).
 	 * The key is the client method's handle; the value is its support. */
-	protected Map<String, Double> supportMap = null;
+	protected Map<String, Double> supportMap = new HashMap<String, Double>();
 	
 	/** Indicates whether the members list has been updated since the suportMap
 	 * has changed.
@@ -54,7 +53,7 @@ public class ItemSupportList {
 	public ItemSupportList(String classHandle, Collection<String> calledMembers) {
 		super();
 		this.classHandle = classHandle;
-		supportMap = new HashMap<String, Double>();
+//		supportMap = new HashMap<String, Double>();
 
 		if (calledMembers != null) {
 			for (String handle : calledMembers) {
@@ -74,13 +73,13 @@ public class ItemSupportList {
 		this.classHandle = classHandle;
 		this.sortBy = sortBy;
 		
-		if (sortBy == SORT_BY.UNSORTED) {
-			supportMap = new HashMap<String, Double>();
-		} else if (sortBy == SORT_BY.KEY) {
-			supportMap = new TreeMap<String, Double>();
-		} else if (sortBy == SORT_BY.VALUE) {
-			supportMap = new TreeMap<String, Double>(new ValueComparator());
-		}
+//		if (sortBy == SORT_BY.UNSORTED) {
+//			supportMap = new HashMap<String, Double>();
+//		} else if (sortBy == SORT_BY.KEY) {
+//			supportMap = new TreeMap<String, Double>();
+//		} else if (sortBy == SORT_BY.VALUE) {
+//			supportMap = new TreeMap<String, Double>(new ValueComparator());
+//		}
 		
 		for (String handle : calledMembers) {
 			supportMap.put(handle, 1.0);
@@ -89,11 +88,12 @@ public class ItemSupportList {
 	}
 	
 	public Double addSupport(String handle, Double newSupport) {
-		Double support = supportMap.get(handle);
-		if (support == null) {
-			support = newSupport;
-		} else {
-			support = newSupport.doubleValue() + support.doubleValue();
+		Double support = newSupport;
+		if (supportMap.containsKey(handle)) {
+			Double oldSupport = supportMap.get(handle);
+			if (oldSupport != null) {
+				support = newSupport.doubleValue() + oldSupport.doubleValue();
+			}
 		}
 		supportMap.put(handle, support);
 		isDirty = true;
