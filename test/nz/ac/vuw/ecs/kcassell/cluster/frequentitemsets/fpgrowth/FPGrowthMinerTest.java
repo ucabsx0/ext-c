@@ -17,7 +17,6 @@ public class FPGrowthMinerTest extends TestCase {
 
 	@Test
 	public void testGetFrequentItems() {
-		try {
 		Collection<ItemSupportList> transactions = new ArrayList<ItemSupportList>();
 		ItemSupportList t1 = new ItemSupportList("client1", null);
 		transactions.add(t1);
@@ -45,10 +44,6 @@ public class FPGrowthMinerTest extends TestCase {
 		FPGrowthMiner miner = new FPGrowthMiner();
 		ItemSupportList frequentItems = miner.getFrequentItems(transactions);
 		System.out.println("frequentItems = " + frequentItems);
-		} catch (StackOverflowError e) {
-			StackTraceElement[] trace = e.getStackTrace();
-//			Arrays.copyOfRange()
-		}
 	}
 
 }
