@@ -37,6 +37,7 @@ import java.util.SortedSet;
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSet;
 
 public class FPGrowthItemSet<T> extends ItemSet<T> {
+	// TODO eliminate class? use ItemSupportList instead?
 
 	public FPGrowthItemSet(SortedSet<T> items) {
 		super(items);

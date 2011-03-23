@@ -32,8 +32,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
-public class FPTree {
-	
-	protected ItemPrefixSubtreeNode root = null;
+import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
 
+public class FPTree<T> {
+	
+	protected ItemPrefixSubtreeNode root = new ItemPrefixSubtreeNode();
+
+	public void insert(ItemSupportList sortedTransaction) {
+		
+	}
 }

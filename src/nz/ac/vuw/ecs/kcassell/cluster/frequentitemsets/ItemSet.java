@@ -34,7 +34,6 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -51,9 +50,9 @@ public class ItemSet<T> {
 	/** The sorted collection of items represented as a set. */
 	protected SortedSet<T> items = new TreeSet<T>();
 	
-	/** The number of "transactions" that contain this item set.
-	 * (In the Apriori paper, this is a percentage.) */
-	protected int support = 0;
+//	/** The number of "transactions" that contain this item set.
+//	 * (In the Apriori paper, this is a percentage.) */
+//	protected int support = 0;
 	
 	/**
 	 * Builds an ItemSet using the provided items
