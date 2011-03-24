@@ -43,6 +43,8 @@ import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
+import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.junit.Before;
@@ -89,6 +91,9 @@ public class MatrixBasedAgglomerativeClustererTest extends TestCase {
 	@Before
     public void setUp()
     {
+		ApplicationParameters parameters = ApplicationParameters.getSingleton();
+		parameters.setParameter(ParameterConstants.LINKAGE_KEY,
+				ClusterCombinationEnum.SINGLE_LINK.toString());
 		List<String> headers = new ArrayList<String>();
 		headers.add(A0);
 		headers.add(A4);
