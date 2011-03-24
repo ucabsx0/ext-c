@@ -7,8 +7,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * This class associates a transaction's (client class's calls) items (class members)
@@ -17,18 +15,8 @@ import java.util.Set;
  */
 public class ItemSupportList {
 	
-	/** Different ways to order the item list - by key/name, by value/support. */
-	public static enum SORT_BY {
-		UNSORTED,
-		KEY,
-		VALUE
-	}
-	
 	/** The client class (transaction) */
 	protected String classHandle = null;
-	
-	/** Indicates how the hash map should be ordered. */
-	protected SORT_BY sortBy = SORT_BY.UNSORTED;
 	
 	/** Keeps track of the support for each item (called method).
 	 * The key is the client method's handle; the value is its support. */
@@ -44,45 +32,26 @@ public class ItemSupportList {
 	 * the support Map and is dependent on the isDirty flag, so it is not guaranteed
 	 * to be up to date.
 	 */
-	protected List<String> members = new ArrayList<String>();
+	protected List<String> items = new ArrayList<String>();
+
+	/** The comparator that will be used to sort the members.  If null,
+	 * the default lexical comparator will be used on the keys. */
+	protected Comparator<String> comparator = null;
 
 	/**
 	 * @param classHandle
 	 * @param calledMembers
 	 */
-	public ItemSupportList(String classHandle, Collection<String> calledMembers) {
+	public ItemSupportList(String classHandle, Collection<String> calledMembers,
+			Comparator<String> comparator) {
 		super();
 		this.classHandle = classHandle;
-//		supportMap = new HashMap<String, Double>();
+		this.comparator = comparator;
 
 		if (calledMembers != null) {
 			for (String handle : calledMembers) {
 				supportMap.put(handle, 1.0);
 			}
-		}
-		isDirty = true;
-	}
-	
-	/**
-	 * @param classHandle
-	 * @param calledMembers
-	 */
-	public ItemSupportList(String classHandle, List<String> calledMembers,
-			SORT_BY sortBy) {
-		super();
-		this.classHandle = classHandle;
-		this.sortBy = sortBy;
-		
-//		if (sortBy == SORT_BY.UNSORTED) {
-//			supportMap = new HashMap<String, Double>();
-//		} else if (sortBy == SORT_BY.KEY) {
-//			supportMap = new TreeMap<String, Double>();
-//		} else if (sortBy == SORT_BY.VALUE) {
-//			supportMap = new TreeMap<String, Double>(new ValueComparator());
-//		}
-		
-		for (String handle : calledMembers) {
-			supportMap.put(handle, 1.0);
 		}
 		isDirty = true;
 	}
@@ -109,70 +78,56 @@ public class ItemSupportList {
 		return supportMap.get(handle);
 	}
 	
+	public Map<String, Double> getSupportMap() {
+		return supportMap;
+	}
+
+	public void setComparator(Comparator<String> comparator) {
+		if (this.comparator != comparator) {
+			isDirty = true;
+			this.comparator = comparator;
+		}
+	}
+
 	/**
 	 * 
 	 * @param byWhat indicates whether the keys, values, or neither determines the
 	 * ordering of the results
 	 * @return the keys ordered based on the byWhat value
 	 */
-	public List<String> sortCalledMembers(SORT_BY byWhat) {
-		sortBy = byWhat;
-		members = new ArrayList<String>(supportMap.keySet());
-		if (SORT_BY.VALUE.equals(byWhat)) {
-			Collections.sort(members, new ValueComparator());
-		} else if (SORT_BY.KEY.equals(byWhat)) {
-			Collections.sort(members);
+	public List<String> sortItems() {
+		items = new ArrayList<String>(supportMap.keySet());
+		if (comparator != null) {
+			Collections.sort(items, comparator);
+		} else {
+			Collections.sort(items);
 		}
 		isDirty = false;
-		return members;
+		return items;
 	}
 
-	public List<String> getMembers() {
+	public List<String> getItems() {
 		if (isDirty) {
-			sortCalledMembers(sortBy);
+			sortItems();
 		}
-		return members;
+		return items;
 	}
 	
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer(
 				"ItemSupportList [classHandle=" + classHandle + 
-				", sortBy=" + sortBy +
-				", isDirty=" + isDirty +
+				", comparator=" + ((comparator == null) ? "null"
+						: comparator.getClass().getCanonicalName()) +
 				", supportMap=\n");
-		Set<Entry<String,Double>> entrySet = supportMap.entrySet();
-		for (Entry<String,Double> entry : entrySet) {
-			buf.append("\t").append(entry.getKey());
-			buf.append(":\t").append(entry.getValue()).append("\n");
+		if (isDirty) {
+			sortItems();
+		}
+		for (String member : items) {
+			buf.append("\t").append(member);
+			buf.append(":\t").append(supportMap.get(member)).append("\n");
 		}
 		return buf.toString();
-	}
-
-
-	protected class ValueComparator implements Comparator<String> {
-
-		/**
-		 * We want numerically decreasing values in our list, so this reverses
-		 * the usual meaning of compare for numbers.
-		 */
-		public int compare(String a, String b) {
-			int result = 0;
-			Double aValue = supportMap.get(a);
-			Double bValue = supportMap.get(b);
-			
-			if (aValue != null) {
-				result = -1 * aValue.compareTo(bValue);
-				
-				// If the values are the same, then compare the keys
-				if (result == 0) {
-					result = a.compareTo(b);
-				}
-			} else if (bValue != null) {
-				result = -1;
-			}
-			return result;
-		}
 	}
 
 }
