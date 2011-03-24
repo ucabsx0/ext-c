@@ -358,7 +358,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 	 * @return all the methods that are required by a superclass or an interface
 	 * @throws JavaModelException
 	 */
-	private static List<IMethod> getRequiredMethods(IType aType)
+	public static List<IMethod> getRequiredMethods(IType aType)
 			throws JavaModelException {
 		List<IMethod> requiredMethods = new ArrayList<IMethod>();
 		IMethod[] theseMethods = aType.getMethods();

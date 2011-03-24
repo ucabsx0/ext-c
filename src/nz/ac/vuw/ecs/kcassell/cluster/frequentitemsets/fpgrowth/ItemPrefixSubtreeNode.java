@@ -35,7 +35,7 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 public class ItemPrefixSubtreeNode {
 	
 	/** The item identifier. */
-	protected int itemName;
+	protected String itemName;
 	
 	/** The support count - the number of transactions represented by
 	 * the portion of the path reaching this node. */
@@ -66,10 +66,14 @@ public class ItemPrefixSubtreeNode {
 	 *            the backward link to the parent node.
 	 */
 
-	public ItemPrefixSubtreeNode(short name, int support /* ,
+	public ItemPrefixSubtreeNode(String name, int support /* ,
 			ItemPrefixSubtreeNode backRef */) {
 		itemName = name;
 		itemCount = support;
 //		parentRef = backRef;
+	}
+	
+	public void incrementCount() {
+		itemCount++;
 	}
 }

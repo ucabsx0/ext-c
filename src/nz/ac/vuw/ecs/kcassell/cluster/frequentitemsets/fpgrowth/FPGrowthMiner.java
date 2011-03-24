@@ -2,9 +2,7 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ValueComparator;
@@ -26,13 +24,13 @@ public class FPGrowthMiner {
 		// getFrequentItems sets the comparator as a side-effect
 		ItemSupportList frequentItems = getFrequentItems(transactions);
 		frequentItems.setComparator(comparator);
-		List<String> listFrequentItems = frequentItems.sortItems();
 		FPTree fpTree = new FPTree();
 		
 		for (ItemSupportList transaction : transactions) {
 			ItemSupportList sortedTransaction =
 				sortItems(transaction);
-			fpTree.insert(sortedTransaction);
+			List<String> items = sortedTransaction.getItems();
+			fpTree.insert(items);
 		}
 		return fpTree;
 	}

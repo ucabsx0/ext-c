@@ -32,13 +32,43 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
-import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
+import java.util.HashMap;
+import java.util.List;
 
-public class FPTree<T> {
+public class FPTree {
+	/** The name of the root of the FPTree. */
+	public static final String ROOT_NAME = "RootNode";
 	
-	protected ItemPrefixSubtreeNode root = new ItemPrefixSubtreeNode();
+	/**  The key is the item name.  The value is the first node in
+	 *  the FPTree labeled with itemName. */
+	protected HashMap<String, ItemPrefixSubtreeNode> headerTable =
+		new HashMap<String, ItemPrefixSubtreeNode>();
+	
+	protected ItemPrefixSubtreeNode root =
+		new ItemPrefixSubtreeNode(ROOT_NAME, 0);
+	
+	public FPTree() {
+		headerTable.put(ROOT_NAME, root);
+	}
 
-	public void insert(ItemSupportList sortedTransaction) {
+	public void insert(List<String> items) {
+//		List<String> items = sortedTransaction.getItems();
+		if (items.size() > 0) {
+			String item = items.get(0);
+			if (headerTable.containsKey(item)) {
+				ItemPrefixSubtreeNode node = headerTable.get(item);
+				node.incrementCount();
+			} else {
+				ItemPrefixSubtreeNode node =
+					new ItemPrefixSubtreeNode(item, 1);
+				headerTable.put(item, node);
+				// TODO node's parent link to the Tree(?)
+				// TODO node's node-link be linked to the nodes with the same
+				// item-name via the node-link structure
+			}
+			// recurse on tail
+			insert(items.subList(1, items.size()));
+		}
 		
 	}
 }
