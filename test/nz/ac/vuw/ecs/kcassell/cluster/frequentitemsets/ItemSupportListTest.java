@@ -17,16 +17,15 @@ public class ItemSupportListTest extends TestCase {
 		keys.add("a2");
 		keys.add("n");
 		keys.add("b");
-		ItemSupportList supportList = new ItemSupportList("class1", keys);
-		List<String> members =
-			supportList.sortCalledMembers(ItemSupportList.SORT_BY.KEY);
+		ItemSupportList supportList = new ItemSupportList("class1", keys, null);
+		List<String> members = supportList.sortItems();
 		assertEquals(members.get(0), "a");
 		assertEquals(members.get(1), "a2");
 		assertEquals(members.get(2), "b");
 		assertEquals(members.get(3), "n");
 		assertEquals(members.get(4), "z");
-		members =
-			supportList.sortCalledMembers(ItemSupportList.SORT_BY.VALUE);
+		supportList.setComparator(new ValueComparator(supportList.getSupportMap()));
+		members = supportList.sortItems();
 		// Because all the support is the same, sort by value should be
 		// the same as sort by name
 		assertEquals(members.get(0), "a");
@@ -38,15 +37,15 @@ public class ItemSupportListTest extends TestCase {
 		supportList.setSupport("n", 3.0);
 		supportList.setSupport("a2", 2.0);
 //		System.out.println("supportList = " + supportList);
-		members =
-			supportList.sortCalledMembers(ItemSupportList.SORT_BY.KEY);
+		supportList.setComparator(null);
+		members = supportList.sortItems();
 		assertEquals(members.get(0), "a");
 		assertEquals(members.get(1), "a2");
 		assertEquals(members.get(2), "b");
 		assertEquals(members.get(3), "n");
 		assertEquals(members.get(4), "z");
-		members =
-			supportList.sortCalledMembers(ItemSupportList.SORT_BY.VALUE);
+		supportList.setComparator(new ValueComparator(supportList.getSupportMap()));
+		members = supportList.sortItems();
 //		System.out.println("members sorted by value = " + members);
 		assertEquals(members.get(0), "n");
 		assertEquals(members.get(1), "a2");
@@ -60,7 +59,7 @@ public class ItemSupportListTest extends TestCase {
 		ArrayList<String> keys = new ArrayList<String>();
 		keys.add("a");
 		keys.add("z");
-		ItemSupportList supportList = new ItemSupportList("class1", keys);
+		ItemSupportList supportList = new ItemSupportList("class1", keys, null);
 		assertEquals(1.0, supportList.getSupport("a"));
 		assertEquals(1.0, supportList.getSupport("z"));
 		supportList.setSupport("a", 3.1);
