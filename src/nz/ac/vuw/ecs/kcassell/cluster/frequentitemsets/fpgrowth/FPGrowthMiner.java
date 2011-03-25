@@ -2,6 +2,7 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
@@ -11,6 +12,11 @@ public class FPGrowthMiner {
 
 	/** A comparator that orders items by decreasing support. */
 	protected ValueComparator comparator = null;
+	
+	/** The key is an item name; the value is a list of nodes
+	 * having that item name. */
+	protected HashMap<String, ArrayList<FPTreeNode>> headerTable =
+		new HashMap<String, ArrayList<FPTreeNode>>();
 	
 	/**
 	 * 
@@ -30,7 +36,7 @@ public class FPGrowthMiner {
 			ItemSupportList sortedTransaction =
 				sortItems(transaction);
 			List<String> items = sortedTransaction.getItems();
-			fpTree.insert(items);
+			fpTree.insert(items, fpTree.getRoot());
 		}
 		return fpTree;
 	}

@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -41,34 +43,82 @@ public class FPTree {
 	
 	/**  The key is the item name.  The value is the first node in
 	 *  the FPTree labeled with itemName. */
-	protected HashMap<String, ItemPrefixSubtreeNode> headerTable =
-		new HashMap<String, ItemPrefixSubtreeNode>();
+	protected HashMap<String, ArrayList<FPTreeNode>> headerTable =
+		new HashMap<String, ArrayList<FPTreeNode>>();
 	
-	protected ItemPrefixSubtreeNode root =
-		new ItemPrefixSubtreeNode(ROOT_NAME, 0);
+	protected FPTreeNode root =
+		new FPTreeNode(ROOT_NAME, 0, null);
+	
+	private static final String SPACES =
+		"                                                                        ";
+	private static final String EOLN = System.getProperty("line.separator");
 	
 	public FPTree() {
-		headerTable.put(ROOT_NAME, root);
+		addToHeaderTable(ROOT_NAME, root);
 	}
 
-	public void insert(List<String> items) {
-//		List<String> items = sortedTransaction.getItems();
+	public FPTreeNode getRoot() {
+		return root;
+	}
+
+	public HashMap<String, ArrayList<FPTreeNode>> getHeaderTable() {
+		return headerTable;
+	}
+
+	/**
+	 * Implements the "insert_tree" function described in Han's paper for
+	 * inserting the items of a transaction into the FPTree.
+	 * @param items the frequent items for a transaction, in decreasing
+	 * frequency
+	 * @param parent the node representing the previous item in the sequence
+	 */
+	public void insert(List<String> items, FPTreeNode parent) {
 		if (items.size() > 0) {
 			String item = items.get(0);
-			if (headerTable.containsKey(item)) {
-				ItemPrefixSubtreeNode node = headerTable.get(item);
-				node.incrementCount();
-			} else {
-				ItemPrefixSubtreeNode node =
-					new ItemPrefixSubtreeNode(item, 1);
-				headerTable.put(item, node);
-				// TODO node's parent link to the Tree(?)
-				// TODO node's node-link be linked to the nodes with the same
-				// item-name via the node-link structure
+			FPTreeNode child = parent.getChild(item);
+			
+			// New child - previously unseen sequence
+			if (child == null) {
+				child = new FPTreeNode(item, 1, parent);
+				parent.addChild(child);
+				addToHeaderTable(item, child);
+			} else { // Existing node - increment count
+				child.incrementCount();
 			}
 			// recurse on tail
-			insert(items.subList(1, items.size()));
+			insert(items.subList(1, items.size()), child);
 		}
-		
 	}
+
+	private void addToHeaderTable(String item, FPTreeNode node) {
+		if (!headerTable.containsKey(item)) {
+			ArrayList<FPTreeNode> list = new ArrayList<FPTreeNode>();
+			list.add(node);
+			headerTable.put(item, list);
+		}
+	}
+	
+	@Override
+	public String toString() {
+		String result = "FPTree [headerTable = " + headerTable + EOLN;
+		result += treeToString(root, 0);
+		return result;
+	}
+
+	private String treeToString(FPTreeNode node, int indent) {
+		StringBuffer buf = new StringBuffer();
+		String spaces = SPACES;
+		if (indent < SPACES.length() / 2) {
+			spaces = SPACES.substring(0, 2 * indent + 1);
+		}
+		buf.append(spaces).append(node).append(EOLN);
+		Collection<FPTreeNode> children = node.getChildren();
+		if (children != null) {
+			for (FPTreeNode child : children) {
+				treeToString(child, ++indent);
+			}
+		}
+		return buf.toString();
+	}
+
 }
