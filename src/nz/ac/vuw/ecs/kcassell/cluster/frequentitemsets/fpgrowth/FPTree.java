@@ -54,7 +54,7 @@ public class FPTree {
 	private static final String EOLN = System.getProperty("line.separator");
 	
 	public FPTree() {
-		addToHeaderTable(ROOT_NAME, root);
+//		addToHeaderTable(ROOT_NAME, root);
 	}
 
 	public FPTreeNode getRoot() {
@@ -80,7 +80,6 @@ public class FPTree {
 			// New child - previously unseen sequence
 			if (child == null) {
 				child = new FPTreeNode(item, 1, parent);
-				parent.addChild(child);
 				addToHeaderTable(item, child);
 			} else { // Existing node - increment count
 				child.incrementCount();
@@ -100,22 +99,22 @@ public class FPTree {
 	
 	@Override
 	public String toString() {
-		String result = "FPTree [headerTable = " + headerTable + EOLN;
-		result += treeToString(root, 0);
-		return result;
+		StringBuffer buf =
+			new StringBuffer("FPTree [headerTable = " + headerTable + EOLN);
+		treeToString(buf, root, 0);
+		return buf.toString();
 	}
 
-	private String treeToString(FPTreeNode node, int indent) {
-		StringBuffer buf = new StringBuffer();
+	private String treeToString(StringBuffer buf, FPTreeNode node, int indent) {
 		String spaces = SPACES;
 		if (indent < SPACES.length() / 2) {
-			spaces = SPACES.substring(0, 2 * indent + 1);
+			spaces = SPACES.substring(0, 2 * indent);
 		}
 		buf.append(spaces).append(node).append(EOLN);
 		Collection<FPTreeNode> children = node.getChildren();
 		if (children != null) {
 			for (FPTreeNode child : children) {
-				treeToString(child, ++indent);
+				treeToString(buf, child, indent + 1);
 			}
 		}
 		return buf.toString();

@@ -48,7 +48,7 @@ public class FPTreeNode {
 	protected FPTreeNode parentNode = null;
 
 	/** The links to the next nodes in one or more transaction sequences.  */
-	protected HashMap<String, FPTreeNode> childLinks = null;
+	protected HashMap<String, FPTreeNode> children = null;
 
 //	/** The forward link to the next node in a linked list of nodes with same
 //	 * itemName.  */
@@ -71,49 +71,66 @@ public class FPTreeNode {
 		itemName = name;
 		itemCount = support;
 		this.parentNode = parentNode;
+		if (parentNode != null) {
+			parentNode.addChild(this);
+		}
 	}
 	
+	private void addChild(FPTreeNode node) {
+		if (children == null) {
+			children = new HashMap<String, FPTreeNode>();
+		}
+		children.put(node.itemName, node);
+}
+
 	public void incrementCount() {
 		itemCount++;
 	}
 
-	public void addChild(FPTreeNode node) {
-		if (childLinks == null) {
-			childLinks = new HashMap<String, FPTreeNode>();
-		}
-		childLinks.put(node.itemName, node);
-	}
-	
 	public FPTreeNode getChild(String name) {
 		FPTreeNode child = null;
-		if (childLinks != null) {
-			child = childLinks.get(name);
+		if (children != null) {
+			child = children.get(name);
 		}
 		return child;
 	}
 	
 	public Collection<FPTreeNode> getChildren() {
 		Collection<FPTreeNode> result = null;
-		if (childLinks != null) {
-			result = childLinks.values();
+		if (children != null) {
+			result = children.values();
 		}
 		return result;
 	}
 
+	public String getItemName() {
+		return itemName;
+	}
+
+	public int getItemCount() {
+		return itemCount;
+	}
+
+	public FPTreeNode getParentNode() {
+		return parentNode;
+	}
+
 	@Override
 	public String toString() {
-		String result =
-		 "FPTreeNode [itemName=" + itemName + ":" + itemCount;
+		StringBuffer buf = new StringBuffer(
+		 "FPTreeNode " + itemName + ":" + itemCount + " [");
 		if (parentNode != null) {
-			result += ", parentNode=" + parentNode.itemName + ":" + parentNode.itemCount;
+			buf.append("parentNode=" + parentNode.itemName + ":" + parentNode.itemCount);
 		}
-		if (childLinks != null && childLinks.size() > 0) {
-			result += ", children: (";
-			for (FPTreeNode child : childLinks.values()) {
-				result += child.itemName + ":" + child.itemCount + " ";
+		if (children != null && children.size() > 0) {
+			buf.append(", children: (");
+			for (FPTreeNode child : children.values()) {
+				buf.append(child.itemName + ":" + child.itemCount + " ");
 			}
-			result += ")";
+			buf.deleteCharAt(buf.length()-1);
+			buf.append(")");
 		}
-		return result;
+		buf.append("]");
+		return buf.toString();
 	}
 }

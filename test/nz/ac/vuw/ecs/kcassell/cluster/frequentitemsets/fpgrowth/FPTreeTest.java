@@ -33,6 +33,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
@@ -54,7 +58,60 @@ public class FPTreeTest extends TestCase {
 		items1.add("b");
 		items1.add("c");
 		tree.insert(items1, root);
-		System.out.println(tree);
+		System.out.println(tree.toString());
+		Collection<FPTreeNode> rootChildren = root.getChildren();
+		assertEquals(1, rootChildren.size());
+		FPTreeNode childA = rootChildren.iterator().next();
+		assertEquals("a", childA.getItemName());
+		assertEquals(1, childA.getItemCount());
+
+		Collection<FPTreeNode> aChildren = childA.getChildren();
+		assertEquals(1, aChildren.size());
+		Iterator<FPTreeNode> iterator = aChildren.iterator();
+		FPTreeNode childB = iterator.next();
+		assertEquals("b", childB.getItemName());
+		assertEquals(1, childB.getItemCount());
+
+		Collection<FPTreeNode> bChildren = childB.getChildren();
+		assertEquals(1, bChildren.size());
+		FPTreeNode childC = bChildren.iterator().next();
+		assertEquals("c", childC.getItemName());
+		assertEquals(1, childC.getItemCount());
+
+		Collection<FPTreeNode> cChildren = childC.getChildren();
+		assertNull(cChildren);
+
+		ArrayList<String> items2 = new ArrayList<String>();
+		items2.add("a");
+		items2.add("c");
+		items2.add("d");
+		tree.insert(items2, root);
+		System.out.println(tree.toString());
+		rootChildren = root.getChildren();
+		assertEquals(1, rootChildren.size());
+		childA = rootChildren.iterator().next();
+		assertEquals("a", childA.getItemName());
+		assertEquals(2, childA.getItemCount());
+
+		aChildren = childA.getChildren();
+		assertEquals(2, aChildren.size());
+		iterator = aChildren.iterator();
+		FPTreeNode childA0 = iterator.next();
+		FPTreeNode childA1 = iterator.next();
+		assertTrue(("b".equals(childA0.getItemName())
+				    && "c".equals(childA1.getItemName()))
+				    || ("c".equals(childA0.getItemName())
+						&& "b".equals(childA1.getItemName())));
+		assertEquals(1, childB.getItemCount());
+
+		Set<Entry<String,ArrayList<FPTreeNode>>> entrySet = 
+			tree.headerTable.entrySet();
+		assertEquals(4, entrySet.size());
+		assertTrue(tree.headerTable.containsKey("a"));
+		assertTrue(tree.headerTable.containsKey("b"));
+		assertTrue(tree.headerTable.containsKey("c"));
+		assertTrue(tree.headerTable.containsKey("d"));
+		assertTrue(!tree.headerTable.containsKey("e"));
 	}
 
 }
