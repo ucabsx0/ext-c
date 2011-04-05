@@ -41,13 +41,18 @@ public class FPTree {
 	/** The name of the root of the FPTree. */
 	public static final String ROOT_NAME = "RootNode";
 	
-	/**  The key is the item name.  The value is the first node in
-	 *  the FPTree labeled with itemName. */
+	/** The key is an item name; the value is a list of nodes
+	 * having that item name. */
 	protected HashMap<String, ArrayList<FPTreeNode>> headerTable =
 		new HashMap<String, ArrayList<FPTreeNode>>();
 	
+	/** The root of the FP tree */
 	protected FPTreeNode root =
 		new FPTreeNode(ROOT_NAME, 0, null);
+	
+	/** True when the tree is just a single straight branch; false
+	 * otherwise. */
+	private boolean hasOneBranch = true;
 	
 	private static final String SPACES =
 		"                                                                        ";
@@ -65,6 +70,15 @@ public class FPTree {
 		return headerTable;
 	}
 
+	public boolean hasOneBranch() {
+		return hasOneBranch;
+	}
+	
+	public List<String> getHeadersDescending() {
+		// TODO implement getHeadersDescending
+		return null;
+	}
+
 	/**
 	 * Implements the "insert_tree" function described in Han's paper for
 	 * inserting the items of a transaction into the FPTree.
@@ -80,7 +94,10 @@ public class FPTree {
 			// New child - previously unseen sequence
 			if (child == null) {
 				child = new FPTreeNode(item, 1, parent);
-				addToHeaderTable(item, child);
+				boolean wasAdded = addToHeaderTable(item, child);
+				// If the item was already in the header table, the tree
+				// is branching.
+				hasOneBranch = hasOneBranch && !wasAdded;
 			} else { // Existing node - increment count
 				child.incrementCount();
 			}
@@ -89,12 +106,21 @@ public class FPTree {
 		}
 	}
 
-	private void addToHeaderTable(String item, FPTreeNode node) {
-		if (!headerTable.containsKey(item)) {
+	/**
+	 * Makes sure the given item is in the header table.
+	 * @param item the item for the header table
+	 * @param node the node containing item
+	 * @return true if item was added (not previously in the header table);
+	 * false otherwise
+	 */
+	private boolean addToHeaderTable(String item, FPTreeNode node) {
+		boolean addIt = !headerTable.containsKey(item);
+		if (addIt) {
 			ArrayList<FPTreeNode> list = new ArrayList<FPTreeNode>();
 			list.add(node);
 			headerTable.put(item, list);
 		}
+		return addIt;
 	}
 	
 	@Override

@@ -2,7 +2,6 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
@@ -12,11 +11,6 @@ public class FPGrowthMiner {
 
 	/** A comparator that orders items by decreasing support. */
 	protected ValueComparator comparator = null;
-	
-	/** The key is an item name; the value is a list of nodes
-	 * having that item name. */
-	protected HashMap<String, ArrayList<FPTreeNode>> headerTable =
-		new HashMap<String, ArrayList<FPTreeNode>>();
 	
 	/**
 	 * 
@@ -80,5 +74,38 @@ public class FPGrowthMiner {
 		frequentItems.setComparator(comparator);
 		frequentItems.getItems();
 		return frequentItems;
+	}
+	
+	/**
+	 * 
+	 * @param tree
+	 * @param patternA a pattern (item set) from the conditional pattern base
+	 * or null i this is the initial call (no conditions)
+	 * @return the collection of all frequent patterns (item sets)
+	 */
+	public Collection<ItemSupportList> mine(FPTree tree,
+			ItemSupportList patternA) {
+		Collection<ItemSupportList> frequentPatterns =
+			new ArrayList<ItemSupportList>();
+		
+		if (tree.hasOneBranch()) {
+			frequentPatterns = generatePatternsForCombinations(tree);
+		} else {
+			List<String> headersDescending = tree.getHeadersDescending();
+			for (int i = headersDescending.size() - 1; i >= 0; i--) {
+				String headerA = headersDescending.get(i);
+//TODO				ItemSupportList patternB =
+//					generatePatternB(patternA, tree, headerA);
+//				ItemSupportList condPatternBase =
+//					buildFPTree(transactions)
+			}
+		}
+		return frequentPatterns;
+	}
+
+	private Collection<ItemSupportList> generatePatternsForCombinations(
+			FPTree tree) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

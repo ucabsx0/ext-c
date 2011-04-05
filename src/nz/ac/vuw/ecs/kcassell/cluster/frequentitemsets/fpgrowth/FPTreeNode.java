@@ -42,7 +42,7 @@ public class FPTreeNode {
 	
 	/** The support count - the number of transactions represented by
 	 * the portion of the path reaching this node. */
-	protected int itemCount;
+	protected int support;
 	
 	/** The link to the previous node in one or more transaction sequences.  */
 	protected FPTreeNode parentNode = null;
@@ -69,7 +69,7 @@ public class FPTreeNode {
 
 	public FPTreeNode(String name, int support, FPTreeNode parentNode) {
 		itemName = name;
-		itemCount = support;
+		this.support = support;
 		this.parentNode = parentNode;
 		if (parentNode != null) {
 			parentNode.addChild(this);
@@ -84,7 +84,7 @@ public class FPTreeNode {
 }
 
 	public void incrementCount() {
-		itemCount++;
+		support++;
 	}
 
 	public FPTreeNode getChild(String name) {
@@ -107,8 +107,8 @@ public class FPTreeNode {
 		return itemName;
 	}
 
-	public int getItemCount() {
-		return itemCount;
+	public int getSupport() {
+		return support;
 	}
 
 	public FPTreeNode getParentNode() {
@@ -118,14 +118,14 @@ public class FPTreeNode {
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer(
-		 "FPTreeNode " + itemName + ":" + itemCount + " [");
+		 "FPTreeNode " + itemName + ":" + support + " [");
 		if (parentNode != null) {
-			buf.append("parentNode=" + parentNode.itemName + ":" + parentNode.itemCount);
+			buf.append("parentNode=" + parentNode.itemName + ":" + parentNode.support);
 		}
 		if (children != null && children.size() > 0) {
 			buf.append(", children: (");
 			for (FPTreeNode child : children.values()) {
-				buf.append(child.itemName + ":" + child.itemCount + " ");
+				buf.append(child.itemName + ":" + child.support + " ");
 			}
 			buf.deleteCharAt(buf.length()-1);
 			buf.append(")");
