@@ -63,20 +63,20 @@ public class FPTreeTest extends TestCase {
 		assertEquals(1, rootChildren.size());
 		FPTreeNode childA = rootChildren.iterator().next();
 		assertEquals("a", childA.getItemName());
-		assertEquals(1, childA.getItemCount());
+		assertEquals(1, childA.getSupport());
 
 		Collection<FPTreeNode> aChildren = childA.getChildren();
 		assertEquals(1, aChildren.size());
 		Iterator<FPTreeNode> iterator = aChildren.iterator();
 		FPTreeNode childB = iterator.next();
 		assertEquals("b", childB.getItemName());
-		assertEquals(1, childB.getItemCount());
+		assertEquals(1, childB.getSupport());
 
 		Collection<FPTreeNode> bChildren = childB.getChildren();
 		assertEquals(1, bChildren.size());
 		FPTreeNode childC = bChildren.iterator().next();
 		assertEquals("c", childC.getItemName());
-		assertEquals(1, childC.getItemCount());
+		assertEquals(1, childC.getSupport());
 
 		Collection<FPTreeNode> cChildren = childC.getChildren();
 		assertNull(cChildren);
@@ -91,7 +91,7 @@ public class FPTreeTest extends TestCase {
 		assertEquals(1, rootChildren.size());
 		childA = rootChildren.iterator().next();
 		assertEquals("a", childA.getItemName());
-		assertEquals(2, childA.getItemCount());
+		assertEquals(2, childA.getSupport());
 
 		aChildren = childA.getChildren();
 		assertEquals(2, aChildren.size());
@@ -102,7 +102,7 @@ public class FPTreeTest extends TestCase {
 				    && "c".equals(childA1.getItemName()))
 				    || ("c".equals(childA0.getItemName())
 						&& "b".equals(childA1.getItemName())));
-		assertEquals(1, childB.getItemCount());
+		assertEquals(1, childB.getSupport());
 
 		Set<Entry<String,ArrayList<FPTreeNode>>> entrySet = 
 			tree.headerTable.entrySet();

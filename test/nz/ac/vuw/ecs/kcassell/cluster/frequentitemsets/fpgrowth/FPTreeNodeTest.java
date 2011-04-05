@@ -17,7 +17,7 @@ public class FPTreeNodeTest {
 		assertNull(root.getParentNode());
 		Collection<FPTreeNode> rootChildren = root.getChildren();
 		assertEquals(1, rootChildren.size());
-		assertEquals(1, root.getItemCount());
+		assertEquals(1, root.getSupport());
 		assertEquals("root", root.getItemName());
 		FPTreeNode node = root.getChild("child");
 		assertNotNull(node);
@@ -29,7 +29,7 @@ public class FPTreeNodeTest {
 		assertEquals("root", parentNode.getItemName());
 		assertNull(child.getChildren());
 		assertNull(child.getChild("nowhwre"));
-		assertEquals(2, child.getItemCount());
+		assertEquals(2, child.getSupport());
 		assertEquals("child", child.getItemName());
 
 		FPTreeNode grandchild = new FPTreeNode("grandchild", 666, child);
@@ -38,13 +38,13 @@ public class FPTreeNodeTest {
 		assertEquals("child", parentNode.getItemName());
 		assertNull(grandchild.getChildren());
 		assertNull(grandchild.getChild("nowhwre"));
-		assertEquals(666, grandchild.getItemCount());
+		assertEquals(666, grandchild.getSupport());
 		assertEquals("grandchild", grandchild.getItemName());
 
 		assertNotNull(child.getChildren());
 		assertNotNull(child.getChild("grandchild"));
 		assertNull(child.getChild("nowhwre"));
-		assertEquals(2, child.getItemCount());
+		assertEquals(2, child.getSupport());
 		assertEquals("child", child.getItemName());
 	}
 
