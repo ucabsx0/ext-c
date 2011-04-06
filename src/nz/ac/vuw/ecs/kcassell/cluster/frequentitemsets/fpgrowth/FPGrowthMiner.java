@@ -2,6 +2,7 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
@@ -32,6 +33,7 @@ public class FPGrowthMiner {
 			List<String> items = sortedTransaction.getItems();
 			fpTree.insert(items, fpTree.getRoot());
 		}
+		fpTree.setFrequentItems(frequentItems);
 		return fpTree;
 	}
 
@@ -77,30 +79,96 @@ public class FPGrowthMiner {
 	}
 	
 	/**
-	 * 
-	 * @param tree
-	 * @param patternA a pattern (item set) from the conditional pattern base
-	 * or null i this is the initial call (no conditions)
+	 * The top-level call to the FPGrowth algorithm for computing frequent
+	 * item sets.
+	 * @param transactions the collection of all "transactions", where each
+	 *   transaction contains items
+	 * @param minSupport the minimum frequency of occurrence of a pattern for it
+	 *   to be included in the result
 	 * @return the collection of all frequent patterns (item sets)
 	 */
-	public Collection<ItemSupportList> mine(FPTree tree,
-			ItemSupportList patternA) {
+	public Collection<ItemSupportList> mine(Collection<ItemSupportList> transactions,
+			int minSupport) {
+		FPTree tree = buildFPTree(transactions);
+		Collection<ItemSupportList> frequentPatterns =
+			new ArrayList<ItemSupportList>();
+		List<String> headersDescending = tree.getHeadersDescending();
+		
+		// Starting with the least common item with acceptable support,
+		// extract the frequent patterns for each item.
+		for (int i = headersDescending.size() - 1; i >= 0; i--) {
+			String headerA = headersDescending.get(i);
+			ItemSupportList inputPatternA = buildInitialPatternA(headerA);
+			Collection<ItemSupportList> patterns =
+				fpGrowth(tree, inputPatternA, minSupport);
+			frequentPatterns.addAll(patterns);
+		}
+		return frequentPatterns;
+	}
+
+	/**
+	 * Build the initial "conditional" pattern for an item.  Since its
+	 * the initial pattern, it will be empty.
+	 * @param header the item whose conditional support is wanted
+	 * @return an empty item support list.  The name of the "transaction"
+	 * in the ItemSupportList will be the item whose conditional support is wanted
+	 */
+	protected ItemSupportList buildInitialPatternA(String header) {
+		ArrayList<String> emptyList = new ArrayList<String>();
+		ItemSupportList inputPattern =
+			new ItemSupportList(header, emptyList, comparator);
+		return inputPattern;
+	}
+	
+	
+	/**
+	 * Recursively extract frequent patterns (item sets) from the FPTree.
+	 * @param tree
+	 * @param inputPatternA a pattern (item set) from the conditional pattern base
+	 *   or empty if this is the initial call (no conditions)
+	 * @param minSupport the minimum frequency of occurrence of a pattern for it
+	 *   to be included in the result
+	 * @return the collection of all frequent patterns (item sets)
+	 */
+	public Collection<ItemSupportList> fpGrowth(FPTree tree,
+			ItemSupportList inputPatternA,
+			int minSupport) {
 		Collection<ItemSupportList> frequentPatterns =
 			new ArrayList<ItemSupportList>();
 		
 		if (tree.hasOneBranch()) {
 			frequentPatterns = generatePatternsForCombinations(tree);
 		} else {
-			List<String> headersDescending = tree.getHeadersDescending();
-			for (int i = headersDescending.size() - 1; i >= 0; i--) {
-				String headerA = headersDescending.get(i);
-//TODO				ItemSupportList patternB =
-//					generatePatternB(patternA, tree, headerA);
+			String itemName = inputPatternA.getName();
+			HashMap<String,ArrayList<FPTreeNode>> headerTable =
+				tree.getHeaderTable();
+			ArrayList<FPTreeNode> itemNodes = headerTable.get(itemName);
+			
+			// Traverse the node-links for an element in the header table
+			for (FPTreeNode itemNode : itemNodes) {
+				ItemSupportList patternB =
+					generatePatternB(itemNode, inputPatternA);
 //				ItemSupportList condPatternBase =
 //					buildFPTree(transactions)
 			}
 		}
 		return frequentPatterns;
+	}
+
+	protected ItemSupportList generatePatternB(FPTreeNode itemNode,
+			ItemSupportList inputPatternA) {
+		String itemNodeName = itemNode.getItemName();
+		String patternBName = itemNodeName + inputPatternA.getName();
+		List<String> patternAItems = inputPatternA.getItems();
+		List<String> patternBItems = new ArrayList<String>(patternAItems);
+		ItemSupportList patternB =
+			new ItemSupportList(patternBName , patternBItems, comparator);
+		Double support = itemNode.getSupport() * 1.0;
+		for (String patternBItem : patternBItems) {
+			patternB.setSupport(patternBItem, support);
+		}
+		patternB.addSupport(itemNodeName, support);
+		return patternB;
 	}
 
 	private Collection<ItemSupportList> generatePatternsForCombinations(

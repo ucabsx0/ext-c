@@ -15,8 +15,8 @@ import java.util.Map;
  */
 public class ItemSupportList {
 	
-	/** The client class (transaction) */
-	protected String classHandle = null;
+	/** The name of the client class (transaction) */
+	protected String name = null;
 	
 	/** Keeps track of the support for each item (called method).
 	 * The key is the client method's handle; the value is its support. */
@@ -39,18 +39,18 @@ public class ItemSupportList {
 	protected Comparator<String> comparator = null;
 
 	/**
-	 * @param classHandle
-	 * @param calledMembers
+	 * @param name
+	 * @param items (called members) in the transaction
 	 */
-	public ItemSupportList(String classHandle, Collection<String> calledMembers,
+	public ItemSupportList(String name, Collection<String> items,
 			Comparator<String> comparator) {
 		super();
-		this.classHandle = classHandle;
+		this.name = name;
 		this.comparator = comparator;
 
-		if (calledMembers != null) {
-			for (String handle : calledMembers) {
-				supportMap.put(handle, 1.0);
+		if (items != null) {
+			for (String item : items) {
+				supportMap.put(item, 1.0);
 			}
 		}
 		isDirty = true;
@@ -113,10 +113,14 @@ public class ItemSupportList {
 		return items;
 	}
 	
+	public String getName() {
+		return name;
+	}
+
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer(
-				"ItemSupportList [classHandle=" + classHandle + 
+				"ItemSupportList [name=" + name + 
 				", comparator=" + ((comparator == null) ? "null"
 						: comparator.getClass().getCanonicalName()) +
 				", supportMap=\n");

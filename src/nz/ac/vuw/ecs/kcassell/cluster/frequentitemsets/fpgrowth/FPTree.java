@@ -37,9 +37,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
+
 public class FPTree {
 	/** The name of the root of the FPTree. */
 	public static final String ROOT_NAME = "RootNode";
+	
+	/** All of the items in the tree, in decreasing order of support.
+	 * NB: this is set by the FPGrowthMiner.buildFPTree algorithm! */
+	protected ItemSupportList frequentItems = null;
 	
 	/** The key is an item name; the value is a list of nodes
 	 * having that item name. */
@@ -68,6 +74,19 @@ public class FPTree {
 
 	public HashMap<String, ArrayList<FPTreeNode>> getHeaderTable() {
 		return headerTable;
+	}
+
+	/** @return all of the items in the tree, in decreasing order of support.
+	 * NB: this is set by the FPGrowthMiner.buildFPTree algorithm! */
+	public ItemSupportList getFrequentItems() {
+		return frequentItems;
+	}
+
+	/** param the items in the tree, in decreasing order of support.
+	 * NB: this is to be used exclusively by the FPGrowthMiner.buildFPTree
+	 *  algorithm! */
+	public void setFrequentItems(ItemSupportList frequentItems) {
+		this.frequentItems = frequentItems;
 	}
 
 	public boolean hasOneBranch() {
