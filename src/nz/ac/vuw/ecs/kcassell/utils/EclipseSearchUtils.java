@@ -277,7 +277,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 	/**
 	 * Get the declared members (methods and fields) of the
 	 * specified class.
-	 * @param classHandle the Eclipse handle for the class
+	 * @param name the Eclipse handle for the class
 	 * @return a collection members
 	 * @throws JavaModelException
 	 */
