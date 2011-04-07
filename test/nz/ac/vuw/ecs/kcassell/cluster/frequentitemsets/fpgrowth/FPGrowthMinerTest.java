@@ -132,6 +132,8 @@ public class FPGrowthMinerTest extends TestCase {
 		assertEquals(3.0, frequentItems.getSupport("b"));
 		assertEquals(3.0, frequentItems.getSupport("m"));
 		assertEquals(3.0, frequentItems.getSupport("p"));
+		
+		System.out.println("tree =\n" + tree);
 	}
 
 	@Test

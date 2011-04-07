@@ -61,9 +61,9 @@ public class ValueComparator implements Comparator<String> {
 			result = -1 * aValue.compareTo(bValue);
 			
 			// If the values are the same, then compare the keys
-			if (result == 0) {
-				result = a.compareTo(b);
-			}
+//			if (result == 0) {
+//				result = a.compareTo(b);
+//			}
 		} else if (bValue != null) {
 			result = -1;
 		}
