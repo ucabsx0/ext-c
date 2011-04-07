@@ -108,20 +108,25 @@ public class FPTree {
 	public void insert(List<String> items, FPTreeNode parent) {
 		if (items.size() > 0) {
 			String item = items.get(0);
-			FPTreeNode child = parent.getChild(item);
 			
-			// New child - previously unseen sequence
-			if (child == null) {
-				child = new FPTreeNode(item, 1, parent);
-				boolean wasAdded = addToHeaderTable(item, child);
-				// If the item was already in the header table, the tree
-				// is branching.
-				hasOneBranch = hasOneBranch && !wasAdded;
-			} else { // Existing node - increment count
-				child.incrementCount();
+			// Stop if it's an infrequent item
+			if ((frequentItems == null) 
+					|| (frequentItems.getSupport(item) != null)) {
+				FPTreeNode child = parent.getChild(item);
+				
+				// New child - previously unseen sequence
+				if (child == null) {
+					child = new FPTreeNode(item, 1, parent);
+					boolean wasAdded = addToHeaderTable(item, child);
+					// If the item was already in the header table, the tree
+					// is branching.
+					hasOneBranch = hasOneBranch && !wasAdded;
+				} else { // Existing node - increment count
+					child.incrementCount();
+				}
+				// recurse on tail
+				insert(items.subList(1, items.size()), child);
 			}
-			// recurse on tail
-			insert(items.subList(1, items.size()), child);
 		}
 	}
 

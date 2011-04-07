@@ -21,36 +21,78 @@ public class FPGrowthMiner {
 	 *            methods of the server class that the client class calls).
 	 * @return
 	 */
-	protected FPTree buildFPTree(Collection<ItemSupportList> transactions) {
+	protected FPTree buildFPTree(Collection<ItemSupportList> transactions,
+			int minSupport) {
 		// getFrequentItems sets the comparator as a side-effect
-		ItemSupportList frequentItems = getFrequentItems(transactions);
+		ItemSupportList frequentItems =
+			getFrequentItems(transactions, minSupport);
 		frequentItems.setComparator(comparator);
 		FPTree fpTree = new FPTree();
+		fpTree.setFrequentItems(frequentItems);
 		
 		for (ItemSupportList transaction : transactions) {
 			ItemSupportList sortedTransaction =
-				sortItems(transaction);
+				pruneAndSortItems(transaction, frequentItems);
 			List<String> items = sortedTransaction.getItems();
 			fpTree.insert(items, fpTree.getRoot());
 		}
-		fpTree.setFrequentItems(frequentItems);
 		return fpTree;
 	}
 
 	/**
-	 * Sort the items in the transaction based on the comparator.  Note that
-	 * using a ValueComparator generated elsewhere can produce a sorting that
-	 * may look unusual, e.g. when we have a "global" listing of frequencies
-	 * and use that to reorder the local items.
+	 * Sort the items in the transaction based on the comparator after
+	 * removing those items with insufficient support to be frequent.
 	 * @param transaction
-	 * @return
+	 * @return a revised transaction that has frequent items sorted
 	 */
-	protected ItemSupportList sortItems(ItemSupportList transaction) {
-		// TODO should we copy or modify the transaction?  Presumably, we don't
-		// care about the original ordering.
-		transaction.setComparator(comparator);
-		transaction.sortItems();
-		return transaction;
+	protected ItemSupportList pruneAndSortItems(ItemSupportList transaction,
+			ItemSupportList frequentItems) {
+		List<String> items = transaction.getItems();
+		List<String> revisedItems = new ArrayList<String>(items);
+		
+		if (frequentItems != null) {
+			for (int i = revisedItems.size() - 1; i >= 0; i--) {
+				String item = revisedItems.get(i);
+				Double support = frequentItems.getSupport(item);
+				if (support == null) {
+					revisedItems.remove(i);
+				}
+			}
+		}
+		ValueComparator revisedComparator =
+			new ValueComparator(frequentItems.getSupportMap());
+		ItemSupportList revisedTransaction =
+			new ItemSupportList(transaction.getName() + "pruned",
+					revisedItems, revisedComparator);
+		// Set the supports for the revised transaction the same
+		// as the original transaction
+		for (String item : revisedItems) {
+			Double support = transaction.getSupport(item);
+			revisedTransaction.setSupport(item, support);
+		}
+		revisedTransaction.sortItems();
+		return revisedTransaction;
+	}
+
+	protected ItemSupportList getFrequentItems(
+			Collection<ItemSupportList> transactions, int minSupport) {
+		ItemSupportList itemsDecreasing =
+			getItemsDecreasingFrequency(transactions);
+		List<String> items = itemsDecreasing.getItems();
+		int itemIndex = items.size() - 1;
+		boolean tooSmall = true;
+		
+		while(tooSmall && itemIndex >= 0) {
+			String item = items.get(itemIndex);
+			Double support = itemsDecreasing.getSupport(item);
+			tooSmall = support < minSupport;
+			if (tooSmall) {
+				items.remove(itemIndex);
+				itemsDecreasing.setSupport(item, null);
+			}
+			itemIndex--;
+		}
+		return itemsDecreasing;
 	}
 
 	/**
@@ -60,22 +102,22 @@ public class FPGrowthMiner {
 	 * @param transactions
 	 * @return the items in decreasing order of support
 	 */
-	protected ItemSupportList getFrequentItems(
+	protected ItemSupportList getItemsDecreasingFrequency(
 			Collection<ItemSupportList> transactions) {
-		ItemSupportList frequentItems =
+		ItemSupportList sortedItems =
 			new ItemSupportList("Frequent Items", new ArrayList<String>(), comparator);
 		
 		for (ItemSupportList transaction : transactions) {
 			List<String> transactionMembers = transaction.getItems();
 			for (String item : transactionMembers) {
 				Double support = transaction.getSupport(item);
-				frequentItems.addSupport(item, support);
+				sortedItems.addSupport(item, support);
 			}
 		}
-		comparator = new ValueComparator(frequentItems.getSupportMap());
-		frequentItems.setComparator(comparator);
-		frequentItems.getItems();
-		return frequentItems;
+		comparator = new ValueComparator(sortedItems.getSupportMap());
+		sortedItems.setComparator(comparator);
+		sortedItems.getItems();
+		return sortedItems;
 	}
 	
 	/**
@@ -89,7 +131,7 @@ public class FPGrowthMiner {
 	 */
 	public Collection<ItemSupportList> mine(Collection<ItemSupportList> transactions,
 			int minSupport) {
-		FPTree tree = buildFPTree(transactions);
+		FPTree tree = buildFPTree(transactions, minSupport);
 		Collection<ItemSupportList> frequentPatterns =
 			new ArrayList<ItemSupportList>();
 		List<String> headersDescending = tree.getHeadersDescending();
@@ -142,32 +184,91 @@ public class FPGrowthMiner {
 			String itemName = inputPatternA.getName();
 			HashMap<String,ArrayList<FPTreeNode>> headerTable =
 				tree.getHeaderTable();
-			ArrayList<FPTreeNode> itemNodes = headerTable.get(itemName);
+//			ArrayList<FPTreeNode> itemNodes = headerTable.get(itemName);
 			
-			// Traverse the node-links for an element in the header table
-			for (FPTreeNode itemNode : itemNodes) {
+			ItemSupportList frequentItems = tree.getFrequentItems();
+			
+			// Starting with the least frequently occurring item, build
+			// frequent item sets containing that item
+			List<String> items = frequentItems.getItems();
+			for (int i = items.size() - 1; i >= 0; i--) {
+				String itemA = items.get(i);
+				Double supportA = frequentItems.getSupport(itemA);
 				ItemSupportList patternB =
-					generatePatternB(itemNode, inputPatternA);
-//				ItemSupportList condPatternBase =
-//					buildFPTree(transactions)
+					generatePatternB(itemA, supportA, inputPatternA);
+				Collection<ItemSupportList> conditionalPatternBase =
+					constructConditionalPatternBase(tree, patternB);
 			}
+
 		}
 		return frequentPatterns;
 	}
 
-	protected ItemSupportList generatePatternB(FPTreeNode itemNode,
+	protected Collection<ItemSupportList> constructConditionalPatternBase(
+			FPTree tree, ItemSupportList patternB) {
+		Collection<ItemSupportList> conditionalPatternBase =
+			new ArrayList<ItemSupportList>();
+		// The most recently processed node (towards the leaves)
+		List<String> bItems = patternB.getItems();
+		String bItem0 = bItems.get(0);
+		HashMap<String,ArrayList<FPTreeNode>> headerTable = tree.getHeaderTable();
+		ArrayList<FPTreeNode> itemNodes = headerTable.get(bItem0);
+
+		// Traverse the node-links for an element in the header table -
+		// moving "sideways" through the nodes for a given item
+		for (FPTreeNode itemNode : itemNodes) {
+			ItemSupportList pattern = constructConditionalPattern(itemNode);
+			if (pattern != null) {
+				conditionalPatternBase.add(pattern);
+			}
+		}
+		//TODO build conditionalPatternBase
+		return conditionalPatternBase;
+	}
+
+	protected ItemSupportList constructConditionalPattern(FPTreeNode itemNode) {
+		FPTreeNode parentNode = itemNode.getParentNode();
+		String parentName = parentNode.getItemName();
+		Double support = itemNode.getSupport() * 1.0;
+		ArrayList<String> items = new ArrayList<String>();
+		String name = "";
+		
+		// Climb up (towards the root of the tree)
+		while (!FPTree.ROOT_NAME.equals(parentName)) {
+			items.add(parentName);
+			name += parentName + ",";
+			parentNode = parentNode.getParentNode();
+			parentName = parentNode.getItemName();
+		}
+		ItemSupportList condPattern = new ItemSupportList(name, items, comparator);
+		for (String item : items) {
+			condPattern.setSupport(item, support);
+		}
+		return condPattern;
+	}
+
+	/**
+	 * Generates the pattern on which the conditional pattern base
+	 * and conditional FPTree will be based.
+	 * @param itemName the name of the item
+	 * @param support the support for itemName
+	 * @param inputPatternA the pattern built from less frequently
+	 * occurring items
+	 * @return a pattern joining itemNode with inputPaternA, where the
+	 * support for each item is set to that of itemNode
+	 */
+	protected ItemSupportList generatePatternB(String itemName,
+			Double support,
 			ItemSupportList inputPatternA) {
-		String itemNodeName = itemNode.getItemName();
-		String patternBName = itemNodeName + inputPatternA.getName();
+		String patternBName = itemName + inputPatternA.getName();
 		List<String> patternAItems = inputPatternA.getItems();
 		List<String> patternBItems = new ArrayList<String>(patternAItems);
 		ItemSupportList patternB =
 			new ItemSupportList(patternBName , patternBItems, comparator);
-		Double support = itemNode.getSupport() * 1.0;
 		for (String patternBItem : patternBItems) {
 			patternB.setSupport(patternBItem, support);
 		}
-		patternB.addSupport(itemNodeName, support);
+		patternB.addSupport(itemName, support);
 		return patternB;
 	}
 

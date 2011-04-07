@@ -70,7 +70,11 @@ public class ItemSupportList {
 	}
 	
 	public void setSupport(String handle, Double newSupport) {
-		supportMap.put(handle, newSupport);
+		if (newSupport == null) {
+			supportMap.remove(handle);
+		} else {
+			supportMap.put(handle, newSupport);
+		}
 		isDirty = true;
 	}
 	

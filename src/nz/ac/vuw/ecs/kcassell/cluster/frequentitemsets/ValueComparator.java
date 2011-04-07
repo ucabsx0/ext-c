@@ -55,7 +55,9 @@ public class ValueComparator implements Comparator<String> {
 		Double aValue = supportMap.get(a);
 		Double bValue = supportMap.get(b);
 		
-		if (aValue != null) {
+		if ((aValue == null) && (bValue == null)) {
+			result = 0;
+		} else if (aValue != null) {
 			result = -1 * aValue.compareTo(bValue);
 			
 			// If the values are the same, then compare the keys
