@@ -11,6 +11,16 @@ import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
 
 import org.junit.Test;
 
+/**
+ * The intermediate results in these tests will be different than those
+ * in Han's paper, because our sorting takes into account both the
+ * frequency of occurrence and the item name.  Han's sorting is based on
+ * frequency of occurrence and then the order in which the items were see
+ * in the transactions.  Our method will generate the same FPTree
+ * regardless of the ordering of the transactions; Han's will not.
+ * @author kcassell
+ *
+ */
 public class FPGrowthMinerTest extends TestCase {
 	
 	// Used by setUpTransactionsM1M4
@@ -115,25 +125,104 @@ public class FPGrowthMinerTest extends TestCase {
 
 	}
 
+	/*
+	 * builds:
+FPTreeNode RootNode:0 [, children: (f:1 c:4)]
+  FPTreeNode f:1 [parentNode=RootNode:0, children: (b:1)]
+    FPTreeNode b:1 [parentNode=f:1]
+  FPTreeNode c:4 [parentNode=RootNode:0, children: (f:3 b:1)]
+    FPTreeNode f:3 [parentNode=c:4, children: (a:3)]
+      FPTreeNode a:3 [parentNode=f:3, children: (b:1 m:2)]
+        FPTreeNode b:1 [parentNode=a:3, children: (m:1)]
+          FPTreeNode m:1 [parentNode=b:1]
+        FPTreeNode m:2 [parentNode=a:3, children: (p:2)]
+          FPTreeNode p:2 [parentNode=m:2]
+    FPTreeNode b:1 [parentNode=c:4, children: (p:1)]
+      FPTreeNode p:1 [parentNode=b:1]
+	 */
 	@Test
-	public void testBuildFPTree() {
+	public void testBuildFPTreeFromFrequentItems() {
 		setUpTransactionsHan();
 		FPGrowthMiner miner = new FPGrowthMiner();
-		FPTree tree = miner.buildFPTree(transactionsHan, 3);
+		ItemSupportList frequentItems =
+			miner.getFrequentItems(transactionsHan, 3);
+		frequentItems.setComparator(miner.comparator);
+		FPTree tree = miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
+
+		System.out.println("testBuildFPTreeFromFrequentItems tree =\n" + tree);
+
 		HashMap<String,ArrayList<FPTreeNode>> headerTable = tree.getHeaderTable();
 		Set<String> keySet = headerTable.keySet();
 		assertEquals(6, keySet.size());
-		ItemSupportList frequentItems = tree.getFrequentItems();
-		List<String> items = frequentItems.getItems();
-		assertEquals(6, items.size());
-		assertEquals(4.0, frequentItems.getSupport("f"));
-		assertEquals(4.0, frequentItems.getSupport("c"));
-		assertEquals(3.0, frequentItems.getSupport("a"));
-		assertEquals(3.0, frequentItems.getSupport("b"));
-		assertEquals(3.0, frequentItems.getSupport("m"));
-		assertEquals(3.0, frequentItems.getSupport("p"));
+		ArrayList<FPTreeNode> cSibs = headerTable.get("c");
+		assertEquals(1, cSibs.size());
+		ArrayList<FPTreeNode> fSibs = headerTable.get("f");
+		assertEquals(2, fSibs.size());
+		ArrayList<FPTreeNode> aSibs = headerTable.get("a");
+		assertEquals(1, aSibs.size());
+		ArrayList<FPTreeNode> bSibs = headerTable.get("b");
+		assertEquals(3, bSibs.size());
+		ArrayList<FPTreeNode> mSibs = headerTable.get("m");
+		assertEquals(2, mSibs.size());
+		ArrayList<FPTreeNode> pSibs = headerTable.get("p");
+		assertEquals(2, pSibs.size());
+
+		ItemSupportList frequentTreeItems = tree.getFrequentItems();
+		List<String> treeItems = frequentItems.getItems();
+		assertEquals(6, treeItems.size());
+		assertEquals("c", treeItems.get(0));
+		assertEquals("f", treeItems.get(1));
+		assertEquals("a", treeItems.get(2));
+		assertEquals("b", treeItems.get(3));
+		assertEquals("m", treeItems.get(4));
+		assertEquals("p", treeItems.get(5));
+		assertEquals(4.0, frequentTreeItems.getSupport("f"));
+		assertEquals(4.0, frequentTreeItems.getSupport("c"));
+		assertEquals(3.0, frequentTreeItems.getSupport("a"));
+		assertEquals(3.0, frequentTreeItems.getSupport("b"));
+		assertEquals(3.0, frequentTreeItems.getSupport("m"));
+		assertEquals(3.0, frequentTreeItems.getSupport("p"));
 		
-		System.out.println("tree =\n" + tree);
+		// Children of root
+		FPTreeNode root = tree.getRoot();
+		Collection<FPTreeNode> children = root.getChildren();
+		assertEquals(2, children.size());
+		FPTreeNode cChild = root.getChild("c");
+		assertNotNull(cChild);
+		assertEquals(4, cChild.getSupport());
+		FPTreeNode fChild = root.getChild("f");
+		assertNotNull(fChild);
+		assertEquals(1, fChild.getSupport());
+		FPTreeNode zChild = root.getChild("z");
+		assertNull(zChild);
+		
+		// grandchildren of root
+		children = fChild.getChildren();
+		assertEquals(1, children.size());
+		FPTreeNode bChild = fChild.getChild("b");
+		assertNotNull(bChild);
+		assertEquals(1, bChild.getSupport());
+		assertNull(bChild.getChildren());
+
+		children = cChild.getChildren();
+		assertEquals(2, children.size());
+		bChild = cChild.getChild("b");
+		assertNotNull(bChild);
+		fChild = cChild.getChild("f");
+		assertEquals(3, fChild.getSupport());
+		assertNotNull(fChild);
+		
+		// great-grandchildren of root
+		children = fChild.getChildren();
+		assertEquals(1, children.size());
+		FPTreeNode aChild = fChild.getChild("a");
+		assertNotNull(aChild);
+		assertEquals(3, aChild.getSupport());
+		assertEquals(2, aChild.getChildren().size());
+
+		children = bChild.getChildren();
+		assertEquals(1, children.size());
+		assertNotNull(bChild.getChild("p"));
 	}
 
 	@Test

@@ -14,19 +14,41 @@ public class FPGrowthMiner {
 	protected ValueComparator comparator = null;
 	
 	/**
-	 * 
+	 * Builds a frequent pattern tree (FPTree) based on the frequently
+	 * occurring items in a transaction.
 	 * @param transactions
 	 *            a collection of transactions where each transaction (e.g. the
 	 *            calls of a client class) is a collections of items (e.g. the
 	 *            methods of the server class that the client class calls).
-	 * @return
+	 * @param minSupport
+	 *            the minimum total support that each item must have to be
+	 *            included in the tree
+	 * @return the frequent pattern tree
 	 */
 	protected FPTree buildFPTree(Collection<ItemSupportList> transactions,
 			int minSupport) {
-		// getFrequentItems sets the comparator as a side-effect
 		ItemSupportList frequentItems =
 			getFrequentItems(transactions, minSupport);
 		frequentItems.setComparator(comparator);
+		FPTree fpTree = buildFPTreeFromFrequentItems(transactions,
+				frequentItems);
+		return fpTree;
+	}
+
+	/**
+	 * Builds a frequent pattern tree (FPTree) based on the frequently
+	 * occurring items in a transaction.
+	 * @param transactions
+	 *            a collection of transactions where each transaction (e.g. the
+	 *            calls of a client class) is a collections of items (e.g. the
+	 *            methods of the server class that the client class calls).
+	 * @param frequentItems the frequently occurring items across all
+	 * transactions
+	 * @return the frequent pattern tree
+	 */
+	protected FPTree buildFPTreeFromFrequentItems(
+			Collection<ItemSupportList> transactions,
+			ItemSupportList frequentItems) {
 		FPTree fpTree = new FPTree();
 		fpTree.setFrequentItems(frequentItems);
 		

@@ -139,11 +139,14 @@ public class FPTree {
 	 */
 	private boolean addToHeaderTable(String item, FPTreeNode node) {
 		boolean addIt = !headerTable.containsKey(item);
+		ArrayList<FPTreeNode> list = null;
 		if (addIt) {
-			ArrayList<FPTreeNode> list = new ArrayList<FPTreeNode>();
-			list.add(node);
-			headerTable.put(item, list);
+			list = new ArrayList<FPTreeNode>();
+		} else {
+			list = headerTable.get(item);
 		}
+		list.add(node);
+		headerTable.put(item, list);
 		return addIt;
 	}
 	
