@@ -3,6 +3,7 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -147,7 +148,8 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		ItemSupportList frequentItems =
 			miner.getFrequentItems(transactionsHan, 3);
 		frequentItems.setComparator(miner.comparator);
-		FPTree tree = miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
+		FPTree tree =
+			miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
 
 		System.out.println("testBuildFPTreeFromFrequentItems tree =\n" + tree);
 
@@ -359,4 +361,47 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		assertEquals("m2", members4.get(0));
 	}
 
+	public void testGetPatternsEndingWithItem () {
+		setUpTransactionsHan();
+		FPGrowthMiner miner = new FPGrowthMiner();
+		ItemSupportList frequentItems =
+			miner.getFrequentItems(transactionsHan, 3);
+		frequentItems.setComparator(miner.comparator);
+		FPTree tree =
+			miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
+		
+		Collection<ItemSupportList> patterns =
+			miner.getPatternsEndingWithItem("z", tree);
+		assertEquals(0, patterns.size());
+		
+		patterns = miner.getPatternsEndingWithItem("c", tree);
+		assertEquals(1, patterns.size());
+		ItemSupportList pattern1 = patterns.iterator().next();
+		List<String> items = pattern1.getItems();
+		assertEquals(1, items.size());
+		String name = items.get(0);
+		assertEquals("c", name);
+		
+		patterns = miner.getPatternsEndingWithItem("p", tree);
+		assertEquals(2, patterns.size());
+		Iterator<ItemSupportList> iterator = patterns.iterator();
+		while (iterator.hasNext()) {
+			pattern1 = iterator.next();
+			System.out.println("pattern1 = " + pattern1);
+			items = pattern1.getItems();
+			if (items.size() == 5) {
+				assertEquals("c", items.get(0));
+				assertEquals("f", items.get(1));
+				assertEquals("a", items.get(2));
+				assertEquals("m", items.get(3));
+				assertEquals("p", items.get(4));
+			} else if (items.size() == 3) {
+				assertEquals("c", items.get(0));
+				assertEquals("b", items.get(1));
+				assertEquals("p", items.get(2));
+			} else {
+				fail("unexpected pattern " + pattern1);
+			}
+		}
+	}
 }

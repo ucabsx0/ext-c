@@ -294,7 +294,25 @@ public class FPGrowthMiner {
 		return patternB;
 	}
 
-	private Collection<ItemSupportList> generatePatternsForCombinations(
+	/**
+	 * Find all the paths through the tree that terminate at item
+	 * @param item the least frequently occurring item in the patterns
+	 * to be returned
+	 * @param tree the tree being searched
+	 * @return the patterns
+	 */
+	public Collection<ItemSupportList> getPatternsEndingWithItem(String item,
+			FPTree tree) {
+		return tree.getPatternsEndingWithItem(item, comparator);
+	}
+
+	/**
+	 * Given a single branch, generate patterns representing all combinations of
+	 * the items on that branch
+	 * @param tree
+	 * @return the patterns
+	 */
+	protected Collection<ItemSupportList> generatePatternsForCombinations(
 			FPTree tree) {
 		// TODO Auto-generated method stub
 		return null;

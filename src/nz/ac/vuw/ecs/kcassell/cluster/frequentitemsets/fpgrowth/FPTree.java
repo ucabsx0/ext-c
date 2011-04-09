@@ -34,6 +34,7 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -173,4 +174,38 @@ public class FPTree {
 		return buf.toString();
 	}
 
+	/**
+	 * Find all the paths through the tree that terminate at item
+	 * @param item the least frequently occurring item in the patterns
+	 * to be returned
+	 * @return the patterns
+	 */
+	public Collection<ItemSupportList> getPatternsEndingWithItem(String item,
+			Comparator<String> comparator) {
+		ArrayList<ItemSupportList> patterns = new ArrayList<ItemSupportList>();
+		ArrayList<FPTreeNode> itemNodes = headerTable.get(item);
+		
+		if (itemNodes != null) {
+			// Go "sideways" through the "siblings" (nodes with the same names),
+			// collecting paths to the root.
+			for (FPTreeNode sibling : itemNodes) {
+				FPTreeNode nodePtr = sibling;
+				String nodeName = sibling.getItemName();
+				ArrayList<String> path = new ArrayList<String>();
+				ItemSupportList pathSupport =
+					new ItemSupportList("pathFrom" + nodeName, path, comparator);
+				
+				// For each sibling node, move towards the root, collecting the items
+				while (!nodeName.equals(ROOT_NAME)) {
+					path.add(0, nodeName);
+					int support = sibling.getSupport();
+					pathSupport.setSupport(nodeName, support * 1.0);
+					nodePtr = nodePtr.getParentNode();
+					nodeName = nodePtr.getItemName();
+				}
+				patterns.add(pathSupport);
+			}
+		}
+		return patterns;
+	}
 }
