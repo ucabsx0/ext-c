@@ -198,8 +198,46 @@ public class FPTree {
 				// For each sibling node, move towards the root, collecting the items
 				while (!nodeName.equals(ROOT_NAME)) {
 					path.add(0, nodeName);
-					int support = sibling.getSupport();
+					int support = nodePtr.getSupport();
 					pathSupport.setSupport(nodeName, support * 1.0);
+					nodePtr = nodePtr.getParentNode();
+					nodeName = nodePtr.getItemName();
+				}
+				patterns.add(pathSupport);
+			}
+		}
+		return patterns;
+	}
+
+	/**
+	 * Find all the paths through the tree that terminate at item, not
+	 * including item itself.  All nodes in the path are assigned the
+	 * support that item has.
+	 * @param item the least frequently occurring item in the patterns
+	 * to be returned
+	 * @return the patterns
+	 */
+	public Collection<ItemSupportList> getConditionalPatternBase(String item,
+			Comparator<String> comparator) {
+		ArrayList<ItemSupportList> patterns = new ArrayList<ItemSupportList>();
+		ArrayList<FPTreeNode> itemNodes = headerTable.get(item);
+		
+		if (itemNodes != null) {
+			// Go "sideways" through the "siblings" (nodes with the same names),
+			// collecting paths to the root.
+			for (FPTreeNode sibling : itemNodes) {
+				Double support = sibling.getSupport() * 1.0;
+				FPTreeNode nodePtr = sibling.getParentNode();
+				String nodeName = nodePtr.getItemName();
+				ArrayList<String> path = new ArrayList<String>();
+				ItemSupportList pathSupport =
+					new ItemSupportList("pathFrom" + nodeName + ":" + support,
+							path, comparator);
+				
+				// For each sibling node, move towards the root, collecting the items
+				while (!nodeName.equals(ROOT_NAME)) {
+					path.add(0, nodeName);
+					pathSupport.setSupport(nodeName, support);
 					nodePtr = nodePtr.getParentNode();
 					nodeName = nodePtr.getItemName();
 				}

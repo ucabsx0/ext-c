@@ -151,7 +151,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		FPTree tree =
 			miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
 
-		System.out.println("testBuildFPTreeFromFrequentItems tree =\n" + tree);
+//		System.out.println("testBuildFPTreeFromFrequentItems tree =\n" + tree);
 
 		HashMap<String,ArrayList<FPTreeNode>> headerTable = tree.getHeaderTable();
 		Set<String> keySet = headerTable.keySet();
@@ -254,7 +254,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		assertEquals(1.0, patternB2.getSupport("m2"));
 		assertEquals(1.0, patternB2.getSupport("testGeneratePatternB1"));
 		assertEquals(1.0, patternB2.getSupport("testGeneratePatternB2"));
-		System.out.println("testGeneratePatternB2 =\n" + patternB2);
+//		System.out.println("testGeneratePatternB2 =\n" + patternB2);
 	}
 	
 	@Test
@@ -262,7 +262,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		setUpTransactionsM1M4();
 		FPGrowthMiner miner = new FPGrowthMiner();
 		ItemSupportList frequentItems = miner.getItemsDecreasingFrequency(transactions);
-		System.out.println("frequentItems = " + frequentItems);
+//		System.out.println("frequentItems = " + frequentItems);
 		List<String> members = frequentItems.getItems();
 		assertEquals("m2", members.get(0));
 		assertEquals(3.0, frequentItems.getSupport("m2"), 0.00001);
@@ -280,7 +280,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		FPGrowthMiner miner = new FPGrowthMiner();
 		ItemSupportList frequentItems =
 			miner.getFrequentItems(transactions, 1);
-		System.out.println("frequentItems = " + frequentItems);
+//		System.out.println("frequentItems = " + frequentItems);
 		List<String> members = frequentItems.getItems();
 		assertEquals(4, members.size());
 		assertEquals("m2", members.get(0));
@@ -293,13 +293,13 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		assertEquals(1.0, frequentItems.getSupport("m4"), 0.00001);
 
 		frequentItems = miner.getFrequentItems(transactions, 3);
-		System.out.println("frequentItems = " + frequentItems);
+//		System.out.println("frequentItems = " + frequentItems);
 		members = frequentItems.getItems();
 		assertEquals(1, members.size());
 		assertEquals("m2", members.get(0));
 
 		frequentItems = miner.getFrequentItems(transactions, 2);
-		System.out.println("frequentItems = " + frequentItems);
+//		System.out.println("frequentItems = " + frequentItems);
 		members = frequentItems.getItems();
 		assertEquals(3, members.size());
 		assertEquals("m2", members.get(0));
@@ -312,7 +312,55 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 	
 	@Test
 	public void testConstructConditionalPattern() {
+		setUpTransactionsHan();
+		FPGrowthMiner miner = new FPGrowthMiner();
+		ItemSupportList frequentItems =
+			miner.getFrequentItems(transactionsHan, 3);
+		frequentItems.setComparator(miner.comparator);
+		FPTree tree =
+			miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
 		
+		List<String> items = new ArrayList<String>();
+		items.add("z");
+		ItemSupportList patternZ =
+			new ItemSupportList("patternZ", items , miner.comparator);
+		Collection<ItemSupportList> patterns =
+			miner.constructConditionalPatternBase(tree, patternZ);
+		assertEquals(0, patterns.size());
+		
+		items = new ArrayList<String>();
+		items.add("c");
+		ItemSupportList patternC =
+			new ItemSupportList("patternC", items , miner.comparator);
+		patterns = miner.constructConditionalPatternBase(tree, patternC);
+		assertEquals(1, patterns.size());
+		ItemSupportList pattern1 = patterns.iterator().next();
+		items = pattern1.getItems();
+		assertEquals(0, items.size());
+		
+		items = new ArrayList<String>();
+		items.add("p");
+		ItemSupportList patternP =
+			new ItemSupportList("patternP", items , miner.comparator);
+		patterns = miner.constructConditionalPatternBase(tree, patternP);
+		assertEquals(2, patterns.size());
+		Iterator<ItemSupportList> iterator = patterns.iterator();
+		while (iterator.hasNext()) {
+			pattern1 = iterator.next();
+//			System.out.println("pattern1 = " + pattern1);
+			items = pattern1.getItems();
+			if (items.size() == 4) {
+				assertEquals("c", items.get(0));
+				assertEquals("f", items.get(1));
+				assertEquals("a", items.get(2));
+				assertEquals("m", items.get(3));
+			} else if (items.size() == 2) {
+				assertEquals("c", items.get(0));
+				assertEquals("b", items.get(1));
+			} else {
+				fail("unexpected pattern " + pattern1);
+			}
+		}
 	}
 	
 	public void testPruneAndSortItems() {
@@ -387,7 +435,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		Iterator<ItemSupportList> iterator = patterns.iterator();
 		while (iterator.hasNext()) {
 			pattern1 = iterator.next();
-			System.out.println("pattern1 = " + pattern1);
+//			System.out.println("pattern1 = " + pattern1);
 			items = pattern1.getItems();
 			if (items.size() == 5) {
 				assertEquals("c", items.get(0));
@@ -404,4 +452,36 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 			}
 		}
 	}
+	
+	public void testGenerateCombinations() {
+		List<String> prefix = new ArrayList<String>();
+		List<String> items = new ArrayList<String>();
+		items.add("a");
+		items.add("b");
+		items.add("c");
+		items.add("d");
+		List<List<String>> itemCombos = new ArrayList<List<String>>();
+		FPGrowthMiner miner = new FPGrowthMiner();
+		List<List<String>> combinations =
+			miner.generateCombinations(prefix, items, itemCombos);
+		System.out.println("generated combos = " + combinations);
+		assertEquals(15, combinations.size());
+		String string = combinations.toString();
+		assertTrue(string.contains("[a]"));
+		assertTrue(string.contains("[a, b]"));
+		assertTrue(string.contains("[a, b, c]"));
+		assertTrue(string.contains("[a, b, c, d]"));
+		assertTrue(string.contains("[a, b, d]"));
+		assertTrue(string.contains("[a, c]"));
+		assertTrue(string.contains("[a, c, d]"));
+		assertTrue(string.contains("[a, d]"));
+		assertTrue(string.contains("[b]"));
+		assertTrue(string.contains("[b, c]"));
+		assertTrue(string.contains("[b, c, d]"));
+		assertTrue(string.contains("[b, d]"));
+		assertTrue(string.contains("[c]"));
+		assertTrue(string.contains("[c, d]"));
+		assertTrue(string.contains("[d]"));
+	}
+
 }
