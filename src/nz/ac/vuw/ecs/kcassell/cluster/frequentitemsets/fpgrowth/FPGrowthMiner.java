@@ -159,8 +159,9 @@ public class FPGrowthMiner {
 	public Collection<ItemSupportList> mine(
 			Collection<ItemSupportList> transactions, int minSupport) {
 		FPTree tree = buildFPTree(transactions, minSupport);
-		Collection<ItemSupportList> frequentPatterns = new ArrayList<ItemSupportList>();
-		List<String> headersDescending = tree.getHeadersDescending();
+		Collection<ItemSupportList> frequentPatterns =
+			new ArrayList<ItemSupportList>();
+		List<String> headersDescending = tree.getFrequentItems().getItems();
 
 		// Starting with the least common item with acceptable support,
 		// extract the frequent patterns for each item.
@@ -203,7 +204,7 @@ public class FPGrowthMiner {
 	 *            included in the result
 	 * @return the collection of all frequent patterns (item sets)
 	 */
-	public Collection<ItemSupportList> fpGrowth(FPTree tree,
+	protected Collection<ItemSupportList> fpGrowth(FPTree tree,
 			ItemSupportList inputPatternA, int minSupport) {
 		Collection<ItemSupportList> frequentPatterns = new ArrayList<ItemSupportList>();
 
@@ -218,18 +219,44 @@ public class FPGrowthMiner {
 			for (int i = items.size() - 1; i >= 0; i--) {
 				String itemA = items.get(i);
 				Double supportA = frequentItems.getSupport(itemA);
-				ItemSupportList patternB = generatePatternB(itemA, supportA,
-						inputPatternA);
-				Collection<ItemSupportList> conditionalPatternBase = constructConditionalPatternBase(
-						tree, patternB);
-				FPTree conditionalFPTree = buildFPTree(conditionalPatternBase,
-						minSupport);
-				Collection<ItemSupportList> fpGrowth = fpGrowth(
-						conditionalFPTree, patternB, minSupport);
+				ItemSupportList patternB =
+					generatePatternB(itemA, supportA, inputPatternA);
+				frequentPatterns.add(patternB);
+				Collection<ItemSupportList> conditionalPatternBase =
+					constructConditionalPatternBase(tree, patternB);
+				FPTree conditionalFPTree =
+					buildFPTree(conditionalPatternBase, minSupport);
+				Collection<ItemSupportList> conditionalPatterns =
+					fpGrowth(conditionalFPTree, patternB, minSupport);
+				frequentPatterns.addAll(conditionalPatterns);
+				Collection<ItemSupportList> conditionalPatternsPlus =
+					combinePatternBAndConditionals(patternB, conditionalPatterns);
+				frequentPatterns.addAll(conditionalPatternsPlus);
 			}
 
 		}
 		return frequentPatterns;
+	}
+
+	protected Collection<ItemSupportList> combinePatternBAndConditionals(
+			ItemSupportList patternB,
+			Collection<ItemSupportList> conditionalPatterns) {
+		List<ItemSupportList> combinedPatterns =
+			new ArrayList<ItemSupportList>();
+		List<String> itemsB = patternB.getItems();
+
+		// All items will have the same support - the minimal support
+		// of patternB
+		Double supportB = patternB.getSupport(itemsB.get(0));
+		for (ItemSupportList pattern : conditionalPatterns) {
+			List<String> itemsC = pattern.getItems();
+			List<String> itemsCombined = new ArrayList<String>(itemsC);
+			itemsCombined.addAll(itemsB);
+			ItemSupportList combinedPattern =
+				new ItemSupportList("combo", itemsCombined, supportB, comparator);
+			combinedPatterns.add(combinedPattern);
+		}
+		return combinedPatterns;
 	}
 
 	/**
@@ -271,10 +298,7 @@ public class FPGrowthMiner {
 		List<String> patternAItems = inputPatternA.getItems();
 		List<String> patternBItems = new ArrayList<String>(patternAItems);
 		ItemSupportList patternB = new ItemSupportList(patternBName,
-				patternBItems, comparator);
-		for (String patternBItem : patternBItems) {
-			patternB.setSupport(patternBItem, support);
-		}
+				patternBItems, support, comparator);
 		patternB.addSupport(itemName, support);
 		return patternB;
 	}
@@ -289,7 +313,7 @@ public class FPGrowthMiner {
 	 *            the tree being searched
 	 * @return the patterns
 	 */
-	public Collection<ItemSupportList> getPatternsEndingWithItem(String item,
+	protected Collection<ItemSupportList> getPatternsEndingWithItem(String item,
 			FPTree tree) {
 		return tree.getPatternsEndingWithItem(item, comparator);
 	}
@@ -326,12 +350,11 @@ public class FPGrowthMiner {
 		Double leafSupport = leaf.getSupport() * 1.0;
 
 		// Generate a pattern for each combination and set the supports
+		int i = 0;
 		for (List<String> itemCombo : itemCombos) {
 			ItemSupportList frequentPattern =
-				new ItemSupportList("combo" + items, itemCombo, comparator);
-			for (String item : itemCombo) {
-				frequentPattern.setSupport(item, leafSupport );
-			}
+				new ItemSupportList("combo" + i++ + "-" + items,
+						itemCombo, leafSupport, comparator);
 			frequentPatterns.add(frequentPattern);
 		}
 		return frequentPatterns;

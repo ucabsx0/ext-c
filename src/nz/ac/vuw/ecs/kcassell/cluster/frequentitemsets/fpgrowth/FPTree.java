@@ -94,11 +94,6 @@ public class FPTree {
 		return hasOneBranch;
 	}
 	
-	public List<String> getHeadersDescending() {
-		// TODO implement getHeadersDescending
-		return null;
-	}
-
 	/**
 	 * Implements the "insert_tree" function described in Han's paper for
 	 * inserting the items of a transaction into the FPTree.

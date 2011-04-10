@@ -363,6 +363,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		}
 	}
 	
+	@Test
 	public void testPruneAndSortItems() {
 		setUpTransactionsM1M4();
 		FPGrowthMiner miner = new FPGrowthMiner();
@@ -409,6 +410,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		assertEquals("m2", members4.get(0));
 	}
 
+	@Test
 	public void testGetPatternsEndingWithItem () {
 		setUpTransactionsHan();
 		FPGrowthMiner miner = new FPGrowthMiner();
@@ -453,6 +455,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		}
 	}
 	
+	@Test
 	public void testGenerateCombinations() {
 		List<String> prefix = new ArrayList<String>();
 		List<String> items = new ArrayList<String>();
@@ -464,7 +467,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		FPGrowthMiner miner = new FPGrowthMiner();
 		List<List<String>> combinations =
 			miner.generateCombinations(prefix, items, itemCombos);
-		System.out.println("generated combos = " + combinations);
+//		System.out.println("generated combos = " + combinations);
 		assertEquals(15, combinations.size());
 		String string = combinations.toString();
 		assertTrue(string.contains("[a]"));
@@ -484,4 +487,25 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		assertTrue(string.contains("[d]"));
 	}
 
+	@Test
+	public void testGenerateCombinationsTree() {
+		setUpTransactionsM1M4();
+		ArrayList<ItemSupportList> transactions = new ArrayList<ItemSupportList>();
+		transactions.add(t2);
+		transactions.add(t4);
+		FPGrowthMiner miner = new FPGrowthMiner();
+		FPTree tree = miner.buildFPTree(transactions, 1);
+		Collection<ItemSupportList> combos = miner.generateCombinations(tree);
+//		System.out.println("Combos =\n" + combos);
+		assertEquals(15, combos.size());
+	}
+
+	@Test
+	public void testMine() {
+		setUpTransactionsHan();
+		FPGrowthMiner miner = new FPGrowthMiner();
+		Collection<ItemSupportList> combos = miner.mine(transactionsHan, 3);
+		System.out.println("Combos =\n" + combos);
+		assertEquals(15, combos.size());
+	}
 }
