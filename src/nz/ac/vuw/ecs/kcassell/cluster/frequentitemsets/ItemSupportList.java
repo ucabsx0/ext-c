@@ -56,6 +56,24 @@ public class ItemSupportList {
 		isDirty = true;
 	}
 	
+	/**
+	 * @param name
+	 * @param items (called members) in the transaction
+	 */
+	public ItemSupportList(String name, Collection<String> items,
+			Double support, Comparator<String> comparator) {
+		super();
+		this.name = name;
+		this.comparator = comparator;
+
+		if (items != null) {
+			for (String item : items) {
+				supportMap.put(item, support);
+			}
+		}
+		isDirty = true;
+	}
+	
 	public Double addSupport(String handle, Double newSupport) {
 		Double support = newSupport;
 		if (supportMap.containsKey(handle)) {
@@ -126,7 +144,7 @@ public class ItemSupportList {
 		StringBuffer buf = new StringBuffer(
 				"ItemSupportList [name=" + name + 
 				", comparator=" + ((comparator == null) ? "null"
-						: comparator.getClass().getCanonicalName()) +
+						: comparator.getClass().getSimpleName()) +
 				", supportMap=\n");
 		if (isDirty) {
 			sortItems();
