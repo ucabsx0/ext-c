@@ -2,6 +2,7 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
@@ -10,7 +11,7 @@ import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ValueComparator;
 public class FPGrowthMiner {
 
 	/** A comparator that orders items by decreasing support. */
-	protected ValueComparator comparator = null;
+	protected Comparator<String> comparator = null;
 
 	/**
 	 * Builds a frequent pattern tree (FPTree) based on the frequently occurring
@@ -27,11 +28,10 @@ public class FPGrowthMiner {
 	 */
 	protected FPTree buildFPTree(Collection<ItemSupportList> transactions,
 			int minSupport) {
-		ItemSupportList frequentItems = getFrequentItems(transactions,
-				minSupport);
-		frequentItems.setComparator(comparator);
-		FPTree fpTree = buildFPTreeFromFrequentItems(transactions,
-				frequentItems);
+		ItemSupportList frequentItems =
+			getFrequentItems(transactions, minSupport);
+		FPTree fpTree =
+			buildFPTreeFromFrequentItems(transactions, frequentItems);
 		return fpTree;
 	}
 
@@ -138,7 +138,7 @@ public class FPGrowthMiner {
 				sortedItems.addSupport(item, support);
 			}
 		}
-		comparator = new ValueComparator(sortedItems.getSupportMap());
+		ValueComparator comparator = new ValueComparator(sortedItems.getSupportMap());
 		sortedItems.setComparator(comparator);
 		sortedItems.getItems();
 		return sortedItems;
@@ -159,36 +159,26 @@ public class FPGrowthMiner {
 	public Collection<ItemSupportList> mine(
 			Collection<ItemSupportList> transactions, int minSupport) {
 		FPTree tree = buildFPTree(transactions, minSupport);
+		ItemSupportList frequentItems = tree.getFrequentItems();
+		comparator = frequentItems.getComparator();
 		Collection<ItemSupportList> frequentPatterns =
 			new ArrayList<ItemSupportList>();
-		List<String> headersDescending = tree.getFrequentItems().getItems();
-
-		// Starting with the least common item with acceptable support,
-		// extract the frequent patterns for each item.
-		for (int i = headersDescending.size() - 1; i >= 0; i--) {
-			String headerA = headersDescending.get(i);
-			ItemSupportList inputPatternA = buildInitialPatternA(headerA);
-			Collection<ItemSupportList> patterns = fpGrowth(tree,
-					inputPatternA, minSupport);
-			frequentPatterns.addAll(patterns);
-		}
+		ItemSupportList inputPatternA = buildInitialPatternA();
+		fpGrowth(tree, inputPatternA, minSupport, frequentPatterns);
 		return frequentPatterns;
 	}
 
 	/**
 	 * Build the initial "conditional" pattern for an item. Since its the
 	 * initial pattern, it will be empty.
-	 * 
-	 * @param header
-	 *            the item whose conditional support is wanted
 	 * @return an empty item support list. The name of the "transaction" in the
 	 *         ItemSupportList will be the item whose conditional support is
 	 *         wanted
 	 */
-	protected ItemSupportList buildInitialPatternA(String header) {
+	protected ItemSupportList buildInitialPatternA() {
 		ArrayList<String> emptyList = new ArrayList<String>();
-		ItemSupportList inputPattern = new ItemSupportList(header, emptyList,
-				comparator);
+		ItemSupportList inputPattern =
+			new ItemSupportList("initPatternA", emptyList, comparator);
 		return inputPattern;
 	}
 
@@ -204,12 +194,13 @@ public class FPGrowthMiner {
 	 *            included in the result
 	 * @return the collection of all frequent patterns (item sets)
 	 */
-	protected Collection<ItemSupportList> fpGrowth(FPTree tree,
-			ItemSupportList inputPatternA, int minSupport) {
-		Collection<ItemSupportList> frequentPatterns = new ArrayList<ItemSupportList>();
+	protected void fpGrowth(FPTree tree,
+			ItemSupportList inputPatternA, int minSupport,
+			Collection<ItemSupportList> frequentPatterns) {
 
 		if (tree.hasOneBranch()) {
-			frequentPatterns = generateCombinations(tree);
+			Collection<ItemSupportList> combos = generateCombinations(tree);
+			frequentPatterns.addAll(combos);
 		} else {
 			ItemSupportList frequentItems = tree.getFrequentItems();
 
@@ -226,16 +217,17 @@ public class FPGrowthMiner {
 					constructConditionalPatternBase(tree, patternB);
 				FPTree conditionalFPTree =
 					buildFPTree(conditionalPatternBase, minSupport);
-				Collection<ItemSupportList> conditionalPatterns =
-					fpGrowth(conditionalFPTree, patternB, minSupport);
-				frequentPatterns.addAll(conditionalPatterns);
-				Collection<ItemSupportList> conditionalPatternsPlus =
-					combinePatternBAndConditionals(patternB, conditionalPatterns);
-				frequentPatterns.addAll(conditionalPatternsPlus);
+				if (conditionalFPTree.hasFrequentItems()) {
+					Collection<ItemSupportList> patternsI =
+						new ArrayList<ItemSupportList>();
+					fpGrowth(conditionalFPTree, patternB, minSupport, patternsI);
+					frequentPatterns.addAll(patternsI);
+					Collection<ItemSupportList> conditionalPatternsPlus =
+						combinePatternBAndConditionals(patternB, patternsI);
+					frequentPatterns.addAll(conditionalPatternsPlus);
+				}
 			}
-
 		}
-		return frequentPatterns;
 	}
 
 	protected Collection<ItemSupportList> combinePatternBAndConditionals(

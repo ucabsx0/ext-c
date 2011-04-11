@@ -58,8 +58,11 @@ public class ValueComparator implements Comparator<String> {
 		if ((aValue == null) && (bValue == null)) {
 			result = 0;
 		} else if (aValue != null) {
+			try {
 			result = -1 * aValue.compareTo(bValue);
-			
+			} catch (NullPointerException e) {
+				e.printStackTrace();
+			}
 			// If the values are the same, then compare the keys
 			if (result == 0) {
 				result = a.compareTo(b);

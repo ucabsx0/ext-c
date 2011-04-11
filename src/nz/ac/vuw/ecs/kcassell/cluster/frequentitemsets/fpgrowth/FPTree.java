@@ -95,6 +95,14 @@ public class FPTree {
 	}
 	
 	/**
+	 * @return true when the tree has something in it besides the root,
+	 * i.e. it has at least one frequent item.
+	 */
+	public boolean hasFrequentItems() {
+		return headerTable.size() > 0;
+	}
+	
+	/**
 	 * Implements the "insert_tree" function described in Han's paper for
 	 * inserting the items of a transaction into the FPTree.
 	 * @param items the frequent items for a transaction, in decreasing
@@ -116,7 +124,7 @@ public class FPTree {
 					boolean wasAdded = addToHeaderTable(item, child);
 					// If the item was already in the header table, the tree
 					// is branching.
-					hasOneBranch = hasOneBranch && !wasAdded;
+					hasOneBranch = hasOneBranch && wasAdded;
 				} else { // Existing node - increment count
 					child.incrementCount();
 				}

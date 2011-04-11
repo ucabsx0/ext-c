@@ -104,6 +104,10 @@ public class ItemSupportList {
 		return supportMap;
 	}
 
+	public Comparator<String> getComparator() {
+		return comparator;
+	}
+
 	public void setComparator(Comparator<String> comparator) {
 		if (this.comparator != comparator) {
 			isDirty = true;
@@ -142,9 +146,9 @@ public class ItemSupportList {
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer(
-				"ItemSupportList [name=" + name + 
-				", comparator=" + ((comparator == null) ? "null"
-						: comparator.getClass().getSimpleName()) +
+				"ItemSupportList [name=" + name + ", " +
+				((comparator == null) ? "null comparator"
+						: comparator.getClass().getSimpleName() + comparator.hashCode()) +
 				", supportMap=\n");
 		if (isDirty) {
 			sortItems();

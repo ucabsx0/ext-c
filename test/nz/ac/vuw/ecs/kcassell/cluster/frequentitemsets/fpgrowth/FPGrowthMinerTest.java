@@ -2,6 +2,7 @@ package nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -147,7 +148,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		FPGrowthMiner miner = new FPGrowthMiner();
 		ItemSupportList frequentItems =
 			miner.getFrequentItems(transactionsHan, 3);
-		frequentItems.setComparator(miner.comparator);
+//		frequentItems.setComparator(miner.comparator);
 		FPTree tree =
 			miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
 
@@ -316,14 +317,15 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		FPGrowthMiner miner = new FPGrowthMiner();
 		ItemSupportList frequentItems =
 			miner.getFrequentItems(transactionsHan, 3);
-		frequentItems.setComparator(miner.comparator);
+		Comparator<String> comparator = frequentItems.getComparator();
+		miner.comparator = comparator;
 		FPTree tree =
 			miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
 		
 		List<String> items = new ArrayList<String>();
 		items.add("z");
 		ItemSupportList patternZ =
-			new ItemSupportList("patternZ", items , miner.comparator);
+			new ItemSupportList("patternZ", items , comparator);
 		Collection<ItemSupportList> patterns =
 			miner.constructConditionalPatternBase(tree, patternZ);
 		assertEquals(0, patterns.size());
@@ -331,7 +333,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		items = new ArrayList<String>();
 		items.add("c");
 		ItemSupportList patternC =
-			new ItemSupportList("patternC", items , miner.comparator);
+			new ItemSupportList("patternC", items , comparator);
 		patterns = miner.constructConditionalPatternBase(tree, patternC);
 		assertEquals(1, patterns.size());
 		ItemSupportList pattern1 = patterns.iterator().next();
@@ -341,7 +343,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		items = new ArrayList<String>();
 		items.add("p");
 		ItemSupportList patternP =
-			new ItemSupportList("patternP", items , miner.comparator);
+			new ItemSupportList("patternP", items , comparator);
 		patterns = miner.constructConditionalPatternBase(tree, patternP);
 		assertEquals(2, patterns.size());
 		Iterator<ItemSupportList> iterator = patterns.iterator();
@@ -416,7 +418,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		FPGrowthMiner miner = new FPGrowthMiner();
 		ItemSupportList frequentItems =
 			miner.getFrequentItems(transactionsHan, 3);
-		frequentItems.setComparator(miner.comparator);
+		miner.comparator = frequentItems.getComparator();
 		FPTree tree =
 			miner.buildFPTreeFromFrequentItems(transactionsHan, frequentItems);
 		
