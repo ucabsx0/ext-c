@@ -245,7 +245,8 @@ public class FPGrowthMiner {
 			List<String> itemsCombined = new ArrayList<String>(itemsC);
 			itemsCombined.addAll(itemsB);
 			ItemSupportList combinedPattern =
-				new ItemSupportList("combo", itemsCombined, supportB, comparator);
+				new ItemSupportList("combo_" + itemsB + itemsC,
+						itemsCombined, supportB, comparator);
 			combinedPatterns.add(combinedPattern);
 		}
 		return combinedPatterns;
@@ -286,7 +287,7 @@ public class FPGrowthMiner {
 	 */
 	protected ItemSupportList generatePatternB(String itemName, Double support,
 			ItemSupportList inputPatternA) {
-		String patternBName = itemName + inputPatternA.getName();
+		String patternBName = itemName + "_" + inputPatternA.getName();
 		List<String> patternAItems = inputPatternA.getItems();
 		List<String> patternBItems = new ArrayList<String>(patternAItems);
 		ItemSupportList patternB = new ItemSupportList(patternBName,
