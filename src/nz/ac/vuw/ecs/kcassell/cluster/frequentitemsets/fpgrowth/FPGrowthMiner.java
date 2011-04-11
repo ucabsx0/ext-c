@@ -199,7 +199,8 @@ public class FPGrowthMiner {
 			Collection<ItemSupportList> frequentPatterns) {
 
 		if (tree.hasOneBranch()) {
-			Collection<ItemSupportList> combos = generateCombinations(tree);
+			Collection<ItemSupportList> combos =
+				generateBranchPatterns(tree, minSupport);
 			frequentPatterns.addAll(combos);
 		} else {
 			ItemSupportList frequentItems = tree.getFrequentItems();
@@ -221,7 +222,6 @@ public class FPGrowthMiner {
 					Collection<ItemSupportList> patternsI =
 						new ArrayList<ItemSupportList>();
 					fpGrowth(conditionalFPTree, patternB, minSupport, patternsI);
-					frequentPatterns.addAll(patternsI);
 					Collection<ItemSupportList> conditionalPatternsPlus =
 						combinePatternBAndConditionals(patternB, patternsI);
 					frequentPatterns.addAll(conditionalPatternsPlus);
@@ -318,7 +318,8 @@ public class FPGrowthMiner {
 	 * @param tree
 	 * @return the patterns
 	 */
-	protected Collection<ItemSupportList> generateCombinations(FPTree tree) {
+	protected Collection<ItemSupportList> generateBranchPatterns(
+			FPTree tree, int minSupport) {
 		Collection<ItemSupportList> frequentPatterns =
 			new ArrayList<ItemSupportList>();
 		FPTreeNode nodePtr = tree.getRoot();
@@ -337,17 +338,19 @@ public class FPGrowthMiner {
 				nodePtr = null;
 			}
 		} // while
+		
+		int leafSupport = leaf.getSupport();
+		Double leafSupportD = leafSupport * 1.0;
 		List<String> prefix = new ArrayList<String>();
 		List<List<String>> itemCombos = new ArrayList<List<String>>();
-		itemCombos = generateCombinations(prefix, items, itemCombos);
-		Double leafSupport = leaf.getSupport() * 1.0;
+		itemCombos = generateBranchCombinations(prefix, items, itemCombos);
 
 		// Generate a pattern for each combination and set the supports
 		int i = 0;
 		for (List<String> itemCombo : itemCombos) {
 			ItemSupportList frequentPattern =
-				new ItemSupportList("combo" + i++ + "-" + items,
-						itemCombo, leafSupport, comparator);
+				new ItemSupportList("branchCombo" + i++ + "-" + items,
+						itemCombo, leafSupportD, comparator);
 			frequentPatterns.add(frequentPattern);
 		}
 		return frequentPatterns;
@@ -365,7 +368,7 @@ public class FPGrowthMiner {
 	 *            an accumulator for the combinations
 	 * @return all combinations
 	 */
-	protected List<List<String>> generateCombinations(List<String> prefix,
+	protected List<List<String>> generateBranchCombinations(List<String> prefix,
 			List<String> toDo, List<List<String>> itemCombos) {
 		int size = toDo.size();
 		for (int i = 0; i < size; i++) {
@@ -373,7 +376,7 @@ public class FPGrowthMiner {
 			newCombo.add(toDo.get(i));
 			itemCombos.add(newCombo);
 			if (size > 1) {
-				generateCombinations(newCombo, toDo.subList(i + 1, size),
+				generateBranchCombinations(newCombo, toDo.subList(i + 1, size),
 						itemCombos);
 			}
 		}

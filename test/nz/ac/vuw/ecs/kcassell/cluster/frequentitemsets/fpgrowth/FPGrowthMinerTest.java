@@ -468,7 +468,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		List<List<String>> itemCombos = new ArrayList<List<String>>();
 		FPGrowthMiner miner = new FPGrowthMiner();
 		List<List<String>> combinations =
-			miner.generateCombinations(prefix, items, itemCombos);
+			miner.generateBranchCombinations(prefix, items, itemCombos);
 //		System.out.println("generated combos = " + combinations);
 		assertEquals(15, combinations.size());
 		String string = combinations.toString();
@@ -497,7 +497,7 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		transactions.add(t4);
 		FPGrowthMiner miner = new FPGrowthMiner();
 		FPTree tree = miner.buildFPTree(transactions, 1);
-		Collection<ItemSupportList> combos = miner.generateCombinations(tree);
+		Collection<ItemSupportList> combos = miner.generateBranchPatterns(tree, 1);
 //		System.out.println("Combos =\n" + combos);
 		assertEquals(15, combos.size());
 	}
