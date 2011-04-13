@@ -507,7 +507,43 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		setUpTransactionsHan();
 		FPGrowthMiner miner = new FPGrowthMiner();
 		Collection<ItemSupportList> combos = miner.mine(transactionsHan, 3);
-		System.out.println("Combos =\n" + combos);
-		assertEquals(15, combos.size());
+		String resultString = patternsToString(combos);
+//		System.out.println("Combos =\n" + resultString);
+		assertEquals(18, combos.size());
+		assertTrue(resultString.contains("[p]: 3.0"));
+		assertTrue(resultString.contains("[c, p]: 3.0"));
+		assertTrue(resultString.contains("[m]: 3.0"));
+		assertTrue(resultString.contains("[a, m]: 3.0"));
+		assertTrue(resultString.contains("[c, a, m]: 3.0"));
+		assertTrue(resultString.contains("[c, f, a, m]: 3.0"));
+		assertTrue(resultString.contains("[f, a, m]: 3.0"));
+		assertTrue(resultString.contains("[c, m]: 3.0"));
+		assertTrue(resultString.contains("[c, f, m]: 3.0"));
+		assertTrue(resultString.contains("[f, m]: 3.0"));
+		assertTrue(resultString.contains("[b]: 3.0"));
+		assertTrue(resultString.contains("[a]: 3.0"));
+		assertTrue(resultString.contains("[c, a]: 3.0"));
+		assertTrue(resultString.contains("[c, f, a]: 3.0"));
+		assertTrue(resultString.contains("[f, a]: 3.0"));
+		assertTrue(resultString.contains("[f]: 4.0"));
+		assertTrue(resultString.contains("[c, f]: 3.0"));
+		assertTrue(resultString.contains("[c]: 4.0"));
+		
+		combos = miner.mine(transactionsHan, 4);
+		resultString = patternsToString(combos);
+		System.out.println("Combos =\n" + resultString);
+		assertEquals(2, combos.size());
+		assertTrue(resultString.contains("[f]: 4.0"));
+		assertTrue(resultString.contains("[c]: 4.0"));
+	}
+
+	private String patternsToString(Collection<ItemSupportList> combos) {
+		StringBuffer buf = new StringBuffer();
+		for (ItemSupportList combo : combos) {
+			List<String> items = combo.getItems();
+			buf.append(items + ": " + combo.getSupport(items.get(0)) + "\n");
+		}
+		String resultString = buf.toString();
+		return resultString;
 	}
 }
