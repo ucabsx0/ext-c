@@ -143,6 +143,23 @@ public class ItemSupportList {
 		return name;
 	}
 
+
+	/**
+	 * Creates a string representation for a collection of frequent item lists.
+	 * All items in the frequent item lists are assumed to have the same quantity.
+	 * @param combos a collection of frequent item lists.
+	 * @return a String with one frequent item list per line
+	 */
+	public static String patternsToString(Collection<ItemSupportList> combos) {
+		StringBuffer buf = new StringBuffer();
+		for (ItemSupportList combo : combos) {
+			List<String> items = combo.getItems();
+			buf.append(items + ": " + combo.getSupport(items.get(0)) + "\n");
+		}
+		String resultString = buf.toString();
+		return resultString;
+	}
+
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer(
