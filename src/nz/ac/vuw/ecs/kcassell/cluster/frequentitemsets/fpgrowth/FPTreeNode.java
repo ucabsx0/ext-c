@@ -83,8 +83,8 @@ public class FPTreeNode {
 		children.put(node.itemName, node);
 }
 
-	public void incrementCount() {
-		support++;
+	public void increaseCount(int i) {
+		support += i;
 	}
 
 	public FPTreeNode getChild(String name) {

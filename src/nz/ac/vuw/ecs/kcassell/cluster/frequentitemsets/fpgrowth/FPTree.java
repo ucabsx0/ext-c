@@ -103,13 +103,13 @@ public class FPTree {
 	}
 	
 	/**
-	 * Implements the "insert_tree" function described in Han's paper for
-	 * inserting the items of a transaction into the FPTree.
+	 * Implements the "insert_tree" function for
+	 * inserting the items of a pseudo-transaction into the FPTree.
 	 * @param items the frequent items for a transaction, in decreasing
 	 * frequency
 	 * @param parent the node representing the previous item in the sequence
 	 */
-	public void insert(List<String> items, FPTreeNode parent) {
+	public void insert(List<String> items, FPTreeNode parent, int support) {
 		if (items.size() > 0) {
 			String item = items.get(0);
 			
@@ -120,16 +120,16 @@ public class FPTree {
 				
 				// New child - previously unseen sequence
 				if (child == null) {
-					child = new FPTreeNode(item, 1, parent);
+					child = new FPTreeNode(item, support, parent);
 					boolean wasAdded = addToHeaderTable(item, child);
 					// If the item was already in the header table, the tree
 					// is branching.
 					hasOneBranch = hasOneBranch && wasAdded;
 				} else { // Existing node - increment count
-					child.incrementCount();
+					child.increaseCount(support);
 				}
 				// recurse on tail
-				insert(items.subList(1, items.size()), child);
+				insert(items.subList(1, items.size()), child, support);
 			}
 		}
 	}

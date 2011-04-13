@@ -57,7 +57,7 @@ public class FPTreeTest extends TestCase {
 		items1.add("a");
 		items1.add("b");
 		items1.add("c");
-		tree.insert(items1, root);
+		tree.insert(items1, root, 1);
 		System.out.println(tree.toString());
 		Collection<FPTreeNode> rootChildren = root.getChildren();
 		assertEquals(1, rootChildren.size());
@@ -85,7 +85,7 @@ public class FPTreeTest extends TestCase {
 		items2.add("a");
 		items2.add("c");
 		items2.add("d");
-		tree.insert(items2, root);
+		tree.insert(items2, root, 1);
 		System.out.println(tree.toString());
 		rootChildren = root.getChildren();
 		assertEquals(1, rootChildren.size());

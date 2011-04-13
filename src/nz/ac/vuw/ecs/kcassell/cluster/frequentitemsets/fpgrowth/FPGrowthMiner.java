@@ -37,6 +37,30 @@ public class FPGrowthMiner {
 
 	/**
 	 * Builds a frequent pattern tree (FPTree) based on the frequently occurring
+	 * items in a "pseudo-transaction". The pseudo-transactions consist of
+	 * elements in a frequent-item path through an FPTree.
+	 * 
+	 * @param transactions
+	 *            a collection of pseudo-transactions where each transaction is
+	 *            a collections of items from a frequent-item path from an
+	 *            earlier FPTree
+	 * @param minSupport
+	 *            the minimum total support that each item must have to be
+	 *            included in the tree
+	 * @return the frequent pattern tree
+	 */
+	protected FPTree buildConditionalFPTree(
+			Collection<ItemSupportList> transactions,
+			int minSupport) {
+		ItemSupportList frequentItems =
+			getFrequentItems(transactions, minSupport);
+		FPTree fpTree =
+			buildConditionalFPTreeFromFrequentItems(transactions, frequentItems);
+		return fpTree;
+	}
+
+	/**
+	 * Builds a frequent pattern tree (FPTree) based on the frequently occurring
 	 * items in a transaction.
 	 * 
 	 * @param transactions
@@ -54,10 +78,41 @@ public class FPGrowthMiner {
 		fpTree.setFrequentItems(frequentItems);
 
 		for (ItemSupportList transaction : transactions) {
-			ItemSupportList sortedTransaction = pruneAndSortItems(transaction,
-					frequentItems);
+			ItemSupportList sortedTransaction =
+				pruneAndSortItems(transaction, frequentItems);
 			List<String> items = sortedTransaction.getItems();
-			fpTree.insert(items, fpTree.getRoot());
+			fpTree.insert(items, fpTree.getRoot(), 1);
+		}
+		return fpTree;
+	}
+
+	/**
+	 * Builds a frequent pattern tree (FPTree) based on the frequently occurring
+	 * items in a pseudo-transaction.  The pseudo-transactions consist of
+	 * elements in a frequent-item path through an FPTree.
+	 * 
+	 * @param transactions
+	 *            a collection of pseudo-transactions where each transaction is
+	 *            a collections of items from a frequent-item path from an
+	 *            earlier FPTree
+	 *            the frequently occurring items across all transactions
+	 * @return the frequent pattern tree
+	 */
+	protected FPTree buildConditionalFPTreeFromFrequentItems(
+			Collection<ItemSupportList> transactions,
+			ItemSupportList frequentItems) {
+		FPTree fpTree = new FPTree();
+		fpTree.setFrequentItems(frequentItems);
+
+		for (ItemSupportList transaction : transactions) {
+			ItemSupportList sortedTransaction =
+				pruneAndSortItems(transaction, frequentItems);
+			List<String> items = sortedTransaction.getItems();
+			if (items.size() > 0) {
+				// For a pseudo-transaction, all supports should be the same
+				Double support = sortedTransaction.getSupport(items.get(0));
+				fpTree.insert(items, fpTree.getRoot(), support.intValue());
+			}
 		}
 		return fpTree;
 	}
@@ -217,7 +272,7 @@ public class FPGrowthMiner {
 				Collection<ItemSupportList> conditionalPatternBase =
 					constructConditionalPatternBase(tree, patternB);
 				FPTree conditionalFPTree =
-					buildFPTree(conditionalPatternBase, minSupport);
+					buildConditionalFPTree(conditionalPatternBase, minSupport);
 				if (conditionalFPTree.hasFrequentItems()) {
 					Collection<ItemSupportList> patternsI =
 						new ArrayList<ItemSupportList>();
@@ -237,16 +292,20 @@ public class FPGrowthMiner {
 			new ArrayList<ItemSupportList>();
 		List<String> itemsB = patternB.getItems();
 
-		// All items will have the same support - the minimal support
-		// of patternB
-		Double supportB = patternB.getSupport(itemsB.get(0));
+		Double support = patternB.getSupport(itemsB.get(0));
 		for (ItemSupportList pattern : conditionalPatterns) {
 			List<String> itemsC = pattern.getItems();
+
+			// All items will have the same support - the minimal support
+			if (itemsC.size() > 0) {
+				Double supportC = pattern.getSupport(itemsC.get(0));
+				support = Math.min(support, supportC);
+			}
 			List<String> itemsCombined = new ArrayList<String>(itemsC);
 			itemsCombined.addAll(itemsB);
 			ItemSupportList combinedPattern =
 				new ItemSupportList("combo_" + itemsB + itemsC,
-						itemsCombined, supportB, comparator);
+						itemsCombined, support, comparator);
 			combinedPatterns.add(combinedPattern);
 		}
 		return combinedPatterns;
