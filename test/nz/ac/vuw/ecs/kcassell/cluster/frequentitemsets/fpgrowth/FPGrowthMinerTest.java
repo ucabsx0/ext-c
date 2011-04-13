@@ -537,7 +537,13 @@ FPTreeNode RootNode:0 [, children: (f:1 c:4)]
 		assertTrue(resultString.contains("[c]: 4.0"));
 	}
 
-	private String patternsToString(Collection<ItemSupportList> combos) {
+	/**
+	 * Creates a string representation for a collection of frequent item lists.
+	 * All items in the frequent item lists are assumed to have the same quantity.
+	 * @param combos a collection of frequent item lists.
+	 * @return a String with one frequent item list per line
+	 */
+	private static String patternsToString(Collection<ItemSupportList> combos) {
 		StringBuffer buf = new StringBuffer();
 		for (ItemSupportList combo : combos) {
 			List<String> items = combo.getItems();
