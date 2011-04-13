@@ -47,6 +47,10 @@ import org.junit.Test;
 
 public class CallDataTest extends TestCase {
 	
+	static {
+		EclipseUtils.activateWorkbench();
+	}
+	
 	protected IType iType = EclipseUtils.getTypeFromHandle(
 			"=ClassRefactoringPlugin/test<nz.ac.vuw.ecs.kcassell.callgraph{CallDataTest.java[CallDataTest");
 
