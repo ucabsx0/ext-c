@@ -157,6 +157,7 @@ public class CallData implements ParameterConstants {
 			collectFieldCallData(type, scope);
 		} catch (CoreException e) {
 			logger.severe("CallData.calculateCalledMethods: " + e);
+			e.printStackTrace();
 		}
 	}
 

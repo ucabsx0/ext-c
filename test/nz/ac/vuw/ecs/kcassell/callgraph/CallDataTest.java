@@ -56,6 +56,8 @@ public class CallDataTest extends TestCase {
 
 	@Before
 	public void setUp() throws Exception {
+		iType = EclipseUtils.getTypeFromHandle(
+		"=ClassRefactoringPlugin/test<nz.ac.vuw.ecs.kcassell.callgraph{CallDataTest.java[CallDataTest");
 	}
 
 	@Test
