@@ -58,6 +58,8 @@ import nz.ac.vuw.ecs.kcassell.cluster.BetweennessClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
 import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
+import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
+import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth.FrequentMethodsMiner;
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.similarity.ClientDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
@@ -73,6 +75,7 @@ import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.JavaModelException;
 
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -84,6 +87,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * number of disconnected subgraphs.  */
 	private static final String DISCONNECTED_BUTTON_LABEL =
 		"Disconnected Subgraphs";
+
+	private static final String FREQUENT_METHODS_BUTTON_LABEL =
+		"Frequent Methods";
 
 	/** The label used for the button to initiate a count of the
 	 * number of disconnected subgraphs after a single split based
@@ -149,14 +155,22 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		aggButton.setPreferredSize(BUTTON_SIZE);
 		aggButton.addActionListener(this);
 		leftPanel.add(aggButton);
+
 		JButton subgraphButton = new JButton(DISCONNECTED_BUTTON_LABEL);
 		subgraphButton.setPreferredSize(BUTTON_SIZE);
 		subgraphButton.addActionListener(this);
 		leftPanel.add(subgraphButton);
+
 		JButton distancesButton = new JButton(DISTANCES_BUTTON_LABEL);
 		distancesButton.setPreferredSize(BUTTON_SIZE);
 		distancesButton.addActionListener(this);
 		leftPanel.add(distancesButton);
+
+		JButton frequentMethodsButton = new JButton(FREQUENT_METHODS_BUTTON_LABEL);
+		frequentMethodsButton.setPreferredSize(BUTTON_SIZE);
+		frequentMethodsButton.addActionListener(this);
+		leftPanel.add(frequentMethodsButton);
+
 		progressLabel = new JLabel("Progress:");
 		progressLabel.setVisible(false);
 		progressLabel.setPreferredSize(BUTTON_SIZE);
@@ -189,6 +203,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		}
 		else if (DISTANCES_BUTTON_LABEL.equals(command)){
 			collectDistances(mainPanel);
+		}
+		else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)){
+			collectFrequentMethods(mainPanel);
 		}
 		else if (TEST_BUTTON.equals(command)) {
 			GraphView graphView = app.getGraphView();
@@ -625,6 +642,36 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	}
 
 	/**
+	 * Determines the frequently called methods in a client class
+	 * @param mainPane the component on which to put the wait cursor
+	 */
+	public void collectFrequentMethods(final Component mainPane) {
+		System.out.println("collecting frequentMethods...");
+
+		Thread worker = new Thread("CollectFrequentMethodsThread") {
+
+			public void run() {
+
+				try {
+					try {
+						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
+						collectFrequentMethods();
+					} finally {
+						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+					}
+				} catch (Exception e) {
+					String msg = "Problem while collecting frequentMethods: "
+							+ e.getMessage();
+					JOptionPane.showMessageDialog(mainPane, msg,
+							"Error Collecting FrequentMethods", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		}; // Thread worker
+
+		worker.start(); // So we don't hold up the dispatch thread.
+	}
+
+	/**
 	 * Collects distance measurements between the members of the
 	 * class visible in the graph view.
 	 */
@@ -658,6 +705,31 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				long end = System.currentTimeMillis();
 				textArea.append("Distance calculation above took " + (end - start) + " millis\n");
 			}
+			inactivateProgressBar();
+		}
+	}
+
+	/**
+	 * Collects the frequently called methods of the
+	 * class visible in the graph view.
+	 * @throws CoreException 
+	 */
+	protected void collectFrequentMethods() throws CoreException {
+		textArea.append(RUN_SEPARATOR);
+		GraphView graphView = app.getGraphView();
+		JavaCallGraph callGraph = graphView.getGraph();
+
+		if (callGraph == null) {
+			String msg = "Choose a class.";
+			JOptionPane.showMessageDialog(mainPanel, msg,
+				"No class chosen", JOptionPane.WARNING_MESSAGE);
+		} else {
+			FrequentMethodsMiner miner = new FrequentMethodsMiner();
+			Collection<ItemSupportList> frequentMethods =
+				miner.getFrequentFrequentlyUsedMethods(callGraph.getHandle());
+			String patternsToString =
+				ItemSupportList.patternsToString(frequentMethods);
+			textArea.append(patternsToString);
 			inactivateProgressBar();
 		}
 	}

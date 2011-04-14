@@ -62,6 +62,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.io.CallGraphWriter;
 import nz.ac.vuw.ecs.kcassell.callgraph.io.GraphFileFilter;
 import nz.ac.vuw.ecs.kcassell.callgraph.io.PajekNetFilenameFilter;
 import nz.ac.vuw.ecs.kcassell.cluster.BetweennessClusterer;
+import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth.FrequentMethodsMiner;
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
@@ -70,6 +71,7 @@ import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.apache.commons.collections15.Factory;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.JavaModelException;
 
 import edu.uci.ics.jung.graph.Graph;
@@ -490,6 +492,10 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		app.showGraph(graph);
 	}
 
+	/**
+	 * Display an intraclass dependency graph representing a Java class
+	 * @param graph the graph to display
+	 */
 	public void showGraph(JavaCallGraph graph) {
 		if (graph == null) {
 			graph = new JavaCallGraph();
@@ -498,6 +504,11 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		mainPane.setSelectedIndex(GRAPH_TAB_INDEX);
 		frame.validate();
 		frame.repaint();
+	}
+
+	public void showFrequentItems(String handle) throws CoreException {
+		FrequentMethodsMiner miner = new FrequentMethodsMiner();
+		miner.getFrequentFrequentlyUsedMethods(handle);
 	}
 
 	public void printDistances(String handle) {
