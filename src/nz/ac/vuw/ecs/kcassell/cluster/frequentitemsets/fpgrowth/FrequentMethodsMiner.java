@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -53,17 +54,36 @@ import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 
 public class FrequentMethodsMiner {
 
-	public Collection<ItemSupportList> getFrequentFrequentlyUsedMethods(String handle) throws CoreException {
-		IJavaElement type = EclipseUtils.getTypeFromHandle(handle);
-		IJavaProject project = type.getJavaProject();
+	/**
+	 * Associate all of the calling methods with their classes using a hash map
+	 * @param callingMethods all of the methods that call the client class
+	 * @param clientCalls a map whose keys are the client class identifiers
+	 *  and whose values are the called server methods
+	 */
+	public Collection<ItemSupportList> getFrequentFrequentlyUsedMethods(
+			String handle) throws CoreException {
+		IType server = EclipseUtils.getTypeFromHandle(handle);
+		IJavaProject project = server.getJavaProject();
 		IJavaSearchScope scope =
 			SearchEngine.createJavaSearchScope(new IJavaElement[] { project });
-		Set<IMethod> callingMethods =
-			EclipseSearchUtils.calculateCallingMethods(type , scope);
-		
 		HashMap<String, Set<String>> clientCallers =
-			associateMethodsWithClient(callingMethods);
-		ArrayList<ItemSupportList> itemSupportLists = createItemSupportLists(clientCallers);
+			new HashMap<String, Set<String>>();
+		
+		IMethod[] serverMethods = server.getMethods();
+		for (IMethod serverMethod : serverMethods) {
+			int flags = serverMethod.getFlags();
+			if (Flags.isPublic(flags) && !serverMethod.isConstructor()
+					&& !EclipseUtils.isRedefinedObjectMethod(serverMethod.getHandleIdentifier())) {
+				Set<IMethod> callingMethods = EclipseSearchUtils
+						.calculateCallingMethods(serverMethod, scope);
+				associateServerMethodsWithClient(serverMethod,
+						callingMethods, clientCallers);
+			}
+		}
+		
+		
+		ArrayList<ItemSupportList> itemSupportLists =
+			createItemSupportLists(clientCallers);
 		FPGrowthMiner fpMiner = new FPGrowthMiner();
 		Collection<ItemSupportList> frequentMethods =
 			fpMiner.mine(itemSupportLists, 4);
@@ -96,28 +116,27 @@ public class FrequentMethodsMiner {
 	/**
 	 * Associate all of the calling methods with their classes using a hash map
 	 * @param callingMethods all of the methods that call the client class
-	 * @return a map whose keys are the class identifier and whose values
-	 * are the methods in that class that call client methods
+	 * @param clientCalls a map whose keys are the client class identifiers
+	 *  and whose values are the called server methods
 	 */
-	protected HashMap<String, Set<String>> associateMethodsWithClient(
-			Set<IMethod> callingMethods) {
-		// 
-		HashMap<String, Set<String>> clientCallers =
-			new HashMap<String, Set<String>>();
-		for (IMethod method : callingMethods) {
-			IType declaringType = method.getDeclaringType();
-			String typeName = declaringType.getElementName();
+	protected void associateServerMethodsWithClient(
+			IMethod serverMethod,
+			Set<IMethod> callingMethods,
+			HashMap<String, Set<String>> clientCalls) {
+		String serverMethodName = serverMethod.getElementName();
+		// TODO use handle instead
+
+		for (IMethod callingMethod : callingMethods) {
+			IType clientType = callingMethod.getDeclaringType();
+			String clientTypeName = clientType.getElementName();
 			// TODO String typeHandle = declaringType.getHandleIdentifier();
-			String methodName = method.getElementName();
-			// TODO use handle instead
-			Set<String> callerSet = clientCallers.get(typeName);
-			if (callerSet == null) {
-				callerSet = new HashSet<String>();
-				clientCallers.put(typeName, callerSet);
+			Set<String> serverMethodsCalled = clientCalls.get(clientTypeName);
+			if (serverMethodsCalled == null) {
+				serverMethodsCalled = new HashSet<String>();
+				clientCalls.put(clientTypeName, serverMethodsCalled);
 			}
-			callerSet.add(methodName);
+			serverMethodsCalled.add(serverMethodName);
 		}
-		return clientCallers;
 	}
 
 

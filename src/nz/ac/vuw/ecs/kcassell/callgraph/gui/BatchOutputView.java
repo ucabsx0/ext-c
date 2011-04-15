@@ -725,11 +725,13 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				"No class chosen", JOptionPane.WARNING_MESSAGE);
 		} else {
 			FrequentMethodsMiner miner = new FrequentMethodsMiner();
+			String handle = callGraph.getHandle();
 			Collection<ItemSupportList> frequentMethods =
-				miner.getFrequentFrequentlyUsedMethods(callGraph.getHandle());
+				miner.getFrequentFrequentlyUsedMethods(handle);
 			String patternsToString =
 				ItemSupportList.patternsToString(frequentMethods);
-			textArea.append(patternsToString);
+			textArea.append("frequent patterns using " + handle + ":\n" + patternsToString);
+			textArea.append("---- end frequent patterns ----" + patternsToString);
 			inactivateProgressBar();
 		}
 	}
