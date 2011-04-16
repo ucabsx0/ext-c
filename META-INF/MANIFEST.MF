@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: ClassRefactoringPlugin
-Bundle-SymbolicName: ClassRefactoringPlugin;singleton:=true
+Bundle-Name: ClassRefactoring
+Bundle-SymbolicName: classRefactoringPlugin;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: nz.ac.vuw.ecs.kcassell.RefactoringUIPlugin
 Bundle-Vendor: kcassell
