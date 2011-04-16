@@ -42,7 +42,7 @@ import org.osgi.framework.BundleContext;
 public class RefactoringUIPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "ClassRefactoringPlugin";
+	public static final String PLUGIN_ID = "classRefactoringPlugin";
 	//TODO figure out identifiers: Help->About...->Installation Details->Plugins
 	// lists the plugin name as "ClassRefactoring",
 	// but the plugin ID as "classRefactoringPlugin"
