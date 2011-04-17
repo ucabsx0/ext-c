@@ -39,6 +39,10 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
+import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
+import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaElement;
@@ -47,10 +51,6 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
-
-import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
-import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
-import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 
 public class FrequentMethodsMiner {
 
@@ -81,12 +81,15 @@ public class FrequentMethodsMiner {
 			}
 		}
 		
-		
+		// a collection of item support lists for each client class
+		// where the items in the support lists are the calling methods from
+		// the class
 		ArrayList<ItemSupportList> itemSupportLists =
 			createItemSupportLists(clientCallers);
 		FPGrowthMiner fpMiner = new FPGrowthMiner();
 		Collection<ItemSupportList> frequentMethods =
 			fpMiner.mine(itemSupportLists, 4);
+		
 		return frequentMethods;
 	}
 
