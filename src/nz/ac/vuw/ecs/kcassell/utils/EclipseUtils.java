@@ -47,6 +47,7 @@ import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -65,11 +66,11 @@ import org.eclipse.ui.part.FileEditorInput;
 
 public class EclipseUtils {
 
-	public static void prepareWorkspace() {
+	public static IJavaModel prepareWorkspace() {
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot workspaceRoot = workspace.getRoot();
-		// IJavaModel javaModel =
-		JavaCore.create(workspaceRoot);
+		IJavaModel javaModel = JavaCore.create(workspaceRoot);
+		return javaModel;
 	}
 
 	public static void openInEditor(IType iType) {
