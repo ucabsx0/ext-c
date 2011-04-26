@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ClassRefactoring
-Bundle-SymbolicName: classRefactoringPlugin;singleton:=true
+Bundle-SymbolicName: ClassRefactoringPlugin;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: nz.ac.vuw.ecs.kcassell.RefactoringUIPlugin
+Bundle-Activator: nz.ac.vuw.ecs.kcassell.ClassRefactoringPlugin
 Bundle-Vendor: kcassell
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -572,4 +572,5 @@ Export-Package: EDU.oswego.cs.dl.util.concurrent,
  org.json,
  org.tartarus.snowball,
  org.tartarus.snowball.ext;uses:="org.tartarus.snowball"
+Bundle-ActivationPolicy: lazy
 
