@@ -50,6 +50,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -103,9 +104,14 @@ public class EclipseUtils {
         IJavaElement element = JavaCore.create(handle);
         if (element == null) {
             System.err.println("  No element created from " + handle);
-        } else if (element instanceof IType) {
-            type = (IType) element;
-        }
+        } else {
+			IOpenable openable = element.getOpenable();
+			if (openable == null) {
+				System.err.println(handle + " has no openable ancestors");
+			} else if (element instanceof IType) {
+			    type = (IType) element;
+			}
+		}
 		return type;
 	}
 	
