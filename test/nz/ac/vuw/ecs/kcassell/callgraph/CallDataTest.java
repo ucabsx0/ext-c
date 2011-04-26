@@ -38,6 +38,10 @@ import java.util.Set;
 import junit.framework.TestCase;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -48,7 +52,17 @@ import org.junit.Test;
 public class CallDataTest extends TestCase {
 	
 	static {
-		EclipseUtils.activateWorkbench();
+//		EclipseUtils.activateWorkbench();
+        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+        IProject[] projects = root.getProjects();
+        IProject project = root.getProject("=ClassRefactoringPlugin");
+        try {
+			//project.create(null);
+	        project.open(null);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+        //JavaCore.create(project);
 	}
 	
 	protected IType iType = EclipseUtils.getTypeFromHandle(
@@ -58,6 +72,7 @@ public class CallDataTest extends TestCase {
 	public void setUp() throws Exception {
 		iType = EclipseUtils.getTypeFromHandle(
 		"=ClassRefactoringPlugin/test<nz.ac.vuw.ecs.kcassell.callgraph{CallDataTest.java[CallDataTest");
+//		EclipseUtils.openInEditor(iType);
 	}
 
 	@Test
