@@ -37,7 +37,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import nz.ac.vuw.ecs.kcassell.RefactoringUIPlugin;
+import nz.ac.vuw.ecs.kcassell.ClassRefactoringPlugin;
 
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Platform;
@@ -68,7 +68,7 @@ public class UtilLogger {
 
 		if (pluginLogger == null) {
 			Bundle bundle = null;
-			bundle = Platform.getBundle(RefactoringUIPlugin.PLUGIN_ID);
+			bundle = Platform.getBundle(ClassRefactoringPlugin.PLUGIN_ID);
 //			bundle = Platform.getBundle("ClassRefactoring");
 			
 			if (bundle != null) {
@@ -122,7 +122,7 @@ public class UtilLogger {
 
 	public void log(String msg, Exception e) {
 		pluginLogger.log(
-				new Status(Status.INFO, RefactoringUIPlugin.PLUGIN_ID,
+				new Status(Status.INFO, ClassRefactoringPlugin.PLUGIN_ID,
 						Status.OK, msg, e));
 	}
 	
@@ -133,7 +133,7 @@ public class UtilLogger {
 	public void finer(String string) {
 		if (pluginLogger != null) {
 			pluginLogger.log(new Status(Status.INFO,
-					RefactoringUIPlugin.PLUGIN_ID, string));
+					ClassRefactoringPlugin.PLUGIN_ID, string));
 		} else {
 			javaLogger.finer(string);
 		}
@@ -142,7 +142,7 @@ public class UtilLogger {
 	public void fine(String string) {
 		if (pluginLogger != null) {
 			pluginLogger.log(new Status(Status.INFO,
-					RefactoringUIPlugin.PLUGIN_ID, string));
+					ClassRefactoringPlugin.PLUGIN_ID, string));
 		} else {
 			javaLogger.fine(string);
 		}
@@ -151,7 +151,7 @@ public class UtilLogger {
 	public void info(String string) {
 		if (pluginLogger != null) {
 			pluginLogger.log(new Status(Status.INFO,
-					RefactoringUIPlugin.PLUGIN_ID, string));
+					ClassRefactoringPlugin.PLUGIN_ID, string));
 		} else {
 			javaLogger.info(string);
 		}
@@ -160,7 +160,7 @@ public class UtilLogger {
 	public void warning(String string) {
 		if (pluginLogger != null) {
 			pluginLogger.log(new Status(Status.WARNING,
-					RefactoringUIPlugin.PLUGIN_ID, string));
+					ClassRefactoringPlugin.PLUGIN_ID, string));
 		} else {
 			javaLogger.warning(string);
 		}
@@ -169,7 +169,7 @@ public class UtilLogger {
 	public void severe(String string) {
 		if (pluginLogger != null) {
 			pluginLogger.log(new Status(Status.ERROR,
-					RefactoringUIPlugin.PLUGIN_ID, string));
+					ClassRefactoringPlugin.PLUGIN_ID, string));
 		} else {
 			javaLogger.severe(string);
 		}
