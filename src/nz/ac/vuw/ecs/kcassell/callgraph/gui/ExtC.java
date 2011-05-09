@@ -609,6 +609,8 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 						aggClusteringView
 								.setUpAgglomerativeClustering(callGraph);
 					}
+					// TODO remove debug
+					System.out.println("Clusterer = " + sClusterer);
 				}
 			} // end if agglomeration
 			else if (selectedIndex == SPANNING_FOREST_TAB_INDEX) {

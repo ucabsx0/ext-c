@@ -124,6 +124,8 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 			"MemberDocuments/" + projectName + "/" +
 			projectName + "Members.txt";
 //		className + "Members.txt";
+	    // TODO remove debug
+	    System.out.println("memberDocumentFile = " + memberDocumentFile);
 	    return memberDocumentFile;
 	}
 

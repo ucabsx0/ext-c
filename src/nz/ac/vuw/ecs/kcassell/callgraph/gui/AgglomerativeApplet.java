@@ -61,6 +61,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClustererIfc;
+import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -72,6 +73,7 @@ public class AgglomerativeApplet extends ClusteringGraphApplet
 implements ClusterUIConstants, ParameterConstants {
 	
 	public static final String CALCULATOR_COMBO = "DistanceCombo";
+	public static final String CLUSTERER_COMBO = "DistanceCombo";
 	public static final String LINK_COMBO = "LinkCombo";
 
 	protected static final long serialVersionUID = 1L;
@@ -79,6 +81,9 @@ implements ClusterUIConstants, ParameterConstants {
 
 	/** Where the user selects the distance calculator. */
 	protected JComboBox calculatorBox = null;
+
+	/** Where the user selects the clusterer. */
+	protected JComboBox clustererBox = null;
 
 	/** Where the user selects the group linkage type. */
 	protected JComboBox groupLinkageBox = null;
@@ -144,6 +149,20 @@ implements ClusterUIConstants, ParameterConstants {
 		return calculatorBox;
 	}
 
+	private JComboBox createClustererCombo() {
+		Vector<String> menuItems = new Vector<String>();
+		for (ClustererEnum calc : ClustererEnum.values()) {
+			menuItems.add(calc.toString());
+		}
+		JComboBox clustererBox = new JComboBox(menuItems);
+		String sClusterer = parameters.getParameter(
+				CLUSTERER_KEY,
+				ClustererEnum.AGGLOMERATIVE.toString());
+		clustererBox.setSelectedItem(sClusterer);
+		clustererBox.setName(CLUSTERER_COMBO);
+		return clustererBox;
+	}
+
 	/*
 	 * Records where all the nodes have been laid out.
 	 * 
@@ -181,6 +200,13 @@ implements ClusterUIConstants, ParameterConstants {
 	protected JPanel setUpSouthPanel() {
 		southPanel = new JPanel();
 		JPanel grid = new JPanel(new GridLayout(1, 6));
+
+		JLabel clustererLabel = new JLabel("Clusterer: ");
+		clustererLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		grid.add(clustererLabel);
+		clustererBox = createClustererCombo();
+		clustererBox.addActionListener(view);
+		grid.add(clustererBox);
 
 		JLabel calcLabel = new JLabel("Distance Calculator: ");
 		calcLabel.setHorizontalAlignment(SwingConstants.RIGHT);
