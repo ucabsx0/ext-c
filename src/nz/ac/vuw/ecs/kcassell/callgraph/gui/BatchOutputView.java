@@ -322,11 +322,11 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					    DistanceCalculatorIfc<String> calc =
 					    	VectorSpaceModelCalculator.getCalculator(handle);
 						List<String> memberHandles =
-							EclipseUtils.getFilteredMemberNames(handle);
+							EclipseUtils.getFilteredMemberHandles(handle);
 						MatrixBasedAgglomerativeClusterer clusterer =
 							new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
 						MemberCluster cluster = clusterer.getSingleCluster();
-						buf.append("Final cluster:\n"
+						buf.append("Final cluster for " + handle + ":\n"
 								+ cluster.toNestedString());
 					} catch (Exception e) {
 						String msg = "Problem with the VectorSpaceModelCalculator: " + e;

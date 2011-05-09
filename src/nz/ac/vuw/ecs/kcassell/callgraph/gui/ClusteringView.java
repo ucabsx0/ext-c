@@ -153,6 +153,8 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			sourceName = box.getName();
 			if (AgglomerativeApplet.CALCULATOR_COMBO.equals(sourceName)) {
 				handleCalculatorRequest(box);
+			} else if (AgglomerativeApplet.CLUSTERER_COMBO.equals(sourceName)) {
+				handleClustererRequest(box);
 			} else if (AgglomerativeApplet.LINK_COMBO.equals(sourceName)) {
 				handleGroupLinkageRequest(box);
 			}
@@ -166,6 +168,25 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
 		parameters.setParameter(ParameterConstants.CALCULATOR_KEY,
 				sCalculator);
+		JavaCallGraph callGraph = clusteringApplet.getGraph();
+		if (callGraph == null) {
+			callGraph = app.graphView.getGraph();
+		}
+		if (callGraph == null) {
+			String msg = "Choose a class for agglomerative clustering.";
+			JOptionPane.showMessageDialog(mainPanel, msg,
+					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			setUpAgglomerativeClustering(callGraph);
+		}
+	}
+
+	protected void handleClustererRequest(JComboBox box) {
+		Object selectedItem = box.getSelectedItem();
+		String sClusterer = selectedItem.toString();
+		ApplicationParameters parameters = ApplicationParameters.getSingleton();
+		parameters.setParameter(ParameterConstants.CLUSTERER_KEY,
+				sClusterer);
 		JavaCallGraph callGraph = clusteringApplet.getGraph();
 		if (callGraph == null) {
 			callGraph = app.graphView.getGraph();
