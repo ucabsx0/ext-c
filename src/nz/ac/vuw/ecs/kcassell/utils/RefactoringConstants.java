@@ -42,7 +42,8 @@ public interface RefactoringConstants {
 		"C:/Tools/eclipseWorkspace/ClassRefactoringPlugin/";
 	
 	public static final String PROJECT_ROOT_VUW =
-		"/vol/elvis/kcassell/workspace/ClassRefactoringPlugin/";
+		System.getProperty("user.home", "/u/students/kcassell") +
+		"/Tools/eclipseWorkspace/ClassRefactoringPlugin/";
 	
 	public static final String PROJECT_ROOT =
 		System.getProperty("extc.project.root",
