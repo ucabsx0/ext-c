@@ -21,5 +21,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/epsdump.jar"/>
+	<classpathentry kind="lib" path="lib/json-extracts.jar"/>
+	<classpathentry kind="lib" path="lib/lsa-vsm-mod.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
