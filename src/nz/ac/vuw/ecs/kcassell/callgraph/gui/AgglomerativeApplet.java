@@ -72,8 +72,8 @@ import edu.uci.ics.jung.visualization.VisualizationViewer;
 public class AgglomerativeApplet extends ClusteringGraphApplet
 implements ClusterUIConstants, ParameterConstants {
 	
-	public static final String CALCULATOR_COMBO = "DistanceCombo";
-	public static final String CLUSTERER_COMBO = "DistanceCombo";
+	public static final String CALCULATOR_COMBO = "CalculatorCombo";
+	public static final String CLUSTERER_COMBO = "ClustererCombo";
 	public static final String LINK_COMBO = "LinkCombo";
 
 	protected static final long serialVersionUID = 1L;
