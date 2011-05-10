@@ -45,6 +45,7 @@ import net.sourceforge.metrics.core.Metric;
 import net.sourceforge.metrics.core.sources.TypeMetrics;
 import net.sourceforge.metrics.persistence.Database;
 import net.sourceforge.metrics.persistence.IDatabaseConstants;
+import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 
 import org.eclipse.jdt.core.IJavaElement;
@@ -54,6 +55,9 @@ public class MetricDatabaseLocator implements IDatabaseConstants, Constants {
 
 	protected String sqlQuery = null;
 	
+	private static UtilLogger utilLogger =
+		new UtilLogger("BetweennessCalculator");
+
 	public String getSqlQuery() {
 		return sqlQuery;
 	}
@@ -93,7 +97,7 @@ public class MetricDatabaseLocator implements IDatabaseConstants, Constants {
 			 */
 			statement = connection.createStatement();
 			statements.add(statement);
-			
+
 			if (sqlQuery == null) {
 				QueryBuilder builder = new QueryBuilder();
 				sqlQuery = builder.getQuery();
@@ -106,16 +110,21 @@ public class MetricDatabaseLocator implements IDatabaseConstants, Constants {
 
 			statement.close();
 			connection.commit();
-			System.out.println("Committed the transaction");
+//			System.out.println("Committed the transaction");
 
 			// In embedded mode, an application should shut down the database.
 			db.shutDownEmbedded();
 		} catch (SQLException sqle) {
+			utilLogger.warning("SQLException = " + sqle);
 			Database.printSQLException(sqle);
 			throw sqle;
 		} finally {
 			// release all open resources to avoid unnecessary memory usage
-			db.releaseResources(connection, statements, resultSet);
+			try {
+				db.releaseResources(connection, statements, resultSet);
+			} catch (Throwable re) {
+				utilLogger.warning("caught " + re + " while releasing resources");
+			}
 		}
 		return problemHandles;
 	}
