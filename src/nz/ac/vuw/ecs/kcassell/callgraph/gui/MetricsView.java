@@ -58,6 +58,7 @@ import javax.swing.event.ListSelectionListener;
 import net.sourceforge.metrics.core.Metric;
 import net.sourceforge.metrics.core.sources.TypeMetrics;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
+import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.problemlocation.MetricDatabaseLocator;
 import nz.ac.vuw.ecs.kcassell.problemlocation.QueryBuilder;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
@@ -93,7 +94,10 @@ public class MetricsView {
 
     /** The enclosing application of which this view is a part. */
 	private ExtC app = null;
-    
+   
+	private static UtilLogger utilLogger =
+		new UtilLogger("BetweennessCalculator");
+
     /**
      * This class handles selections on the metrics table.
      * @author Keith
@@ -303,12 +307,12 @@ public class MetricsView {
 		Thread worker = new Thread("LoadFRomDBThread") {
 
 			public void run() {
-//				Container container = mainPane.getParent();
+				// Container container = mainPane.getParent();
 				List<TypeMetrics> classes;
 
 				try {
 					String sql = metricsQueryArea.getText();
-					
+
 					// If there isn't a legit query, use the default one
 					if (sql == null || sql.length() < 5) {
 						QueryBuilder builder = new QueryBuilder();
@@ -316,13 +320,8 @@ public class MetricsView {
 						metricsQueryArea.setText(sql);
 					}
 					locator.setSqlQuery(sql);
-					try {
-						mainPanel.setCursor(RefactoringConstants.WAIT_CURSOR);
-						classes = locator.findProblemClasses();
-					} finally {
-						mainPanel.setCursor(RefactoringConstants.DEFAULT_CURSOR);
-					}
-					if (!classes.isEmpty()) {
+					classes = locateProblemClasses(locator);
+					if (classes != null && !classes.isEmpty()) {
 						try {
 							mainPanel.setCursor(RefactoringConstants.WAIT_CURSOR);
 							setProblemClasses(classes);
@@ -338,7 +337,7 @@ public class MetricsView {
 				} catch (SQLException e) {
 					String msg = "Unable to read classes from database: "
 							+ e.getMessage();
-//					logger.warning(msg + ": " + e);
+					// logger.warning(msg + ": " + e);
 					JOptionPane.showMessageDialog(mainPanel, msg,
 							"Error Accessing Database",
 							JOptionPane.WARNING_MESSAGE);
@@ -349,19 +348,32 @@ public class MetricsView {
 					public void run() {
 						System.out.println("createMetricsTable...");
 						createMetricsTable();
-						MetricsListSelectionHandler selectionHandler =
-							new MetricsListSelectionHandler();
-						listSelectionModel.addListSelectionListener(selectionHandler);
+						MetricsListSelectionHandler selectionHandler = new MetricsListSelectionHandler();
+						listSelectionModel
+								.addListSelectionListener(selectionHandler);
 						System.out.println("... createMetricsTable done");
 						app.getFrame().validate();
 						app.getFrame().repaint();
 					}
 				});
 			}
+
+			private List<TypeMetrics> locateProblemClasses(
+					final MetricDatabaseLocator locator) throws SQLException {
+				List<TypeMetrics> classes = null;
+				try {
+					mainPanel.setCursor(RefactoringConstants.WAIT_CURSOR);
+					classes = locator.findProblemClasses();
+				} catch (Throwable e) {
+					utilLogger.warning("locateProblemClasses caught " + e);
+				} finally {
+					mainPanel.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+				}
+				return classes;
+			}
 		}; // Thread worker
 
 		worker.start(); // So we don't hold up the dispatch thread.
 	}
-
 
 }
