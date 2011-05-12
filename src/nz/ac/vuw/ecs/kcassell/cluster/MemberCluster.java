@@ -159,6 +159,25 @@ public class MemberCluster implements ClusterIfc<String> {
 		return children;
 	}
 
+	protected double getNewickBranchLength()
+	{
+		double it = 0.5;
+		String name = getClusterName();
+		// Makes use of a naming convention oneName+OtherCount
+		int indexPlus = name.lastIndexOf("+");
+		// If the name of the cluster matches the "+ convention",
+		// extract the iteration number
+		if (indexPlus >= 0) {
+			String sit = name.substring(indexPlus + 1);
+			try {
+	            it = Double.parseDouble(sit);
+			} catch (Exception e) {
+				// ignore
+			}
+		}
+		return it;
+	}
+
 	/* (non-Javadoc)
 	 * @see nz.ac.vuw.ecs.kcassell.callgraph.ClusterIfc#toNestedString()
 	 */
@@ -210,9 +229,9 @@ public class MemberCluster implements ClusterIfc<String> {
 	 */
     public String toNewickString()
     {
-    	StringBuffer buf = new StringBuffer();
+    	StringBuffer buf = new StringBuffer("(");
     	toNewickString(0, buf);
-    	buf.append("\n");
+    	buf.append(")\n");
     	String nestedString = buf.toString();
     	return nestedString;
     }
@@ -220,24 +239,27 @@ public class MemberCluster implements ClusterIfc<String> {
     protected void toNewickString(int indentLevel, StringBuffer buf)
     {
     	String leadSpaces = StringUtils.SPACES140.substring(0, 2*indentLevel);
-    	buf.append(leadSpaces).append("(\n");
+    	buf.append(leadSpaces).append("(");
     	int nextIndent = indentLevel + 1;
     	
         for (Object component : children)
         {
+        	buf.append("\n");
         	if (component instanceof MemberCluster) {
-            	buf.append(leadSpaces);
+//            	buf.append(leadSpaces);
         		MemberCluster cluster = (MemberCluster)component;
 				cluster.toNewickString(nextIndent, buf);
-	        	buf.append(",");
         	} else if (component instanceof String) { // element
         		String name = EclipseUtils.getNameFromHandle(component.toString());
-        		buf.append(leadSpaces).append("  ").append(name).append(",\n");
+        		buf.append(leadSpaces).append("  ").append(name);
         	}
+        	buf.append(",");
         }
         int length = buf.length();
         buf.delete(buf.lastIndexOf(","), length); // eliminate the last ", "
-        buf.append("\n").append(leadSpaces).append(comment).append(")\n");
+        buf.append("\n").append(leadSpaces).append(") ").append(comment);
+        double newickBranchLength = getNewickBranchLength();
+		buf.append(":").append(newickBranchLength);
     }
 
     public String toString() {

@@ -222,14 +222,15 @@ public class MemberClusterTest extends TestCase {
         fieldVec.add(field1);
         MemberCluster clusterFields = new MemberCluster();
         clusterFields.setClusterName("3fields");
+        clusterFields.setComment("0.3");
         clusterFields.addElements(fieldVec);
         String newickString = clusterFields.toNewickString();
         System.out.println(newickString);
-//        int indexName = newickString.indexOf("3fields");
+        int indexComment = newickString.indexOf("0.3");
         int indexField1 = newickString.indexOf("field1");
         int indexField2 = newickString.indexOf("field2");
         int indexField3 = newickString.indexOf("field3");
-//        assertTrue(indexName > -1);
+        assertTrue(indexComment > -1);
         assertTrue(indexField1 > -1);
         assertTrue(indexField2 > -1);
         assertTrue(indexField3 > -1);
@@ -243,6 +244,7 @@ public class MemberClusterTest extends TestCase {
         methodVec.add(method1);
         MemberCluster clusterMethods = new MemberCluster();
         clusterMethods.setClusterName("3methods");
+        clusterMethods.setComment("0.5");
         clusterMethods.addElements(methodVec);
         
         clusterFields.addCluster(clusterMethods);

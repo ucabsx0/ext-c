@@ -233,14 +233,14 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			if (DistanceCalculatorEnum.GoogleDistance.toString().equalsIgnoreCase(
 					sCalc)) {
 				IdentifierGoogleDistanceCalculator calc = new IdentifierGoogleDistanceCalculator();
-				String sCluster = clusterUsingIdentifiers(callGraph, calc);
-				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster.toNewickString());
 				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.Identifier.toString().equalsIgnoreCase(sCalc)) {
 				IdentifierDistanceCalculator calc =
 					new IdentifierDistanceCalculator();
-				String sCluster = clusterUsingIdentifiers(callGraph, calc);
-				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster.toNewickString());
 				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.IntraClass.toString().equalsIgnoreCase(
 					sCalc)) {
@@ -248,8 +248,8 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			} else if (DistanceCalculatorEnum.Levenshtein.toString().equalsIgnoreCase(
 					sCalc)) {
 				LevenshteinDistanceCalculator calc = new LevenshteinDistanceCalculator();
-				String sCluster = clusterUsingIdentifiers(callGraph, calc);
-				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster.toNewickString());
 				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
 					sCalc)) {
@@ -261,7 +261,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 				MatrixBasedAgglomerativeClusterer clusterer =
 					new MatrixBasedAgglomerativeClusterer(names, calc);
 				MemberCluster cluster = clusterer.getSingleCluster();
-				String sCluster = cluster.toNestedString();
+				String sCluster = cluster.toNewickString();
 				clustersTextArea.setText("Final cluster:\n" + sCluster);
 				agglomerativePostProcessing(aggApplet);
 			} else {
@@ -294,31 +294,32 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			if (DistanceCalculatorEnum.Identifier.toString().equalsIgnoreCase(sCalc)) {
 				IdentifierDistanceCalculator calc =
 					new IdentifierDistanceCalculator();
-				String sCluster = clusterUsingIdentifiers(callGraph, calc);
-				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster.toNewickString());
 				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.IntraClass.toString().equalsIgnoreCase(
 					sCalc)) {
 				setUpIntraClassCalculation(callGraph);
 			} else if (DistanceCalculatorEnum.GoogleDistance.toString().equalsIgnoreCase(
 					sCalc)) {
-				IdentifierGoogleDistanceCalculator calc = new IdentifierGoogleDistanceCalculator();
-				String sCluster = clusterUsingIdentifiers(callGraph, calc);
-				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				IdentifierGoogleDistanceCalculator calc =
+					new IdentifierGoogleDistanceCalculator();
+				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster.toNewickString());
 				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.Levenshtein.toString().equalsIgnoreCase(
 					sCalc)) {
 				LevenshteinDistanceCalculator calc = new LevenshteinDistanceCalculator();
-				String sCluster = clusterUsingIdentifiers(callGraph, calc);
-				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster.toNewickString());
 				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
 					sCalc)) {
 				String handle = callGraph.getHandle();
 				VectorSpaceModelCalculator calc =
 			    	VectorSpaceModelCalculator.getCalculator(handle);
-				String sCluster = clusterUsingIdentifiers(callGraph, calc);
-				clustersTextArea.setText("Final cluster:\n" + sCluster);
+				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				clustersTextArea.setText("Final cluster:\n" + sCluster.toNewickString());
 				agglomerativePostProcessing(aggApplet);
 			} else {
 				String msg = "Unable to set up agglomerative clustering using " + sCalc;
@@ -341,7 +342,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	 * @param callGraph
 	 * @throws JavaModelException
 	 */
-	public static String clusterUsingIdentifiers(JavaCallGraph callGraph,
+	public static MemberCluster clusterUsingIdentifiers(JavaCallGraph callGraph,
 			DistanceCalculatorIfc<String> calc)
 	throws JavaModelException {
 		// TODO handles or simple names?
@@ -354,7 +355,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 		MatrixBasedAgglomerativeClusterer clusterer =
 			new MatrixBasedAgglomerativeClusterer(names, calc);
 		MemberCluster cluster = clusterer.getSingleCluster();
-		return cluster.toNestedString();
+		return cluster;
 	}
 
 	/**
