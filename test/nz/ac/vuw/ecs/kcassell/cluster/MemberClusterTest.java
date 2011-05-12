@@ -158,7 +158,7 @@ public class MemberClusterTest extends TestCase {
 
 
     @Test
-    public void testToString()
+    public void testToNestedString()
     {
         String field1 = "field1";
         String field2 = "field2";
@@ -202,6 +202,59 @@ public class MemberClusterTest extends TestCase {
         int indexMethod1 = nestedString.indexOf("method1");
         int indexMethod2 = nestedString.indexOf("method2");
         int indexMethod3 = nestedString.indexOf("method3");
+        assertTrue(indexField1 > -1);
+        assertTrue(indexField2 > -1);
+        assertTrue(indexField3 > -1);
+        assertTrue(indexMethod1 > -1);
+        assertTrue(indexMethod2 > -1);
+        assertTrue(indexMethod3 > -1);
+}
+
+    @Test
+    public void testToNewickString()
+    {
+        String field1 = "field1";
+        String field2 = "field2";
+        String field3 = "field3";
+        Vector<String> fieldVec = new Vector<String>();
+        fieldVec.add(field2);
+        fieldVec.add(field3);
+        fieldVec.add(field1);
+        MemberCluster clusterFields = new MemberCluster();
+        clusterFields.setClusterName("3fields");
+        clusterFields.addElements(fieldVec);
+        String newickString = clusterFields.toNewickString();
+        System.out.println(newickString);
+//        int indexName = newickString.indexOf("3fields");
+        int indexField1 = newickString.indexOf("field1");
+        int indexField2 = newickString.indexOf("field2");
+        int indexField3 = newickString.indexOf("field3");
+//        assertTrue(indexName > -1);
+        assertTrue(indexField1 > -1);
+        assertTrue(indexField2 > -1);
+        assertTrue(indexField3 > -1);
+
+        String method1 = "method1";
+        String method2 = "method2";
+        String method3 = "method3";
+        Vector<String> methodVec = new Vector<String>();
+        methodVec.add(method2);
+        methodVec.add(method3);
+        methodVec.add(method1);
+        MemberCluster clusterMethods = new MemberCluster();
+        clusterMethods.setClusterName("3methods");
+        clusterMethods.addElements(methodVec);
+        
+        clusterFields.addCluster(clusterMethods);
+        newickString = clusterFields.toNewickString();
+        System.out.println(newickString);
+
+        indexField1 = newickString.indexOf("field1");
+        indexField2 = newickString.indexOf("field2");
+        indexField3 = newickString.indexOf("field3");
+        int indexMethod1 = newickString.indexOf("method1");
+        int indexMethod2 = newickString.indexOf("method2");
+        int indexMethod3 = newickString.indexOf("method3");
         assertTrue(indexField1 > -1);
         assertTrue(indexField2 > -1);
         assertTrue(indexField3 > -1);

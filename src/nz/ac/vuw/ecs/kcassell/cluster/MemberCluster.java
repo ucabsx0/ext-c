@@ -205,6 +205,41 @@ public class MemberCluster implements ClusterIfc<String> {
         }
     }
 
+	/* (non-Javadoc)
+	 * @see nz.ac.vuw.ecs.kcassell.callgraph.ClusterIfc#toNestedString()
+	 */
+    public String toNewickString()
+    {
+    	StringBuffer buf = new StringBuffer();
+    	toNewickString(0, buf);
+    	buf.append("\n");
+    	String nestedString = buf.toString();
+    	return nestedString;
+    }
+    
+    protected void toNewickString(int indentLevel, StringBuffer buf)
+    {
+    	String leadSpaces = StringUtils.SPACES140.substring(0, 2*indentLevel);
+    	buf.append(leadSpaces).append("(\n");
+    	int nextIndent = indentLevel + 1;
+    	
+        for (Object component : children)
+        {
+        	if (component instanceof MemberCluster) {
+            	buf.append(leadSpaces);
+        		MemberCluster cluster = (MemberCluster)component;
+				cluster.toNewickString(nextIndent, buf);
+	        	buf.append(",");
+        	} else if (component instanceof String) { // element
+        		String name = EclipseUtils.getNameFromHandle(component.toString());
+        		buf.append(leadSpaces).append("  ").append(name).append(",\n");
+        	}
+        }
+        int length = buf.length();
+        buf.delete(buf.lastIndexOf(","), length); // eliminate the last ", "
+        buf.append("\n").append(leadSpaces).append(comment).append(")\n");
+    }
+
     public String toString() {
     	//return clusterName + " has " + elementCount + " elements";
     	return toNestedString();
