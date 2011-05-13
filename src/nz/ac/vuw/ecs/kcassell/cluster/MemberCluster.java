@@ -159,7 +159,7 @@ public class MemberCluster implements ClusterIfc<String> {
 		return children;
 	}
 
-	protected double getNewickBranchLength()
+	protected Double getClusterIteration()
 	{
 		double it = 0.5;
 		String name = getClusterName();
@@ -257,9 +257,18 @@ public class MemberCluster implements ClusterIfc<String> {
         }
         int length = buf.length();
         buf.delete(buf.lastIndexOf(","), length); // eliminate the last ", "
-        buf.append("\n").append(leadSpaces).append(") ").append(comment);
-        double newickBranchLength = getNewickBranchLength();
-		buf.append(":").append(newickBranchLength);
+        // newickBranchLength equals the iteration in which the cluster was formed
+        Double clusteringIteration = getClusterIteration();
+        buf.append("\n");
+		// Label the internal node with the distance (appended with the
+		// iteration).
+		// Appending the iteration is necessary to make the label unique (to
+		// satisfy Matlab).
+        buf.append(leadSpaces).append(") ").append(comment);
+        buf.append(clusteringIteration.intValue());
+        // We make the branch length proportional to the iteration, although
+        // proportional to the distance measure might be better
+		buf.append(":").append(clusteringIteration);
     }
 
     public String toString() {
