@@ -62,6 +62,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.NodeNameComparator;
 import nz.ac.vuw.ecs.kcassell.callgraph.gui.transformers.CallGraphNodeShapeTransformer;
 import nz.ac.vuw.ecs.kcassell.callgraph.gui.transformers.NodeTypeColorer;
 import nz.ac.vuw.ecs.kcassell.cluster.ClusterIfc;
+import nz.ac.vuw.ecs.kcassell.cluster.ClusterTextFormatEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClustererIfc;
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
@@ -342,14 +343,24 @@ implements ClusterUIConstants, ParameterConstants
 	protected String groupsToString(StringBuffer buf,
 			Collection<CallGraphNode> clusters) {
 		int groupNumber = 1;
+		String clusterFormat =
+			 parameters.getParameter(
+							ParameterConstants.CLUSTER_TEXT_FORMAT_KEY,
+							ClusterTextFormatEnum.NEWICK.toString());
+		ClusterTextFormatEnum textFormatEnum =
+			ClusterTextFormatEnum.valueOf(clusterFormat);
 		
 		for (CallGraphNode node : clusters) {
 			buf.append("Group ").append(groupNumber).append(": ");
 			buf.append(node.getSimpleName()).append(":\n");
 			if (node instanceof CallGraphCluster) {
 				CallGraphCluster cluster = (CallGraphCluster)node;
-				cluster.toNestedString(1, buf);
-				//clusterToFlatGroupString(buf, cluster);
+				
+				if (ClusterTextFormatEnum.FLAT.equals(textFormatEnum)) {
+					clusterToFlatGroupString(buf, cluster);
+				} else {
+					cluster.toNestedString(1, buf);
+				}
 			} else { // Regular CallGraphNode
 				buf.append("  ").append(node.getSimpleName()).append("\n");
 			}

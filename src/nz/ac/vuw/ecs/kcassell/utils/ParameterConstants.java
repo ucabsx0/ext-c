@@ -55,6 +55,10 @@ public interface ParameterConstants {
     use in clustering. */
 	public static final String CLUSTERER_KEY = "clusterer";
 
+	/** The key for determining the dendrogram format to
+    use for displaying the results of agglomerative clustering. */
+	public static final String CLUSTER_TEXT_FORMAT_KEY = "clusterTextFormat";
+
 	/** The key for determining the edge type - directed or undirected. */
 	public static final String EDGE_TYPE_KEY = "edgeType";
 	

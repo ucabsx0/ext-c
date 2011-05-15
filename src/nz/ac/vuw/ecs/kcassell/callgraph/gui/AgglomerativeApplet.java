@@ -50,7 +50,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -60,6 +59,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
+import nz.ac.vuw.ecs.kcassell.cluster.ClusterTextFormatEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClustererIfc;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
@@ -74,6 +74,7 @@ implements ClusterUIConstants, ParameterConstants {
 	
 	public static final String CALCULATOR_COMBO = "CalculatorCombo";
 	public static final String CLUSTERER_COMBO = "ClustererCombo";
+	public static final String CLUSTER_TEXT_FORMAT_COMBO = "ClusterTextFormatCombo";
 	public static final String LINK_COMBO = "LinkCombo";
 
 	protected static final long serialVersionUID = 1L;
@@ -87,6 +88,9 @@ implements ClusterUIConstants, ParameterConstants {
 
 	/** Where the user selects the group linkage type. */
 	protected JComboBox groupLinkageBox = null;
+
+	/** Where the user selects the text format. */
+	protected JComboBox textFormatBox = null;
 
 	JPanel southPanel = null;
 
@@ -149,6 +153,20 @@ implements ClusterUIConstants, ParameterConstants {
 		return calculatorBox;
 	}
 
+	private JComboBox createClusterTextFormatCombo() {
+		Vector<String> menuItems = new Vector<String>();
+		for (ClusterTextFormatEnum format : ClusterTextFormatEnum.values()) {
+			menuItems.add(format.toString());
+		}
+		JComboBox clustererBox = new JComboBox(menuItems);
+		String sFormat = parameters.getParameter(
+				CLUSTER_TEXT_FORMAT_KEY,
+				ClusterTextFormatEnum.NEWICK.toString());
+		clustererBox.setSelectedItem(sFormat);
+		clustererBox.setName(CLUSTER_TEXT_FORMAT_COMBO);
+		return clustererBox;
+	}
+
 	private JComboBox createClustererCombo() {
 		Vector<String> menuItems = new Vector<String>();
 		for (ClustererEnum calc : ClustererEnum.values()) {
@@ -199,25 +217,29 @@ implements ClusterUIConstants, ParameterConstants {
 
 	protected JPanel setUpSouthPanel() {
 		southPanel = new JPanel();
-		JPanel grid = new JPanel(new GridLayout(1, 6));
-
+		GridLayout gridLayout = new GridLayout(2, 5);
+		JPanel grid = new JPanel(gridLayout);
+		gridLayout.setHgap(15);
+		
 		JLabel clustererLabel = new JLabel("Clusterer: ");
-		clustererLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		grid.add(clustererLabel);
+		JLabel calcLabel = new JLabel("Distance Calculator: ");
+		grid.add(calcLabel);
+		JLabel groupLinkageLabel = new JLabel("Group Linkage: ");
+		grid.add(groupLinkageLabel);
+		JLabel iterationLabel = new JLabel("Visualize Agglomeration");
+		grid.add(iterationLabel);
+		JLabel formatLabel = new JLabel("Text Format: ");
+		grid.add(formatLabel);
+
 		clustererBox = createClustererCombo();
 		clustererBox.addActionListener(view);
 		grid.add(clustererBox);
 
-		JLabel calcLabel = new JLabel("Distance Calculator: ");
-		calcLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		grid.add(calcLabel);
 		calculatorBox = createCalculatorCombo();
 		calculatorBox.addActionListener(view);
 		grid.add(calculatorBox);
 
-		JLabel groupLinkageLabel = new JLabel("Group Linkage: ");
-		groupLinkageLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		grid.add(groupLinkageLabel);
 		groupLinkageBox = createLinkageCombo();
 		groupLinkageBox.addActionListener(view);
 		grid.add(groupLinkageBox);
@@ -226,6 +248,10 @@ implements ClusterUIConstants, ParameterConstants {
 		addChangeListenerToSlider(sliderBorder);
 		grid.add(sliderPanel);
 		southPanel.add(grid);
+
+		textFormatBox = createClusterTextFormatCombo();
+		textFormatBox.addActionListener(view);
+		grid.add(textFormatBox);
 
 		setUpMouseMode();
 		southPanel.validate();
