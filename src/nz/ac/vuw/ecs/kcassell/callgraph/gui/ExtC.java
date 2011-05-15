@@ -36,8 +36,11 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Properties;
 import java.util.Set;
 
@@ -49,6 +52,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -248,7 +252,82 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 			}
 			return component;
 		}
-	} // WritePajekNetAction
+	} // WriteGraphAction
+
+	/**
+	 * A class for saving the active text area to a file
+	 *  after receiving an actionPerformed event.
+	 */
+	private final class WriteTextAreaAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+		private final ExtC extC;
+
+		private WriteTextAreaAction(String name, ExtC viewer) {
+			super(name);
+			this.extC = viewer;
+		}
+
+		/**
+		 * Pops up a file chooser then writes in the graph from the specified
+		 * file and loads it.
+		 */
+		public void actionPerformed(ActionEvent event) {
+			int selectedIndex = mainPane.getSelectedIndex();
+			if (selectedIndex == METRICS_TAB_INDEX) {
+				String msg = "Saving of metric data not yet implemented.";
+				JOptionPane.showMessageDialog(frame, msg, "Not Implemented",
+						JOptionPane.WARNING_MESSAGE);
+			} else if (selectedIndex == GRAPH_TAB_INDEX) {
+				String msg = "No text to save from the graph view.";
+				JOptionPane.showMessageDialog(frame, msg, "Not Applicable",
+						JOptionPane.WARNING_MESSAGE);
+			} else {
+				JFileChooser chooser = new JFileChooser(lastDirAccessed);
+				int option = chooser.showSaveDialog(extC.frame);
+
+				if (option == JFileChooser.APPROVE_OPTION) {
+					File file = chooser.getSelectedFile();
+					lastDirAccessed = file.getParent();
+					try {
+						String fileName = file.getAbsolutePath();
+						JTextArea textArea = aggClusteringView
+								.getClustersTextArea();
+						PrintWriter writer = new PrintWriter(
+								new BufferedWriter(new FileWriter(fileName)));
+
+						if (selectedIndex == BETWEENNESS_TAB_INDEX) {
+							textArea = betweennessView.getClustersTextArea();
+							writeTextToFile(textArea, writer);
+						} // end if betweenness
+						else if (selectedIndex == AGGLOMERATION_TAB_INDEX) {
+							textArea = aggClusteringView.getClustersTextArea();
+							writeTextToFile(textArea, writer);
+						} // end if agglomeration
+						else if (selectedIndex == SPANNING_FOREST_TAB_INDEX) {
+							textArea = spanningForestView.getClustersTextArea();
+							writeTextToFile(textArea, writer);
+						} // end if spanning forest
+						else {
+							textArea = batchOutputView.getTextArea();
+							writeTextToFile(textArea, writer);
+						}
+					} catch (IOException e1) {
+						String msg = "Problems writing file " + file;
+						logger.warning(msg + ": " + e1);
+						JOptionPane.showMessageDialog(extC.frame, msg,
+								"Error writing file",
+								JOptionPane.WARNING_MESSAGE);
+					}
+				}
+			}	// else
+		} // actionPerformed
+
+		protected void writeTextToFile(JTextArea textArea, PrintWriter writer) {
+			String text = textArea.getText();
+			writer.print(text);
+			writer.close();
+		}
+	}
 
 	/**
 	 * Reads in the application parameters
@@ -558,6 +637,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		JMenu menu = new JMenu("File");
 		menu.add(new ReadGraphAction("Open Graph...", this));
 		menu.add(new WriteGraphAction("Save Graph as...", this));
+		menu.add(new WriteTextAreaAction("Save Text Area as...", this));
 		menu.add(new MetricsView.AccessDBAction("Get Data From Database",
 				metricsView));
 		return menu;
