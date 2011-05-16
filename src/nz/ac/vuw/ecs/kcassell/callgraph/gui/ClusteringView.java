@@ -314,7 +314,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 		} else {
 			text = cluster.toNestedString();
 		}
-		clustersTextArea.setText("Final cluster:\n" + text);
+		clustersTextArea.setText(text);
 	}
 
 	/**

@@ -224,8 +224,11 @@ public class MemberCluster implements ClusterIfc<String> {
         }
     }
 
-	/* (non-Javadoc)
-	 * @see nz.ac.vuw.ecs.kcassell.callgraph.ClusterIfc#toNestedString()
+	/**
+	 * Generates a string representation of the tree using the
+	 *  Newick/New Hampshire format.  Several software packages can create
+	 *  dendrograms based on this representation.
+	 * @see http://evolution.genetics.washington.edu/phylip/newicktree.html
 	 */
     public String toNewickString()
     {
@@ -246,37 +249,55 @@ public class MemberCluster implements ClusterIfc<String> {
         {
         	buf.append("\n");
         	if (component instanceof MemberCluster) {
-//            	buf.append(leadSpaces);
         		MemberCluster cluster = (MemberCluster)component;
 				cluster.toNewickString(nextIndent, buf);
         	} else if (component instanceof String) { // element
         		String name = EclipseUtils.getNameFromHandle(component.toString());
         		buf.append(leadSpaces).append("  ").append(name);
         	}
+            appendNewickBranchLength(buf);
         	buf.append(",");
         }
         int length = buf.length();
-        buf.delete(buf.lastIndexOf(","), length); // eliminate the last ", "
+        buf.delete(buf.lastIndexOf(","), length); // eliminate the last ","
         // newickBranchLength equals the iteration in which the cluster was formed
-        Double clusteringIteration = getClusterIteration();
         buf.append("\n");
         buf.append(leadSpaces).append(") ");
-		createInternalNewickNodeName(buf, clusteringIteration);
-        // We make the branch length proportional to the iteration, although
-        // proportional to the distance measure might be better
-		buf.append(":").append(clusteringIteration);
+		appendInternalNewickNodeName(buf);
+//        appendNewickBranchLength(buf);
     }
+
+	private double getDistance() {
+		double distance = 0.001;
+		try {
+			int lastSpaceIndex = comment.lastIndexOf(" ");
+			String sDistance = comment.substring(lastSpaceIndex);
+			distance = Double.valueOf(sDistance);
+		} catch (Exception e) {
+			// ignore - we tried, use default
+		}
+		return distance;
+	}
+
+	private void appendNewickBranchLength(StringBuffer buf) {
+//        Double clusteringIteration = getClusterIteration();
+//		// We make the branch length proportional to the iteration, although
+//        // proportional to the distance measure might be better
+//		buf.append(":").append(clusteringIteration);
+    	double distance = getDistance();
+		buf.append(":").append(distance);
+	}
 
 	/**
 	 * Label the internal node with the distance (appended with the iteration).
 	 * Appending the iteration is necessary to make the label unique (to satisfy
 	 * Matlab).  Spaces are replaced with underscores.
 	 */
-	private void createInternalNewickNodeName(StringBuffer buf,
-			Double clusteringIteration) {
-		String refinedComment = comment.replaceAll(" ", "_");
-        buf.append(refinedComment);
-        buf.append(clusteringIteration.intValue());
+	private void appendInternalNewickNodeName(StringBuffer buf) {
+        Double clusteringIteration = getClusterIteration();
+//		String refinedComment = comment.replaceAll(" ", "_");
+//        buf.append(refinedComment);
+        buf.append("it").append(clusteringIteration.intValue());
 	}
 
     public String toString() {
