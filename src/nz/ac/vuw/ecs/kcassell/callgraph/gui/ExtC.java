@@ -327,7 +327,44 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 			writer.print(text);
 			writer.close();
 		}
-	}
+	}	// class WriteTextAreaAction
+
+	/**
+	 * A class for saving the active text area to a file
+	 *  after receiving an actionPerformed event.
+	 */
+	private final class WriteMetricsAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+		private final ExtC extC;
+
+		private WriteMetricsAction(String name, ExtC viewer) {
+			super(name);
+			this.extC = viewer;
+		}
+
+		/**
+		 * Pops up a file chooser then writes in the graph from the specified
+		 * file and loads it.
+		 */
+		public void actionPerformed(ActionEvent event) {
+			JFileChooser chooser = new JFileChooser(lastDirAccessed);
+			int option = chooser.showSaveDialog(extC.frame);
+
+			if (option == JFileChooser.APPROVE_OPTION) {
+				File file = chooser.getSelectedFile();
+				lastDirAccessed = file.getParent();
+				try {
+					metricsView.tableModel.tableToCSVFile(file);
+				} catch (Exception e1) {
+					String msg = "Problems writing file " + file;
+					logger.warning(msg + ": " + e1);
+					JOptionPane.showMessageDialog(extC.frame, msg,
+							"Error writing file", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		} // actionPerformed
+
+	}	// class WriteMetricsAction
 
 	/**
 	 * Reads in the application parameters
@@ -637,6 +674,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		JMenu menu = new JMenu("File");
 		menu.add(new ReadGraphAction("Open Graph...", this));
 		menu.add(new WriteGraphAction("Save Graph as...", this));
+		menu.add(new WriteMetricsAction("Save Metrics Data as CSV...", this));
 		menu.add(new WriteTextAreaAction("Save Text Area as...", this));
 		menu.add(new MetricsView.AccessDBAction("Get Data From Database",
 				metricsView));

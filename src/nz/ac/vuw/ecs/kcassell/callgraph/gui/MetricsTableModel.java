@@ -32,6 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.callgraph.gui;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import javax.swing.table.AbstractTableModel;
 
 /** A table where each row contains the metric data for a class. */
@@ -110,23 +116,38 @@ class MetricsTableModel extends AbstractTableModel {
 		this.handles = handles;
 	}
 	
-//	public void exportTable(JTable table, File file) throws IOException {
-//		TableModel model = table.getModel();
-//		FileWriter out = new FileWriter(file);
-////	BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file,true));
-////	PrintWriter fileWriter = new PrintWriter(bufferedWriter);
-//
-//		for(int i=0; i < model.getColumnCount(); i++) {
-//	out.write(model.getColumnName(i) + "\t");
-//		}
-//		out.write("\n");
-//
-//		for(int i=0; i< model.getRowCount(); i++) {
-//	for(int j=0; j < model.getColumnCount(); j++) {
-//		out.write(model.getValueAt(i,j).toString()+"\t");
-//		}
-//		out.write("\n");
-//	}
+	/**
+	 * Prints the metrics table to a comma-separated-value (CSV) file.
+	 * @param file the file location
+	 * @throws IOException
+	 */
+	public void tableToCSVFile(File file) throws IOException {
+		String SEP = ",";
+		BufferedWriter bufferedWriter =
+			new BufferedWriter(new FileWriter(file, true));
+		PrintWriter printWriter = new PrintWriter(bufferedWriter);
 
+		// print column headers
+		int columnCount = getColumnCount();
+		for (int i = 0; i < columnCount; i++) {
+			printWriter.write(getColumnName(i));
+			if (i < columnCount - 1) {
+				printWriter.write(SEP);
+			}
+		}
+		printWriter.write("\n");
+
+		// print table contents
+		for (int i = 0; i < getRowCount(); i++) {
+			for (int j = 0; j < columnCount; j++) {
+				printWriter.write(getValueAt(i, j).toString());
+				if (j < columnCount - 1) {
+					printWriter.write(SEP);
+				}
+			}
+			printWriter.write("\n");
+		}
+		printWriter.close();
+	}
 
 }
