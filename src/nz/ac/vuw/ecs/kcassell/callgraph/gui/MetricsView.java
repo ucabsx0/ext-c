@@ -54,7 +54,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableRowSorter;
 
 import net.sourceforge.metrics.core.Metric;
 import net.sourceforge.metrics.core.sources.TypeMetrics;
@@ -274,7 +273,7 @@ public class MetricsView {
 			tableModel.setHandles(new String[] {"**none found**"});
 		}
 		metricsTable = new JTable(tableModel);
-		metricsTable.setRowSorter(new TableRowSorter(tableModel));
+		//metricsTable.setRowSorter(new TableRowSorter<MetricsTableModel>(tableModel));
 		metricsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		listSelectionModel = metricsTable.getSelectionModel();
 		listSelectionModel.setSelectionMode(
@@ -283,8 +282,8 @@ public class MetricsView {
 		metricsTableScroller = new JScrollPane(metricsTable);
 		Dimension preferredSize = calculatePreferredSize();
 		metricsTableScroller.setPreferredSize(preferredSize);
-		// TODO Java 1.6 metricsTable.setFillsViewportHeight(true);
-		// TODO Java 1.6 metricsTable.setAutoCreateRowSorter(true);
+		metricsTable.setFillsViewportHeight(true);
+		metricsTable.setAutoCreateRowSorter(true);
 		mainPanel.setBottomComponent(metricsTableScroller);
 	}
 
