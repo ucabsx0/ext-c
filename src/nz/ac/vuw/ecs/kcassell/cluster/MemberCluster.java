@@ -229,9 +229,9 @@ public class MemberCluster implements ClusterIfc<String> {
 	 */
     public String toNewickString()
     {
-    	StringBuffer buf = new StringBuffer("(");
+    	StringBuffer buf = new StringBuffer();
     	toNewickString(0, buf);
-    	buf.append(")\n");
+    	buf.append(";\n");
     	String nestedString = buf.toString();
     	return nestedString;
     }
@@ -260,16 +260,24 @@ public class MemberCluster implements ClusterIfc<String> {
         // newickBranchLength equals the iteration in which the cluster was formed
         Double clusteringIteration = getClusterIteration();
         buf.append("\n");
-		// Label the internal node with the distance (appended with the
-		// iteration).
-		// Appending the iteration is necessary to make the label unique (to
-		// satisfy Matlab).
-        buf.append(leadSpaces).append(") ").append(comment);
-        buf.append(clusteringIteration.intValue());
+        buf.append(leadSpaces).append(") ");
+		createInternalNewickNodeName(buf, clusteringIteration);
         // We make the branch length proportional to the iteration, although
         // proportional to the distance measure might be better
 		buf.append(":").append(clusteringIteration);
     }
+
+	/**
+	 * Label the internal node with the distance (appended with the iteration).
+	 * Appending the iteration is necessary to make the label unique (to satisfy
+	 * Matlab).  Spaces are replaced with underscores.
+	 */
+	private void createInternalNewickNodeName(StringBuffer buf,
+			Double clusteringIteration) {
+		String refinedComment = comment.replaceAll(" ", "_");
+        buf.append(refinedComment);
+        buf.append(clusteringIteration.intValue());
+	}
 
     public String toString() {
     	//return clusterName + " has " + elementCount + " elements";
