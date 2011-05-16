@@ -54,7 +54,6 @@ public class CallDataTest extends TestCase {
 	static {
 //		EclipseUtils.activateWorkbench();
         IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-        IProject[] projects = root.getProjects();
         IProject project = root.getProject("=ClassRefactoringPlugin");
         try {
 			//project.create(null);
