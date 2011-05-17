@@ -222,7 +222,7 @@ public class MemberClusterTest extends TestCase {
         fieldVec.add(field1);
         MemberCluster clusterFields = new MemberCluster();
         clusterFields.setClusterName("3fields");
-        clusterFields.setComment("0.3");
+        clusterFields.setDistance(0.3);
         clusterFields.addElements(fieldVec);
         String newickString = clusterFields.toNewickString();
         System.out.println(newickString);
@@ -244,7 +244,7 @@ public class MemberClusterTest extends TestCase {
         methodVec.add(method1);
         MemberCluster clusterMethods = new MemberCluster();
         clusterMethods.setClusterName("3methods");
-        clusterMethods.setComment("0.5");
+        clusterMethods.setDistance(0.5);
         clusterMethods.addElements(methodVec);
         
         clusterFields.addCluster(clusterMethods);
