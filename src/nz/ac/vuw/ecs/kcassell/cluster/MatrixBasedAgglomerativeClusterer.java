@@ -276,7 +276,9 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 		logger.info("createCluster from " + near1 + ", " + near2);
 		addChildToCluster(cluster, near1);
 		addChildToCluster(cluster, near2);
-		String comment = "dist. = " + neighbors.getDistance();
+		Number distance = neighbors.getDistance();
+		cluster.setDistance(distance.doubleValue());
+		String comment = "dist. = " + distance;
 		cluster.setComment(comment);
 		String clusterName =
 			nameCluster(cluster, (near1.compareTo(near2) < 0) ? near1 : near2);
