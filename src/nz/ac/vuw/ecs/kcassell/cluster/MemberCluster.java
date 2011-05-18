@@ -244,15 +244,15 @@ public class MemberCluster implements ClusterIfc<String> {
 	public String toNewickString() {
 		StringBuffer buf = new StringBuffer();
 		HashSet<String> namesSeen = new HashSet<String>();
-		toNewickString(0, buf, namesSeen);
-		appendNewickBranchLength(buf);
+		toNewickString(0, buf, namesSeen, distance);
+//		appendNewickBranchLength(buf);
 		buf.append(";\n");
 		String nestedString = buf.toString();
 		return nestedString;
 	}
 
 	protected void toNewickString(int indentLevel, StringBuffer buf,
-			HashSet<String> namesSeen) {
+			HashSet<String> namesSeen, Double parentDistance) {
 		String leadSpaces = StringUtils.SPACES140.substring(0, 2 * indentLevel);
 		buf.append(leadSpaces).append("(");
 		int nextIndent = indentLevel + 1;
@@ -261,7 +261,7 @@ public class MemberCluster implements ClusterIfc<String> {
 			buf.append("\n");
 			if (component instanceof MemberCluster) {
 				MemberCluster cluster = (MemberCluster) component;
-				cluster.toNewickString(nextIndent, buf, namesSeen);
+				cluster.toNewickString(nextIndent, buf, namesSeen, distance);
 			} else if (component instanceof String) { // element
 				String name = EclipseUtils.getNameFromHandle(component
 						.toString());
@@ -270,18 +270,18 @@ public class MemberCluster implements ClusterIfc<String> {
 					namesSeen.add(name);
 				}
 				buf.append(leadSpaces).append("  ").append(name);
+				// add Newick branch length
+				buf.append(":").append(String.format("%.2f", distance));
 			}
-			appendNewickBranchLength(buf);
+//			appendNewickBranchLength(buf);
 			buf.append(",");
 		}
 		int length = buf.length();
 		buf.delete(buf.lastIndexOf(","), length); // eliminate the last ","
-		// newickBranchLength equals the iteration in which the cluster was
-		// formed
 		buf.append("\n");
 		buf.append(leadSpaces).append(") ");
 		appendInternalNewickNodeName(buf);
-		// appendNewickBranchLength(buf);
+		appendNewickBranchLength(buf, parentDistance);
 	}
 
 	private double getDistance() {
@@ -292,13 +292,13 @@ public class MemberCluster implements ClusterIfc<String> {
 		this.distance = distance;
 	}
 
-	private void appendNewickBranchLength(StringBuffer buf) {
+	private void appendNewickBranchLength(StringBuffer buf, Double parentDistance) {
 		// Double clusteringIteration = getClusterIteration();
 		// // We make the branch length proportional to the iteration, although
 		// // proportional to the distance measure might be better
 		// buf.append(":").append(clusteringIteration);
 		double maxChildDistance = getMaxChildDistance();
-		double branchLength = distance - maxChildDistance;
+		double branchLength = parentDistance - maxChildDistance;
 		branchLength = Math.max(0.01, branchLength);
 		buf.append(":").append(String.format("%.2f", branchLength));
 	}
