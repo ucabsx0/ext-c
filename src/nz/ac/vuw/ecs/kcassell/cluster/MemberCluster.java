@@ -244,8 +244,7 @@ public class MemberCluster implements ClusterIfc<String> {
 	public String toNewickString() {
 		StringBuffer buf = new StringBuffer();
 		HashSet<String> namesSeen = new HashSet<String>();
-		toNewickString(0, buf, namesSeen, distance);
-//		appendNewickBranchLength(buf);
+		toNewickString(0, buf, namesSeen, 1.0);
 		buf.append(";\n");
 		String nestedString = buf.toString();
 		return nestedString;
@@ -273,7 +272,6 @@ public class MemberCluster implements ClusterIfc<String> {
 				// add Newick branch length
 				buf.append(":").append(String.format("%.2f", distance));
 			}
-//			appendNewickBranchLength(buf);
 			buf.append(",");
 		}
 		int length = buf.length();
@@ -284,7 +282,7 @@ public class MemberCluster implements ClusterIfc<String> {
 		appendNewickBranchLength(buf, parentDistance);
 	}
 
-	private double getDistance() {
+	public double getDistance() {
 		return distance;
 	}
 
