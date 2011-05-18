@@ -50,6 +50,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
@@ -194,58 +195,68 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * Reacts to the various push buttons
 	 */
 	public void actionPerformed(ActionEvent event) {
-		String command = event.getActionCommand();
-		if (CLUSTER_BUTTON_LABEL.equals(command)) {
-			clusterAllSelections(mainPanel);
-		}
-		else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
-			countAllDisconnectedSubgraphs(mainPanel);
-		}
-		else if (DISTANCES_BUTTON_LABEL.equals(command)){
-			collectDistances(mainPanel);
-		}
-		else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)){
-			collectFrequentMethods(mainPanel);
-		}
-		else if (TEST_BUTTON.equals(command)) {
-			GraphView graphView = app.getGraphView();
-			JavaCallGraph callGraph = graphView.getGraph();
-
-			if (callGraph == null) {
-				String msg = "Choose a class.";
-				JOptionPane.showMessageDialog(mainPanel, msg,
-					"No class chosen", JOptionPane.WARNING_MESSAGE);
-			} else {
-				ClientDistanceCalculator calculator;
+		final String command = event.getActionCommand();
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
 				try {
-					textArea.setText("");
-					// initialize the calculator and build the data file
-					String classHandle = callGraph.getHandle();
-					calculator = new ClientDistanceCalculator(classHandle);
-					String memberClientsFile = 
-						ClientDistanceCalculator.getClientDataFileNameFromHandle(classHandle);
-					String documents = calculator
-						.buildDocumentsForPublicMethods(callGraph, memberClientsFile);
-					textArea.setText(documents);
-					String fileName = calculator.getDataFileNameFromHandle(classHandle);
-					calculator.initializeVectorSpace(fileName);
-					
-					// Aggl. clustering using the ClientDistanceCalculator
-					List<String> memberHandles = calculator.getMemberHandles();
-					MatrixBasedAgglomerativeClusterer clusterer =
-						new MatrixBasedAgglomerativeClusterer(
-							memberHandles, calculator);
-					MemberCluster cluster = clusterer.getSingleCluster();
-					String clusterString = cluster.toNestedString();
-					buf.append("Final cluster:\n" + clusterString);
-					textArea.append(clusterString);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					mainPanel.setCursor(RefactoringConstants.WAIT_CURSOR);
+
+					if (CLUSTER_BUTTON_LABEL.equals(command)) {
+						clusterAllSelections(mainPanel);
+					} else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
+						countAllDisconnectedSubgraphs(mainPanel);
+					} else if (DISTANCES_BUTTON_LABEL.equals(command)) {
+						collectDistances(mainPanel);
+					} else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)) {
+						collectFrequentMethods(mainPanel);
+					} else if (TEST_BUTTON.equals(command)) {
+						runTestOfTheDay();
+					} // TEST_BUTTON
+					textArea.repaint();
+				} finally {
+					mainPanel.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 				}
-			}	// else
-			textArea.repaint();
-		}	// TEST_BUTTON
+			}
+		}); // invokeLater
+	}
+
+	private void runTestOfTheDay() {
+		GraphView graphView = app.getGraphView();
+		JavaCallGraph callGraph = graphView.getGraph();
+
+		if (callGraph == null) {
+			String msg = "Choose a class.";
+			JOptionPane.showMessageDialog(mainPanel, msg,
+				"No class chosen", JOptionPane.WARNING_MESSAGE);
+		} else {
+			ClientDistanceCalculator calculator;
+			try {
+				textArea.setText("");
+				// initialize the calculator and build the data file
+				String classHandle = callGraph.getHandle();
+				calculator = new ClientDistanceCalculator(classHandle);
+				String memberClientsFile = 
+					ClientDistanceCalculator.getClientDataFileNameFromHandle(classHandle);
+				String documents = calculator
+					.buildDocumentsForPublicMethods(callGraph, memberClientsFile);
+				textArea.setText(documents);
+				String fileName = calculator.getDataFileNameFromHandle(classHandle);
+				calculator.initializeVectorSpace(fileName);
+				
+				// Aggl. clustering using the ClientDistanceCalculator
+				List<String> memberHandles = calculator.getMemberHandles();
+				MatrixBasedAgglomerativeClusterer clusterer =
+					new MatrixBasedAgglomerativeClusterer(
+						memberHandles, calculator);
+				MemberCluster cluster = clusterer.getSingleCluster();
+				String clusterString = cluster.toNestedString();
+				buf.append("Final cluster:\n" + clusterString);
+				textArea.append(clusterString);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}	// else
 		textArea.repaint();
 	}
 

@@ -44,6 +44,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
@@ -63,6 +64,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
+import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -148,20 +150,32 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	 */
 	public void actionPerformed(ActionEvent event) {
 		Object source = event.getSource();
-		String sourceName = "";
 		if (source instanceof JComboBox) {
-			JComboBox box = (JComboBox) source;
-			sourceName = box.getName();
-			if (AgglomerativeApplet.CALCULATOR_COMBO.equals(sourceName)) {
-				handleCalculatorRequest(box);
-			} else if (AgglomerativeApplet.CLUSTER_TEXT_FORMAT_COMBO.equals(sourceName)) {
-				handleClusterTextFormatRequest(box);
-			} else if (AgglomerativeApplet.CLUSTERER_COMBO.equals(sourceName)) {
-				handleClustererRequest(box);
-			} else if (AgglomerativeApplet.LINK_COMBO.equals(sourceName)) {
-				handleGroupLinkageRequest(box);
-			}
+			final JComboBox box = (JComboBox) source;
+			final String sourceName = box.getName();
 
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					try {
+						mainPanel.setCursor(RefactoringConstants.WAIT_CURSOR);
+						if (AgglomerativeApplet.CALCULATOR_COMBO
+								.equals(sourceName)) {
+							handleCalculatorRequest(box);
+						} else if (AgglomerativeApplet.CLUSTER_TEXT_FORMAT_COMBO
+								.equals(sourceName)) {
+							handleClusterTextFormatRequest(box);
+						} else if (AgglomerativeApplet.CLUSTERER_COMBO
+								.equals(sourceName)) {
+							handleClustererRequest(box);
+						} else if (AgglomerativeApplet.LINK_COMBO
+								.equals(sourceName)) {
+							handleGroupLinkageRequest(box);
+						}
+					} finally {
+						mainPanel.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+					}
+				}
+			}); // invokeLater
 		}
 	}
 

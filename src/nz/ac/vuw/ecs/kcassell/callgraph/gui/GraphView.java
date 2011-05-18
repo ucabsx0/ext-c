@@ -50,6 +50,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
@@ -61,6 +62,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.gui.transformers.NodeStrokeTransformer;
 import nz.ac.vuw.ecs.kcassell.callgraph.gui.transformers.NodeTypeColorer;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
+import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.apache.commons.collections15.Transformer;
 
@@ -547,21 +549,31 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
     /**
      * Redisplays the graph based on the user's menu selections.
      */
-    public void actionPerformed(ActionEvent event) {
-    	Object source = event.getSource();
-    	String sourceName = "";
-    	if (source instanceof JComboBox) {
-    		JComboBox box = (JComboBox)source;
-    		sourceName = box.getName();
-        	if (EDGE_TYPE_COMBO.equals(sourceName)) {
-        		handleEdgeTypeRequest(box);
-        	} else if (LAYOUT_COMBO.equals(sourceName)) {
-        		handleLayoutRequest(box);
-        	} else if (SIZING_COMBO.equals(sourceName)) {
-        		handleSizingRequest(box);
-        	}
-    	}
-    }   // actionPerformed
+	public void actionPerformed(ActionEvent event) {
+		Object source = event.getSource();
+		if (source instanceof JComboBox) {
+			final JComboBox box = (JComboBox) source;
+			final String sourceName = box.getName();
+
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					try {
+						mainPanel.setCursor(RefactoringConstants.WAIT_CURSOR);
+						if (EDGE_TYPE_COMBO.equals(sourceName)) {
+							handleEdgeTypeRequest(box);
+						} else if (LAYOUT_COMBO.equals(sourceName)) {
+							handleLayoutRequest(box);
+						} else if (SIZING_COMBO.equals(sourceName)) {
+							handleSizingRequest(box);
+						}
+					} finally {
+						mainPanel.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+					}
+				}
+			}); // invokeLater
+
+		} // if
+	} // actionPerformed
 
     public void itemStateChanged(ItemEvent event) {
         Object source = event.getItemSelectable();
