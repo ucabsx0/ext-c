@@ -297,26 +297,10 @@ public class MemberCluster implements ClusterIfc<String> {
 		// // We make the branch length proportional to the iteration, although
 		// // proportional to the distance measure might be better
 		// buf.append(":").append(clusteringIteration);
-		double maxChildDistance = getMaxChildDistance();
-		double branchLength = parentDistance - maxChildDistance;
+//		double maxChildDistance = getMaxChildDistance();
+		double branchLength = parentDistance - distance;
 		branchLength = Math.max(0.01, branchLength);
 		buf.append(":").append(String.format("%.2f", branchLength));
-	}
-
-	protected double getMaxChildDistance() {
-		double maxChildDistance = 0.0;
-
-		if (children != null) {
-			for (Object child : children) {
-				if (child instanceof MemberCluster) {
-					MemberCluster childCluster = (MemberCluster) child;
-					double childDistance = childCluster.getDistance();
-					maxChildDistance =
-						Math.max(maxChildDistance, childDistance);
-				}
-			}
-		}
-		return maxChildDistance;
 	}
 
 	/**
