@@ -249,7 +249,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					new MatrixBasedAgglomerativeClusterer(
 						memberHandles, calculator);
 				MemberCluster cluster = clusterer.getSingleCluster();
-				String clusterString = cluster.toNestedString();
+				String clusterString =
+					(cluster == null) ? "no cluster" : cluster.toNestedString();
 				buf.append("Final cluster:\n" + clusterString);
 				textArea.append(clusterString);
 			} catch (Exception e) {
