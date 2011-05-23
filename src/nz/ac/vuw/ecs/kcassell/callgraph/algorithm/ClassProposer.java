@@ -105,9 +105,8 @@ public class ClassProposer
     }
 
     /** Creates a PrintWriter for writing the results.   */
-    protected PrintWriter setUpOutput()
+    protected PrintWriter setUpOutput(String resultsFileName)
     {
-        String resultsFileName = "ClassProposerResults" + System.currentTimeMillis();
         try
         {
             File outFile = new File(resultsFileName);
@@ -173,7 +172,8 @@ public class ClassProposer
 	public static void main(String[] args)
     {
         ClassProposer proposer = new ClassProposer();
-        PrintWriter output = proposer.setUpOutput();
+        String resultsFileName = "ClassProposerResults" + System.currentTimeMillis();
+        PrintWriter output = proposer.setUpOutput(resultsFileName);
         proposer.printHeaderLine(output);
         CallGraphNode.CallGraphNodeFactory vertexFactory =
         	new CallGraphNode.CallGraphNodeFactory();
