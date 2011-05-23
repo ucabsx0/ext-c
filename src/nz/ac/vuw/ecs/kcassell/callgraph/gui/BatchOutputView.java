@@ -400,7 +400,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					new BufferedWriter(fileWriter));
 			String clusterString = cluster.toNewickString();
 			writer.print(clusterString );
-			buf.append("Saved clusters produced from " + handle + " to " + fileName);
+			buf.append("Saved clusters produced from " + handle
+					+ " to " + fileName + "\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
