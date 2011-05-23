@@ -37,6 +37,10 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +60,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.cluster.BetweennessClusterer;
+import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
 import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
@@ -210,7 +215,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					} else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)) {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
-						runTestOfTheDay();
+						clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
 				} finally {
@@ -220,7 +225,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		}); // invokeLater
 	}
 
-	private void runTestOfTheDay() {
+	private void clusterUsingClientDistances() {
 		GraphView graphView = app.getGraphView();
 		JavaCallGraph callGraph = graphView.getGraph();
 
@@ -308,8 +313,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						new MatrixBasedAgglomerativeClusterer(
 							memberHandles, calc);
 					MemberCluster cluster = clusterer.getSingleCluster();
-					buf.append("Final cluster:\n"
-							+ cluster.toNestedString());
+					reportAgglomerationResults(handle, sCalc, cluster);
 				} else if (DistanceCalculatorEnum.GoogleDistance.toString()
 						.equalsIgnoreCase(sCalc)) {
 					try {
@@ -321,8 +325,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						MatrixBasedAgglomerativeClusterer clusterer =
 							new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
 						MemberCluster cluster = clusterer.getSingleCluster();
-						buf.append("Final cluster:\n"
-								+ cluster.toNestedString());
+						reportAgglomerationResults(handle, sCalc, cluster);
 					} catch (Exception e) {
 						String msg = "Unable to calculate distances.  (No web access?)";
 						JOptionPane.showMessageDialog(mainPanel, msg,
@@ -338,8 +341,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						MatrixBasedAgglomerativeClusterer clusterer =
 							new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
 						MemberCluster cluster = clusterer.getSingleCluster();
-						buf.append("Final cluster for " + handle + ":\n"
-								+ cluster.toNestedString());
+						reportAgglomerationResults(handle, sCalc, cluster);
 					} catch (Exception e) {
 						String msg = "Problem with the VectorSpaceModelCalculator: " + e;
 						JOptionPane.showMessageDialog(mainPanel, msg,
@@ -372,6 +374,48 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		long end = System.currentTimeMillis();
 		buf.append("Clustering above took " + (end - start) + " millis");
 		buf.append(CLASS_SEPARATOR);
+	}
+
+
+	/**
+	 * Saves agglomerated clusters to a file in Newick format
+	 * @param handle the handle of the class whose members were clustered
+	 * @param sCalc the distance calculator used
+	 * @param cluster the final cluster produced
+	 */
+	private void reportAgglomerationResults(String handle,
+			String sCalc, MemberCluster cluster) {
+		ApplicationParameters params = ApplicationParameters.getSingleton();
+		String sLinkage = params.getParameter(
+				LINKAGE_KEY, ClusterCombinationEnum.SINGLE_LINK.toString());
+		String nameFromHandle = EclipseUtils.getNameFromHandle(handle);
+		String fileName = RefactoringConstants.DATA_DIR +
+							nameFromHandle + sCalc + sLinkage + ".tree";
+		PrintWriter writer = null;
+		FileWriter fileWriter = null;
+
+		try {
+			fileWriter = new FileWriter(fileName);
+			writer = new PrintWriter(
+					new BufferedWriter(fileWriter));
+			String clusterString = cluster.toNewickString();
+			writer.print(clusterString );
+			buf.append("Saved clusters produced from " + handle + " to " + fileName);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (writer != null) {
+				writer.close();
+			} else if (fileWriter != null) {
+				try {
+					fileWriter.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 
