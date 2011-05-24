@@ -117,7 +117,15 @@ implements DistanceCalculatorIfc<String>
         CallGraphNode node1 = javaCallGraph.getNode(id1);
         CallGraphNode node2 = javaCallGraph.getNode(id2);
 
-        distance = calculateDistance(node1, node2);
+        if (node1 == null) {
+        	System.err.println("CzibulaDistanceCalculator.calculateDistance: node "
+        			+ id1 + " not found.");
+        } else if (node2 == null) {
+        	System.err.println("CzibulaDistanceCalculator.calculateDistance: node "
+        			+ id2 + " not found.");
+        } else {
+        	distance = calculateDistance(node1, node2);
+        }
         return distance;
     }
 
