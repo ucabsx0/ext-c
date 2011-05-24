@@ -54,6 +54,7 @@ import nz.ac.vuw.ecs.kcassell.cluster.ClustererIfc;
 import nz.ac.vuw.ecs.kcassell.cluster.GraphBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
+import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
@@ -269,6 +270,12 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			if (DistanceCalculatorEnum.GoogleDistance.toString().equalsIgnoreCase(
 					sCalc)) {
 				IdentifierGoogleDistanceCalculator calc = new IdentifierGoogleDistanceCalculator();
+				MemberCluster cluster = clusterUsingIdentifiers(callGraph, calc);
+				displayClusterString(cluster);
+				agglomerativePostProcessing(aggApplet);
+			} else if (DistanceCalculatorEnum.Czibula.toString().equalsIgnoreCase(sCalc)) {
+				CzibulaDistanceCalculator calc =
+					new CzibulaDistanceCalculator(callGraph);
 				MemberCluster cluster = clusterUsingIdentifiers(callGraph, calc);
 				displayClusterString(cluster);
 				agglomerativePostProcessing(aggApplet);

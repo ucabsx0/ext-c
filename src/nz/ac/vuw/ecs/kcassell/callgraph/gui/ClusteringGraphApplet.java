@@ -127,12 +127,12 @@ implements ClusterUIConstants, ParameterConstants
 	//TODO avoid aliasing problems
 	protected JTextArea clustersTextArea = null;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Map<CallGraphNode, Paint> vertexPaints =
 		LazyMap.<CallGraphNode, Paint> decorate(
 	            new HashMap<CallGraphNode, Paint>(),
 	            new ConstantTransformer(Color.white));
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Map<CallGraphLink, Paint> edgePaints =
 		LazyMap.<CallGraphLink, Paint> decorate(
 	            new HashMap<CallGraphLink, Paint>(),

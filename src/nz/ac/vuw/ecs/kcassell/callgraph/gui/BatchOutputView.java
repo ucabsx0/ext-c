@@ -69,12 +69,16 @@ import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth.FrequentMethodsM
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
 import nz.ac.vuw.ecs.kcassell.similarity.ClientDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
+import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCollector;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
+import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
@@ -307,43 +311,60 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						.equalsIgnoreCase(sCalc)) {
 					DistanceCalculatorIfc<String> calc =
 						new IntraClassDistanceCalculator(callGraph);
-					List<String> memberHandles = EclipseUtils
-							.getFilteredMemberHandles(handle);
-					MatrixBasedAgglomerativeClusterer clusterer =
-						new MatrixBasedAgglomerativeClusterer(
-							memberHandles, calc);
-					MemberCluster cluster = clusterer.getSingleCluster();
-					reportAgglomerationResults(handle, sCalc, cluster);
-				} else if (DistanceCalculatorEnum.GoogleDistance.toString()
+					agglomerateUsingCalculator(sCalc, calc);
+				} else if (DistanceCalculatorEnum.Czibula.toString()
 						.equalsIgnoreCase(sCalc)) {
 					try {
-						DistanceCalculatorIfc<String> calc =
-							new IdentifierGoogleDistanceCalculator();
-						List<String> memberHandles =
-							EclipseUtils.getFilteredMemberNames(handle);
-//							EclipseUtils.getMemberHandles(handle);
-						MatrixBasedAgglomerativeClusterer clusterer =
-							new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
-						MemberCluster cluster = clusterer.getSingleCluster();
-						reportAgglomerationResults(handle, sCalc, cluster);
+					    DistanceCalculatorIfc<String> calc =
+					    	new CzibulaDistanceCalculator(callGraph);
+						agglomerateUsingCalculator(handle, calc);
 					} catch (Exception e) {
-						String msg = "Unable to calculate distances.  (No web access?)";
-						JOptionPane.showMessageDialog(mainPanel, msg,
-							"Error Clustering", JOptionPane.WARNING_MESSAGE);
+						showAgglomerationError(sCalc, e);
+					}
+				} else if (DistanceCalculatorEnum.Identifier.toString()
+						.equalsIgnoreCase(sCalc)) {
+					try {
+					    DistanceCalculatorIfc<String> calc =
+					    	new IdentifierDistanceCalculator();
+						agglomerateUsingCalculator(handle, calc);
+					} catch (Exception e) {
+						showAgglomerationError(sCalc, e);
+					}
+				} else if (DistanceCalculatorEnum.Levenshtein.toString()
+						.equalsIgnoreCase(sCalc)) {
+					try {
+					    DistanceCalculatorIfc<String> calc =
+					    	new LevenshteinDistanceCalculator();
+						agglomerateUsingCalculator(handle, calc);
+					} catch (Exception e) {
+						showAgglomerationError(sCalc, e);
+					}
+				} else if (DistanceCalculatorEnum.Simon.toString()
+						.equalsIgnoreCase(sCalc)) {
+					try {
+					    DistanceCalculatorIfc<String> calc =
+					    	new SimonDistanceCalculator(callGraph);
+						agglomerateUsingCalculator(handle, calc);
+					} catch (Exception e) {
+						showAgglomerationError(sCalc, e);
 					}
 				} else if (DistanceCalculatorEnum.VectorSpaceModel.toString()
 						.equalsIgnoreCase(sCalc)) {
 					try {
 					    DistanceCalculatorIfc<String> calc =
 					    	VectorSpaceModelCalculator.getCalculator(handle);
-						List<String> memberHandles =
-							EclipseUtils.getFilteredMemberHandles(handle);
-						MatrixBasedAgglomerativeClusterer clusterer =
-							new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
-						MemberCluster cluster = clusterer.getSingleCluster();
-						reportAgglomerationResults(handle, sCalc, cluster);
+						agglomerateUsingCalculator(handle, calc);
 					} catch (Exception e) {
-						String msg = "Problem with the VectorSpaceModelCalculator: " + e;
+						showAgglomerationError(sCalc, e);
+					}
+				} else if (DistanceCalculatorEnum.GoogleDistance.toString()
+						.equalsIgnoreCase(sCalc)) {
+					try {
+						DistanceCalculatorIfc<String> calc =
+							new IdentifierGoogleDistanceCalculator();
+						agglomerateUsingCalculator(handle, calc);
+					} catch (Exception e) {
+						String msg = "Unable to calculate distances.  (No web access?)";
 						JOptionPane.showMessageDialog(mainPanel, msg,
 							"Error Clustering", JOptionPane.WARNING_MESSAGE);
 					}
@@ -374,6 +395,32 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		long end = System.currentTimeMillis();
 		buf.append("Clustering above took " + (end - start) + " millis");
 		buf.append(CLASS_SEPARATOR);
+	}
+
+
+	protected void showAgglomerationError(String sCalc, Exception e) {
+		String msg = "Problem agglomerating with the " + sCalc + "calculator: " + e;
+		JOptionPane.showMessageDialog(mainPanel, msg,
+			"Error Clustering", JOptionPane.WARNING_MESSAGE);
+	}
+
+
+	/**
+	 * Use agglomerative clustering with the indicated distance
+	 * calculator to form clusters.
+	 * @param sCalc the name of the calculator
+	 * @param handle the handle of the class whose members are to be clustered
+	 * @param calc the distance calculator
+	 * @throws JavaModelException
+	 */
+	protected void agglomerateUsingCalculator(String handle,
+			DistanceCalculatorIfc<String> calc) throws JavaModelException {
+		List<String> memberHandles =
+			EclipseUtils.getFilteredMemberHandles(handle);
+		MatrixBasedAgglomerativeClusterer clusterer =
+			new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
+		MemberCluster cluster = clusterer.getSingleCluster();
+		reportAgglomerationResults(handle, calc.getType().toString(), cluster);
 	}
 
 
