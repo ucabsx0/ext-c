@@ -415,11 +415,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 */
 	protected void agglomerateUsingCalculator(String handle,
 			DistanceCalculatorIfc<String> calc) throws JavaModelException {
-		List<String> memberHandles =
-			EclipseUtils.getFilteredMemberHandles(handle);
-		MatrixBasedAgglomerativeClusterer clusterer =
-			new MatrixBasedAgglomerativeClusterer(memberHandles, calc);
-		MemberCluster cluster = clusterer.getSingleCluster();
+		MemberCluster cluster =
+			MatrixBasedAgglomerativeClusterer
+			.clusterUsingCalculator(handle, calc);
 		reportAgglomerationResults(handle, calc.getType().toString(), cluster);
 	}
 
@@ -447,8 +445,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					new BufferedWriter(fileWriter));
 			String clusterString = cluster.toNewickString();
 			writer.print(clusterString );
-			buf.append("Saved clusters produced from " + handle
-					+ " to " + fileName + "\n");
+			buf.append("Clusters produced from " + handle + " saved to:\n  "
+					+ fileName + "\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

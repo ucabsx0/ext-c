@@ -56,7 +56,6 @@ import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
 import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
-import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorIfc;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
@@ -180,12 +179,20 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 		}
 	}
 
-	protected void handleCalculatorRequest(JComboBox box) {
+	/**
+	 * Reset the global parameter value based on the menu item selected.
+	 * @param box the menu containing the selection
+	 * @param parameter the parameter to change
+	 */
+	protected void resetParameterValue(JComboBox box, String parameter) {
 		Object selectedItem = box.getSelectedItem();
-		String sCalculator = selectedItem.toString();
+		String newValue = selectedItem.toString();
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
-		parameters.setParameter(ParameterConstants.CALCULATOR_KEY,
-				sCalculator);
+		parameters.setParameter(parameter, newValue);
+	}
+
+	protected void handleCalculatorRequest(JComboBox box) {
+		resetParameterValue(box, ParameterConstants.CALCULATOR_KEY);
 		JavaCallGraph callGraph = clusteringApplet.getGraph();
 		if (callGraph == null) {
 			callGraph = app.graphView.getGraph();
@@ -200,11 +207,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	}
 
 	protected void handleClusterTextFormatRequest(JComboBox box) {
-		Object selectedItem = box.getSelectedItem();
-		String sFormat = selectedItem.toString();
-		ApplicationParameters parameters = ApplicationParameters.getSingleton();
-		parameters.setParameter(ParameterConstants.CLUSTER_TEXT_FORMAT_KEY,
-				sFormat);
+		resetParameterValue(box, ParameterConstants.CLUSTER_TEXT_FORMAT_KEY);
 		JavaCallGraph callGraph = clusteringApplet.getGraph();
 		if (callGraph == null) {
 			callGraph = app.graphView.getGraph();
@@ -219,11 +222,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	}
 
 	protected void handleClustererRequest(JComboBox box) {
-		Object selectedItem = box.getSelectedItem();
-		String sClusterer = selectedItem.toString();
-		ApplicationParameters parameters = ApplicationParameters.getSingleton();
-		parameters.setParameter(ParameterConstants.CLUSTERER_KEY,
-				sClusterer);
+		resetParameterValue(box, ParameterConstants.CLUSTERER_KEY);
 		JavaCallGraph callGraph = clusteringApplet.getGraph();
 		if (callGraph == null) {
 			callGraph = app.graphView.getGraph();
@@ -238,10 +237,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	}
 
 	protected void handleGroupLinkageRequest(JComboBox box) {
-		Object selectedItem = box.getSelectedItem();
-		String sLinkage = selectedItem.toString();
-		ApplicationParameters parameters = ApplicationParameters.getSingleton();
-		parameters.setParameter(ParameterConstants.LINKAGE_KEY, sLinkage);
+		resetParameterValue(box, ParameterConstants.LINKAGE_KEY);
 		JavaCallGraph callGraph = clusteringApplet.getGraph();
 		if (callGraph == null) {
 			callGraph = app.graphView.getGraph();
@@ -260,43 +256,49 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	 * @param callGraph
 	 */
 	public void setUpAgglomerativeClustering(JavaCallGraph callGraph) {
+		String classHandle = callGraph.getHandle();
 		AgglomerativeApplet aggApplet = (AgglomerativeApplet)clusteringApplet;
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
 		String sCalc =
 			parameters.getParameter(ParameterConstants.CALCULATOR_KEY,
 									DistanceCalculatorEnum.IntraClass.toString());
+		DistanceCalculatorEnum calcType = DistanceCalculatorEnum.valueOf(sCalc);
 
 		try {
-			if (DistanceCalculatorEnum.GoogleDistance.toString().equalsIgnoreCase(
-					sCalc)) {
-				IdentifierGoogleDistanceCalculator calc = new IdentifierGoogleDistanceCalculator();
-				MemberCluster cluster = clusterUsingIdentifiers(callGraph, calc);
+			if (DistanceCalculatorEnum.GoogleDistance.equals(calcType)) {
+				IdentifierGoogleDistanceCalculator calc =
+					new IdentifierGoogleDistanceCalculator();
+				MemberCluster cluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(classHandle, calc);
 				displayClusterString(cluster);
 				agglomerativePostProcessing(aggApplet);
-			} else if (DistanceCalculatorEnum.Czibula.toString().equalsIgnoreCase(sCalc)) {
+			} else if (DistanceCalculatorEnum.Czibula.equals(calcType)) {
 				CzibulaDistanceCalculator calc =
 					new CzibulaDistanceCalculator(callGraph);
-				MemberCluster cluster = clusterUsingIdentifiers(callGraph, calc);
+				MemberCluster cluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(classHandle, calc);
 				displayClusterString(cluster);
 				agglomerativePostProcessing(aggApplet);
-			} else if (DistanceCalculatorEnum.Identifier.toString().equalsIgnoreCase(sCalc)) {
+			} else if (DistanceCalculatorEnum.Identifier.equals(calcType)) {
 				IdentifierDistanceCalculator calc =
 					new IdentifierDistanceCalculator();
-				MemberCluster cluster = clusterUsingIdentifiers(callGraph, calc);
+				MemberCluster cluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(classHandle, calc);
 				displayClusterString(cluster);
 				agglomerativePostProcessing(aggApplet);
-			} else if (DistanceCalculatorEnum.IntraClass.toString().equalsIgnoreCase(
-					sCalc)) {
+			} else if (DistanceCalculatorEnum.IntraClass.equals(calcType)) {
 				setUpIntraClassCalculation(callGraph);
-			} else if (DistanceCalculatorEnum.Levenshtein.toString().equalsIgnoreCase(
-					sCalc)) {
+			} else if (DistanceCalculatorEnum.Levenshtein.equals(calcType)) {
 				LevenshteinDistanceCalculator calc = new LevenshteinDistanceCalculator();
-				MemberCluster cluster = clusterUsingIdentifiers(callGraph, calc);
+				MemberCluster cluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(classHandle, calc);
 				displayClusterString(cluster);
 				agglomerativePostProcessing(aggApplet);
-			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
-					sCalc)) {
-				String classHandle = callGraph.getHandle();
+			} else if (DistanceCalculatorEnum.VectorSpaceModel.equals(calcType)) {
 				VectorSpaceModelCalculator calc =
 			    	VectorSpaceModelCalculator.getCalculator(classHandle);
 				List<String> names =
@@ -343,42 +345,46 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	 * @param callGraph
 	 */
 	public void setUpMixedModeClustering(JavaCallGraph callGraph) {
+		String handle = callGraph.getHandle();
 		graphId = callGraph.getGraphId();
 		AgglomerativeApplet aggApplet = (AgglomerativeApplet)clusteringApplet;
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
 		String sCalc =
 			parameters.getParameter(ParameterConstants.CALCULATOR_KEY,
 									DistanceCalculatorEnum.IntraClass.toString());
+		DistanceCalculatorEnum calcType = DistanceCalculatorEnum.valueOf(sCalc);
 
 		try {
-			if (DistanceCalculatorEnum.Identifier.toString().equalsIgnoreCase(sCalc)) {
+			if (DistanceCalculatorEnum.Identifier.equals(calcType)) {
 				IdentifierDistanceCalculator calc =
 					new IdentifierDistanceCalculator();
-				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				MemberCluster sCluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(handle, calc);
 				displayClusterString(sCluster);
 				agglomerativePostProcessing(aggApplet);
-			} else if (DistanceCalculatorEnum.IntraClass.toString().equalsIgnoreCase(
-					sCalc)) {
+			} else if (DistanceCalculatorEnum.IntraClass.equals(calcType)) {
 				setUpIntraClassCalculation(callGraph);
-			} else if (DistanceCalculatorEnum.GoogleDistance.toString().equalsIgnoreCase(
-					sCalc)) {
+			} else if (DistanceCalculatorEnum.GoogleDistance.equals(calcType)) {
 				IdentifierGoogleDistanceCalculator calc =
 					new IdentifierGoogleDistanceCalculator();
-				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				MemberCluster sCluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(handle, calc);
 				displayClusterString(sCluster);
 				agglomerativePostProcessing(aggApplet);
-			} else if (DistanceCalculatorEnum.Levenshtein.toString().equalsIgnoreCase(
-					sCalc)) {
-				LevenshteinDistanceCalculator calc = new LevenshteinDistanceCalculator();
-				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+			} else if (DistanceCalculatorEnum.Levenshtein.equals(calcType)) {
+				LevenshteinDistanceCalculator calc =
+					new LevenshteinDistanceCalculator();
+				MemberCluster sCluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(handle, calc);
 				displayClusterString(sCluster);
 				agglomerativePostProcessing(aggApplet);
-			} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equalsIgnoreCase(
-					sCalc)) {
-				String handle = callGraph.getHandle();
+			} else if (DistanceCalculatorEnum.VectorSpaceModel.equals(calcType)) {
 				VectorSpaceModelCalculator calc =
 			    	VectorSpaceModelCalculator.getCalculator(handle);
-				MemberCluster sCluster = clusterUsingIdentifiers(callGraph, calc);
+				MemberCluster sCluster = MatrixBasedAgglomerativeClusterer.clusterUsingCalculator(handle, calc);
 				displayClusterString(sCluster);
 				agglomerativePostProcessing(aggApplet);
 			} else {
@@ -395,27 +401,6 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			agglomerativePostProcessing(aggApplet);
 		}
 		mainPanel.setDividerLocation(0.25);
-	}
-
-	/**
-	 * Cluster based on the identifiers.
-	 * @param callGraph
-	 * @throws JavaModelException
-	 */
-	public static MemberCluster clusterUsingIdentifiers(JavaCallGraph callGraph,
-			DistanceCalculatorIfc<String> calc)
-	throws JavaModelException {
-		// TODO handles or simple names?
-		List<String> names = null;
-		if ((calc instanceof VectorSpaceModelCalculator)) {
-			names = EclipseUtils.getFilteredMemberHandles(callGraph.getHandle());
-		} else {
-			names = EclipseUtils.getFilteredMemberNames(callGraph.getHandle());
-		}
-		MatrixBasedAgglomerativeClusterer clusterer =
-			new MatrixBasedAgglomerativeClusterer(names, calc);
-		MemberCluster cluster = clusterer.getSingleCluster();
-		return cluster;
 	}
 
 	/**

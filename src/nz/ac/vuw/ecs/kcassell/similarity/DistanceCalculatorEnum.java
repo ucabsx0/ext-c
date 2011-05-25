@@ -48,5 +48,17 @@ public enum DistanceCalculatorEnum {
 	Levenshtein,
 //	MixedMode,
 	Simon,
-	VectorSpaceModel
+	VectorSpaceModel;
+	
+	/**
+	 * Some distance calculators calculate distance based on properties
+	 * of a class that require Eclipse handles to calculate, while others
+	 * merely require the member identifier.
+	 * @param calcType the calculator type
+	 * @return true when the calculator requires handles; false if it only
+	 * requires identifiers
+	 */
+	public static boolean usesHandles(DistanceCalculatorEnum calcType) {
+		return Czibula.equals(calcType) || VectorSpaceModel.equals(calcType);
+	}
 }

@@ -422,8 +422,8 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 
 		if (s1 != null && s2 != null) {
 			// VectorSpaceModelCalculator uses handles, not "simple names"
-			if (! (distanceCalculator instanceof VectorSpaceModelCalculator)) {
-				//TODO some other calculators should probably use handles too
+			DistanceCalculatorEnum calcType = distanceCalculator.getType();
+			if (!DistanceCalculatorEnum.usesHandles(calcType)) {
 				s1 = EclipseUtils.getNameFromHandle(s1);
 				s2 = EclipseUtils.getNameFromHandle(s2);
 			}
@@ -646,6 +646,28 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
         
         Forest<String, CallGraphLink> minSpanningForest = forest.getForest();
         return minSpanningForest;
+	}
+
+	/**
+	 * Cluster based on the identifiers.
+	 * @param handle the handle of the class whose members are to be clustered
+	 * @param calc the distance calculator to use
+	 * @throws JavaModelException
+	 */
+	public static MemberCluster clusterUsingCalculator(String handle,
+			DistanceCalculatorIfc<String> calc)
+	throws JavaModelException {
+		List<String> names = null;
+		DistanceCalculatorEnum calcType = calc.getType();
+		if (DistanceCalculatorEnum.usesHandles(calcType)) {
+			names = EclipseUtils.getFilteredMemberHandles(handle);
+		} else {
+			names = EclipseUtils.getFilteredMemberNames(handle);
+		}
+		MatrixBasedAgglomerativeClusterer clusterer =
+			new MatrixBasedAgglomerativeClusterer(names, calc);
+		MemberCluster cluster = clusterer.getSingleCluster();
+		return cluster;
 	}
 
 }
