@@ -83,11 +83,12 @@ import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class ExtC
 implements ChangeListener, ParameterConstants, RefactoringConstants {
-	private static final int AGGLOMERATION_TAB_INDEX = 3;
+	private static final int AGGLOMERATION_TAB_INDEX = 4;
+	private static final int AGG_CLUSTERING_TAB_INDEX = 3;
 	private static final int BETWEENNESS_TAB_INDEX = 2;
 	private static final int GRAPH_TAB_INDEX = 1;
 	private static final int METRICS_TAB_INDEX = 0;
-	private static final int SPANNING_FOREST_TAB_INDEX = 4;
+	private static final int SPANNING_FOREST_TAB_INDEX = 5;
 
 
 	/** Maintains various parameters for the application. */
@@ -113,6 +114,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 
 	/** The view for agglomerative clustering. */
 	protected ClusteringView aggClusteringView = null;
+	protected AgglomerationView agglomerationView = null;
 
 	/** The view for agglomerative clustering. */
 	protected SpanningForestView spanningForestView = null;
@@ -245,7 +247,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 			if (selectedIndex == BETWEENNESS_TAB_INDEX) {
 				component = betweennessView.getVisualizer();
 				// component = betweennessApplet.getVisualizer();
-			} else if (selectedIndex == AGGLOMERATION_TAB_INDEX) {
+			} else if (selectedIndex == AGG_CLUSTERING_TAB_INDEX) {
 				component = aggClusteringView.getVisualizer();
 			} else if (selectedIndex == SPANNING_FOREST_TAB_INDEX) {
 				component = spanningForestView.getVisualizer();
@@ -290,8 +292,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 					lastDirAccessed = file.getParent();
 					try {
 						String fileName = file.getAbsolutePath();
-						JTextArea textArea = aggClusteringView
-								.getClustersTextArea();
+						JTextArea textArea = null;
 						PrintWriter writer = new PrintWriter(
 								new BufferedWriter(new FileWriter(fileName)));
 
@@ -299,8 +300,12 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 							textArea = betweennessView.getClustersTextArea();
 							writeTextToFile(textArea, writer);
 						} // end if betweenness
-						else if (selectedIndex == AGGLOMERATION_TAB_INDEX) {
+						else if (selectedIndex == AGG_CLUSTERING_TAB_INDEX) {
 							textArea = aggClusteringView.getClustersTextArea();
+							writeTextToFile(textArea, writer);
+						} // end if agglomeration
+						else if (selectedIndex == AGGLOMERATION_TAB_INDEX) {
+							textArea = agglomerationView.getClustersTextArea();
 							writeTextToFile(textArea, writer);
 						} // end if agglomeration
 						else if (selectedIndex == SPANNING_FOREST_TAB_INDEX) {
@@ -438,8 +443,12 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		return betweennessView;
 	}
 
-	public ClusteringView getClusteringView() {
+	public ClusteringView getAggClusteringView() {
 		return aggClusteringView;
+	}
+
+	public AgglomerationView getAgglomerationView() {
+		return agglomerationView;
 	}
 
 	public SpanningForestView getSpanningForestView() {
@@ -573,19 +582,25 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 		metricsView.setUpView();
 		graphView = new GraphView(this);
 		createBetweennessView();
+		createAggClusteringView();
 		createAgglomerationView();
 		createSpanningForestView();
 		batchOutputView = new BatchOutputView(this);
 		mainPane.addTab("Metrics", metricsView.getMainPanel());
 		mainPane.addTab("Call Graph", graphView.getMainPanel());
 		mainPane.addTab("Betweenness", betweennessView.getMainPanel());
-		mainPane.addTab("Agglomeration", aggClusteringView.getMainPanel());
+		mainPane.addTab("AggClustering", aggClusteringView.getMainPanel());
+		mainPane.addTab("Agglomeration", agglomerationView.getMainPanel());
 		mainPane.addTab("SpanningForest", spanningForestView.getMainPanel());
 		mainPane.addTab("Batch Output", batchOutputView.getMainPanel());
 		return mainPane;
 	}
 
 	protected void createAgglomerationView() {
+		agglomerationView = new AgglomerationView(this);
+	}
+
+	protected void createAggClusteringView() {
 		AgglomerativeApplet clusteringApplet = new AgglomerativeApplet();
 		aggClusteringView = new ClusteringView(clusteringApplet, this);
 	}
@@ -711,7 +726,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 					betweennessView.setUpBetweennessClustering(callGraph);
 				}
 			} // end if betweenness
-			else if (selectedIndex == AGGLOMERATION_TAB_INDEX) {
+			else if (selectedIndex == AGG_CLUSTERING_TAB_INDEX) {
 				String id = callGraph.getGraphId();
 				String oldId = aggClusteringView.getGraphId();
 
@@ -729,6 +744,14 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 					}
 					// TODO remove debug
 					System.out.println("Clusterer = " + sClusterer);
+				}
+			} // end if agglomeration
+			else if (selectedIndex == AGGLOMERATION_TAB_INDEX) {
+				String id = callGraph.getGraphId();
+				String oldId = aggClusteringView.getGraphId();
+
+				if (!oldId.equals(id)) {
+					agglomerationView.setUpAgglomerativeClustering(callGraph);
 				}
 			} // end if agglomeration
 			else if (selectedIndex == SPANNING_FOREST_TAB_INDEX) {
