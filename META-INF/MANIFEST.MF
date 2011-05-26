@@ -39,7 +39,8 @@ Bundle-ClassPath: lib/collections-generic-4.01.jar,
  lib/lsa-vsm-mod.jar,
  lib/stax-api-1.0.1.jar,
  lib/wstx-asl-3.2.6.jar,
- .
+ .,
+ lib/forester.jar
 Export-Package: EDU.oswego.cs.dl.util.concurrent,
  EDU.oswego.cs.dl.util.concurrent.misc;uses:="EDU.oswego.cs.dl.util.concurrent,javax.swing,new EDU.oswego.cs.dl.util.concurrent.misc",
  cern.clhep,
