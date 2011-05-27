@@ -41,7 +41,9 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.JApplet;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -68,8 +70,13 @@ import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.jdt.core.JavaModelException;
+import org.forester.archaeopteryx.ArchaeopteryxA;
+import org.forester.archaeopteryx.ArchaeopteryxAdapter;
 import org.forester.archaeopteryx.ArchaeopteryxE;
+import org.forester.archaeopteryx.Configuration;
 import org.forester.archaeopteryx.Constants;
+import org.forester.archaeopteryx.MainFrameApplication;
+import org.forester.phylogeny.Phylogeny;
 
 public class AgglomerationView implements ClusterUIConstants, ActionListener{
 
@@ -111,14 +118,15 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 	protected String graphId = "";
         
 	/** The main panel for this view. */
-    protected JSplitPane mainPanel = null;
+    protected JComponent mainPanel = null;
     
     /** Where descriptive text about the clusters is written. */
     protected JTextArea clustersTextArea = null;
 
 	/** The visualization area for agglomerative clustering. */
 //    protected ClusteringGraphApplet clusteringApplet = null;
-    protected ArchaeopteryxE dendrogramApplet = null;
+    protected ArchaeopteryxE dendrogramComponent = null;
+//    protected JComponent dendrogramComponent = null;
 
 	public AgglomerationView(ExtC extC) {
 		app = extC;
@@ -130,7 +138,7 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 	/**
 	 * @return the mainPanel
 	 */
-	public JSplitPane getMainPanel() {
+	public JComponent getMainPanel() {
 		return mainPanel;
 	}
 	
@@ -154,33 +162,59 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 	protected void setUpView() {
 		clustersTextArea = new JTextArea();
 		clustersTextArea.setEditable(false);
+		clustersTextArea.setText("Text area");
 		JScrollPane clusterTextScroller = new JScrollPane(clustersTextArea);
 //		clusteringApplet.setClustersTextArea(clustersTextArea);
-		mainPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-				clusterTextScroller, dendrogramApplet);
-//				clusterTextScroller, clusteringApplet);
 		setUpDendrogramApplet();
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+				clusterTextScroller, dendrogramComponent);
+//				clusterTextScroller, clusteringApplet);
 //        clusteringApplet.start();
+		splitPane.setDividerLocation(0.25);
+		mainPanel = splitPane;
 		mainPanel.validate();
 		mainPanel.repaint();
-		mainPanel.setDividerLocation(0.25);
 	}
 
 	private void setUpDendrogramApplet() {
-        ArchaeopteryxAppletStub stub = new ArchaeopteryxAppletStub();
-        stub.setParameter("config_file",  "file://" + RefactoringConstants.PROJECT_ROOT
-        		+ "_aptx_configuration_file.txt");
-        stub.setParameter("url_of_tree_to_load", "file://" +
-        		RefactoringConstants.PROJECT_ROOT + "datasets/RuleVectorSpaceModelSINGLE_LINK.tree");
-//        stub.setParameter(Constants.APPLET_PARAM_NAME_FOR_CONFIG_FILE_URL, "");  // Constant isn't public!
-//        stub.setParameter(Constants.APPLET_PARAM_NAME_FOR_URL_OF_TREE_TO_LOAD, "");    // Constant isn't public!
-        dendrogramApplet = new ArchaeopteryxE();
-        dendrogramApplet.setStub(stub);
+        String initialTreeFileName = RefactoringConstants.PROJECT_ROOT
+        	+ "datasets/Dendrograms/no.tree";
+        showDendrogram(initialTreeFileName);
+	}
 
-        dendrogramApplet.init();
-//        dendrogramApplet.setPreferredSize(new java.awt.Dimension(200,200));
-//        JOptionPane.showMessageDialog(null, dendrogramApplet);
-		dendrogramApplet.start();
+	public void showDendrogram(String fileName) {
+		ArchaeopteryxAppletStub stub = new ArchaeopteryxAppletStub();
+        String configFileName = RefactoringConstants.PROJECT_ROOT
+		        		+ "_aptx_configuration_file.txt";
+		stub.setParameter("config_file",  "file://" + configFileName);
+//      stub.setParameter(Constants.APPLET_PARAM_NAME_FOR_CONFIG_FILE_URL, "");  // Constant isn't public!
+		stub.setParameter("url_of_tree_to_load", "file://" + fileName);
+//        stub.setParameter(Constants.APPLET_PARAM_NAME_FOR_URL_OF_TREE_TO_LOAD, "");    // Constant isn't public!
+        dendrogramComponent = new ArchaeopteryxE();
+        dendrogramComponent.setStub(stub);
+        dendrogramComponent.init();
+		dendrogramComponent.start();
+//		try {
+//			URL url = new URL("file://"
+//					+ RefactoringConstants.PROJECT_ROOT
+//					+ "datasets/RuleVectorSpaceModelSINGLE_LINK.tree");
+//			loadDendrogram(url);
+//		}
+//		catch ( final Exception e ) {
+//			e.printStackTrace();
+//			JOptionPane.showMessageDialog(null,
+//					"Failed to read phylogenies: " + "\nException: " + e,
+//					"Failed to read phylogenies",
+//					JOptionPane.ERROR_MESSAGE );
+//		}
+	}
+	
+	public void loadDendrogram(URL phys_url) throws IOException {
+		Phylogeny[] phylogenies =
+			ArchaeopteryxAdapter.readPhylogeniesFromUrl(phys_url, false);
+//			ArchaeopteryxAdapter.addPhylogenyToPanel(phylogenies,
+//					ArchaeopteryxAdapter.getConfiguration(dendrogramApplet),
+//					ArchaeopteryxAdapter.getMainPanel(dendrogramApplet));
 	}
 
 	/**
@@ -349,7 +383,6 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 					"UI Error", JOptionPane.WARNING_MESSAGE);
 			e.printStackTrace();
 		}
-		mainPanel.setDividerLocation(0.25);
 	}
 
 	protected void displayClusterString(MemberCluster cluster) {
@@ -430,7 +463,6 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 			clustersTextArea.setText("");
 //			agglomerativePostProcessing(aggApplet);
 		}
-		mainPanel.setDividerLocation(0.25);
 	}
 
 	/**
