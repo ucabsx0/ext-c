@@ -36,12 +36,15 @@ import java.applet.AppletContext;
 import java.applet.AppletStub;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.swing.JApplet;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -52,6 +55,7 @@ import javax.swing.SwingUtilities;
 
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
+import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClusterTextFormatEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClustererIfc;
 import nz.ac.vuw.ecs.kcassell.cluster.GraphBasedAgglomerativeClusterer;
@@ -66,16 +70,13 @@ import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
+import nz.ac.vuw.ecs.kcassell.utils.FileUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.jdt.core.JavaModelException;
-import org.forester.archaeopteryx.ArchaeopteryxA;
 import org.forester.archaeopteryx.ArchaeopteryxAdapter;
 import org.forester.archaeopteryx.ArchaeopteryxE;
-import org.forester.archaeopteryx.Configuration;
-import org.forester.archaeopteryx.Constants;
-import org.forester.archaeopteryx.MainFrameApplication;
 import org.forester.phylogeny.Phylogeny;
 
 public class AgglomerationView implements ClusterUIConstants, ActionListener{
@@ -119,6 +120,8 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
         
 	/** The main panel for this view. */
     protected JComponent mainPanel = null;
+    
+    protected JSplitPane splitPane = null;
     
     /** Where descriptive text about the clusters is written. */
     protected JTextArea clustersTextArea = null;
@@ -165,9 +168,9 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 		clustersTextArea.setText("Text area");
 		JScrollPane clusterTextScroller = new JScrollPane(clustersTextArea);
 //		clusteringApplet.setClustersTextArea(clustersTextArea);
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		splitPane.add(clusterTextScroller);
 		setUpDendrogramApplet();
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-				clusterTextScroller, dendrogramComponent);
 //				clusterTextScroller, clusteringApplet);
 //        clusteringApplet.start();
 		splitPane.setDividerLocation(0.25);
@@ -179,34 +182,33 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 	private void setUpDendrogramApplet() {
         String initialTreeFileName = RefactoringConstants.PROJECT_ROOT
         	+ "datasets/Dendrograms/no.tree";
-        showDendrogram(initialTreeFileName);
+        try {
+			showDendrogram(initialTreeFileName);
+		} catch (MalformedURLException e) {
+			String msg = "Unable to show dendrogram for"
+				+  initialTreeFileName;
+			JOptionPane.showMessageDialog(mainPanel, msg,
+					"Initialization Problem", JOptionPane.WARNING_MESSAGE);
+			e.printStackTrace();
+		}
 	}
 
-	public void showDendrogram(String fileName) {
+	public void showDendrogram(String treeFileName) throws MalformedURLException {
 		ArchaeopteryxAppletStub stub = new ArchaeopteryxAppletStub();
         String configFileName = RefactoringConstants.PROJECT_ROOT
 		        		+ "_aptx_configuration_file.txt";
-		stub.setParameter("config_file",  "file://" + configFileName);
-//      stub.setParameter(Constants.APPLET_PARAM_NAME_FOR_CONFIG_FILE_URL, "");  // Constant isn't public!
-		stub.setParameter("url_of_tree_to_load", "file://" + fileName);
-//        stub.setParameter(Constants.APPLET_PARAM_NAME_FOR_URL_OF_TREE_TO_LOAD, "");    // Constant isn't public!
+        String configUrlString = FileUtils.toURLString(configFileName);
+		stub.setParameter("config_file",  configUrlString);
+//      APPLET_PARAM_NAME_FOR_CONFIG_FILE_URL isn't public!
+        String treeUrlString = FileUtils.toURLString(treeFileName);
+		stub.setParameter("url_of_tree_to_load", treeUrlString);
+//      APPLET_PARAM_NAME_FOR_URL_OF_TREE_TO_LOAD isn't public!
         dendrogramComponent = new ArchaeopteryxE();
         dendrogramComponent.setStub(stub);
         dendrogramComponent.init();
 		dendrogramComponent.start();
-//		try {
-//			URL url = new URL("file://"
-//					+ RefactoringConstants.PROJECT_ROOT
-//					+ "datasets/RuleVectorSpaceModelSINGLE_LINK.tree");
-//			loadDendrogram(url);
-//		}
-//		catch ( final Exception e ) {
-//			e.printStackTrace();
-//			JOptionPane.showMessageDialog(null,
-//					"Failed to read phylogenies: " + "\nException: " + e,
-//					"Failed to read phylogenies",
-//					JOptionPane.ERROR_MESSAGE );
-//		}
+		splitPane.add(dendrogramComponent, JSplitPane.RIGHT, -1);
+		splitPane.repaint();
 	}
 	
 	public void loadDendrogram(URL phys_url) throws IOException {
@@ -335,7 +337,7 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 				MemberCluster cluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(classHandle, calc);
-				displayClusterString(cluster);
+				displayCluster(classHandle, cluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.Czibula.equals(calcType)) {
 				CzibulaDistanceCalculator calc =
@@ -343,7 +345,7 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 				MemberCluster cluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(classHandle, calc);
-				displayClusterString(cluster);
+				displayCluster(classHandle, cluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.Identifier.equals(calcType)) {
 				IdentifierDistanceCalculator calc =
@@ -351,7 +353,7 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 				MemberCluster cluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(classHandle, calc);
-				displayClusterString(cluster);
+				displayCluster(classHandle, cluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.IntraClass.equals(calcType)) {
 				setUpIntraClassCalculation(callGraph);
@@ -360,7 +362,7 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 				MemberCluster cluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(classHandle, calc);
-				displayClusterString(cluster);
+				displayCluster(classHandle, cluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.equals(calcType)) {
 				VectorSpaceModelCalculator calc =
@@ -370,7 +372,7 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 				MatrixBasedAgglomerativeClusterer clusterer =
 					new MatrixBasedAgglomerativeClusterer(names, calc);
 				MemberCluster cluster = clusterer.getSingleCluster();
-				displayClusterString(cluster);
+				displayCluster(classHandle, cluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else {
 				String msg = "Unable to set up agglomerative clustering using " + sCalc;
@@ -384,6 +386,65 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 			e.printStackTrace();
 		}
 	}
+
+	protected void displayCluster(String classHandle, MemberCluster cluster) {
+		displayClusterString(cluster);
+		String file;
+		try {
+			file = saveResultsToFile(classHandle, cluster);
+			showDendrogram(file);
+		} catch (IOException e) {
+			String msg = "Problems preparing dendrogram";
+			JOptionPane.showMessageDialog(mainPanel, msg,
+					"Dendrogram Preparation Error", JOptionPane.WARNING_MESSAGE);
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Saves agglomerated clusters to a file in Newick format
+	 * @param handle the handle of the class whose members were clustered
+	 * @param sCalc the distance calculator used
+	 * @param cluster the final cluster produced
+	 * @return the file where the data was saved
+	 * @throws IOException 
+	 */
+	protected String saveResultsToFile(String handle,
+			MemberCluster cluster) throws IOException {
+		ApplicationParameters params = ApplicationParameters.getSingleton();
+		String sCalc =
+			params.getParameter(ParameterConstants.CALCULATOR_KEY,
+								DistanceCalculatorEnum.IntraClass.toString());
+		String sLinkage = params.getParameter(
+				ParameterConstants.LINKAGE_KEY,
+				ClusterCombinationEnum.SINGLE_LINK.toString());
+		String nameFromHandle = EclipseUtils.getNameFromHandle(handle);
+		String fileName = RefactoringConstants.DATA_DIR +
+							nameFromHandle + sCalc + sLinkage + ".tree";
+		PrintWriter writer = null;
+		FileWriter fileWriter = null;
+		
+		try {
+			fileWriter = new FileWriter(fileName);
+			writer = new PrintWriter(
+					new BufferedWriter(fileWriter));
+			String clusterString = cluster.toNewickString();
+			writer.print(clusterString );
+		} finally {
+			if (writer != null) {
+				writer.close();
+			} else if (fileWriter != null) {
+				try {
+					fileWriter.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return fileName;
+	}
+
 
 	protected void displayClusterString(MemberCluster cluster) {
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
@@ -424,7 +485,7 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 				MemberCluster sCluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(handle, calc);
-				displayClusterString(sCluster);
+				displayCluster(handle, sCluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.IntraClass.equals(calcType)) {
 				setUpIntraClassCalculation(callGraph);
@@ -434,7 +495,7 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 				MemberCluster sCluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(handle, calc);
-				displayClusterString(sCluster);
+				displayCluster(handle, sCluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.Levenshtein.equals(calcType)) {
 				LevenshteinDistanceCalculator calc =
@@ -442,13 +503,13 @@ public class AgglomerationView implements ClusterUIConstants, ActionListener{
 				MemberCluster sCluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(handle, calc);
-				displayClusterString(sCluster);
+				displayCluster(handle, sCluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.equals(calcType)) {
 				VectorSpaceModelCalculator calc =
 			    	VectorSpaceModelCalculator.getCalculator(handle);
 				MemberCluster sCluster = MatrixBasedAgglomerativeClusterer.clusterUsingCalculator(handle, calc);
-				displayClusterString(sCluster);
+				displayCluster(handle, sCluster);
 //				agglomerativePostProcessing(aggApplet);
 			} else {
 				String msg = "Unable to set up agglomerative clustering using " + sCalc;
