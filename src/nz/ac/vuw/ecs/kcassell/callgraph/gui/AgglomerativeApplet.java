@@ -58,10 +58,8 @@ import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
-import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClusterTextFormatEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClustererIfc;
-import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -72,27 +70,16 @@ import edu.uci.ics.jung.visualization.VisualizationViewer;
 public class AgglomerativeApplet extends ClusteringGraphApplet
 implements ClusterUIConstants, ParameterConstants {
 	
-	public static final String CALCULATOR_COMBO = "CalculatorCombo";
-	public static final String CLUSTERER_COMBO = "ClustererCombo";
 	public static final String CLUSTER_TEXT_FORMAT_COMBO = "ClusterTextFormatCombo";
-	public static final String LINK_COMBO = "LinkCombo";
 
 	protected static final long serialVersionUID = 1L;
 	protected Layout<CallGraphNode, CallGraphLink> layout = null;
 
-	/** Where the user selects the distance calculator. */
-	protected JComboBox calculatorBox = null;
-
-	/** Where the user selects the clusterer. */
-	protected JComboBox clustererBox = null;
-
-	/** Where the user selects the group linkage type. */
-	protected JComboBox groupLinkageBox = null;
-
 	/** Where the user selects the text format. */
 	protected JComboBox textFormatBox = null;
 
-	JPanel southPanel = null;
+	/** The panel with the controls (e.g. JComboBoxes) */
+	protected JPanel southPanel = null;
 
 	// protected HashMap<CallGraphNode, Point2D> nodePositions =
 	// new HashMap<CallGraphNode, Point2D>();
@@ -121,38 +108,6 @@ implements ClusterUIConstants, ParameterConstants {
 		visualizer.repaint();
 	}
 
-	private JComboBox createLinkageCombo() {
-		Vector<String> menuItems = new Vector<String>();
-		for (ClusterCombinationEnum linkage : ClusterCombinationEnum.values()) {
-			menuItems.add(linkage.toString());
-		}
-		JComboBox linkageBox = new JComboBox(menuItems);
-		String sLink = parameters.getParameter(
-				LINKAGE_KEY,
-				ClusterCombinationEnum.AVERAGE_LINK.toString());
-		linkageBox.setSelectedItem(sLink);
-		linkageBox.setName(LINK_COMBO);
-		return linkageBox;
-	}
-
-	private JComboBox createCalculatorCombo() {
-		Vector<String> menuItems = new Vector<String>();
-		for (DistanceCalculatorEnum calc : DistanceCalculatorEnum.values()) {
-			// TODO reincorporate GoogleDistance when code to handle its
-			// long run-time is in place
-			if ( calc != DistanceCalculatorEnum.GoogleDistance) {
-				menuItems.add(calc.toString());
-			}
-		}
-		JComboBox calculatorBox = new JComboBox(menuItems);
-		String sCalc = parameters.getParameter(
-				CALCULATOR_KEY,
-				DistanceCalculatorEnum.IntraClass.toString());
-		calculatorBox.setSelectedItem(sCalc);
-		calculatorBox.setName(CALCULATOR_COMBO);
-		return calculatorBox;
-	}
-
 	private JComboBox createClusterTextFormatCombo() {
 		Vector<String> menuItems = new Vector<String>();
 		for (ClusterTextFormatEnum format : ClusterTextFormatEnum.values()) {
@@ -164,20 +119,6 @@ implements ClusterUIConstants, ParameterConstants {
 				ClusterTextFormatEnum.NEWICK.toString());
 		clustererBox.setSelectedItem(sFormat);
 		clustererBox.setName(CLUSTER_TEXT_FORMAT_COMBO);
-		return clustererBox;
-	}
-
-	private JComboBox createClustererCombo() {
-		Vector<String> menuItems = new Vector<String>();
-		for (ClustererEnum calc : ClustererEnum.values()) {
-			menuItems.add(calc.toString());
-		}
-		JComboBox clustererBox = new JComboBox(menuItems);
-		String sClusterer = parameters.getParameter(
-				CLUSTERER_KEY,
-				ClustererEnum.AGGLOMERATIVE.toString());
-		clustererBox.setSelectedItem(sClusterer);
-		clustererBox.setName(CLUSTERER_COMBO);
 		return clustererBox;
 	}
 
@@ -217,37 +158,19 @@ implements ClusterUIConstants, ParameterConstants {
 
 	protected JPanel setUpSouthPanel() {
 		southPanel = new JPanel();
-		GridLayout gridLayout = new GridLayout(2, 5);
+		GridLayout gridLayout = new GridLayout(2, 2);
 		JPanel grid = new JPanel(gridLayout);
 		gridLayout.setHgap(15);
+		southPanel.add(grid);
 		
-		JLabel clustererLabel = new JLabel("Clusterer: ");
-		grid.add(clustererLabel);
-		JLabel calcLabel = new JLabel("Distance Calculator: ");
-		grid.add(calcLabel);
-		JLabel groupLinkageLabel = new JLabel("Group Linkage: ");
-		grid.add(groupLinkageLabel);
 		JLabel iterationLabel = new JLabel("Visualize Agglomeration");
 		grid.add(iterationLabel);
 		JLabel formatLabel = new JLabel("Text Format: ");
 		grid.add(formatLabel);
 
-		clustererBox = createClustererCombo();
-		clustererBox.addActionListener(view);
-		grid.add(clustererBox);
-
-		calculatorBox = createCalculatorCombo();
-		calculatorBox.addActionListener(view);
-		grid.add(calculatorBox);
-
-		groupLinkageBox = createLinkageCombo();
-		groupLinkageBox.addActionListener(view);
-		grid.add(groupLinkageBox);
-
 		TitledBorder sliderBorder = setUpSliderPanel();
 		addChangeListenerToSlider(sliderBorder);
 		grid.add(sliderPanel);
-		southPanel.add(grid);
 
 		textFormatBox = createClusterTextFormatCombo();
 		textFormatBox.addActionListener(view);

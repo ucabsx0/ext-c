@@ -305,8 +305,10 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 							writeTextToFile(textArea, writer);
 						} // end if agglomeration
 						else if (selectedIndex == AGGLOMERATION_TAB_INDEX) {
-							textArea = agglomerationView.getClustersTextArea();
-							writeTextToFile(textArea, writer);
+							JOptionPane.showMessageDialog(extC.frame,
+									"No text to write.",
+									"No text to write",
+									JOptionPane.WARNING_MESSAGE);
 						} // end if agglomeration
 						else if (selectedIndex == SPANNING_FOREST_TAB_INDEX) {
 							textArea = spanningForestView.getClustersTextArea();

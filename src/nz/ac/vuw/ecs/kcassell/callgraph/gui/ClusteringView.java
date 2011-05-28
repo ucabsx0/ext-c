@@ -158,18 +158,9 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 				public void run() {
 					try {
 						mainPanel.setCursor(RefactoringConstants.WAIT_CURSOR);
-						if (AgglomerativeApplet.CALCULATOR_COMBO
-								.equals(sourceName)) {
-							handleCalculatorRequest(box);
-						} else if (AgglomerativeApplet.CLUSTER_TEXT_FORMAT_COMBO
+						if (AgglomerativeApplet.CLUSTER_TEXT_FORMAT_COMBO
 								.equals(sourceName)) {
 							handleClusterTextFormatRequest(box);
-						} else if (AgglomerativeApplet.CLUSTERER_COMBO
-								.equals(sourceName)) {
-							handleClustererRequest(box);
-						} else if (AgglomerativeApplet.LINK_COMBO
-								.equals(sourceName)) {
-							handleGroupLinkageRequest(box);
 						}
 					} finally {
 						mainPanel.setCursor(RefactoringConstants.DEFAULT_CURSOR);
@@ -184,60 +175,15 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	 * @param box the menu containing the selection
 	 * @param parameter the parameter to change
 	 */
-	protected void resetParameterValue(JComboBox box, String parameter) {
+	public static void resetParameterValue(JComboBox box, String parameter) {
 		Object selectedItem = box.getSelectedItem();
 		String newValue = selectedItem.toString();
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
 		parameters.setParameter(parameter, newValue);
 	}
 
-	protected void handleCalculatorRequest(JComboBox box) {
-		resetParameterValue(box, ParameterConstants.CALCULATOR_KEY);
-		JavaCallGraph callGraph = clusteringApplet.getGraph();
-		if (callGraph == null) {
-			callGraph = app.graphView.getGraph();
-		}
-		if (callGraph == null) {
-			String msg = "Choose a class for agglomerative clustering.";
-			JOptionPane.showMessageDialog(mainPanel, msg,
-					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
-		} else {
-			setUpAgglomerativeClustering(callGraph);
-		}
-	}
-
 	protected void handleClusterTextFormatRequest(JComboBox box) {
 		resetParameterValue(box, ParameterConstants.CLUSTER_TEXT_FORMAT_KEY);
-		JavaCallGraph callGraph = clusteringApplet.getGraph();
-		if (callGraph == null) {
-			callGraph = app.graphView.getGraph();
-		}
-		if (callGraph == null) {
-			String msg = "Choose a class for agglomerative clustering.";
-			JOptionPane.showMessageDialog(mainPanel, msg,
-					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
-		} else {
-			setUpAgglomerativeClustering(callGraph);
-		}
-	}
-
-	protected void handleClustererRequest(JComboBox box) {
-		resetParameterValue(box, ParameterConstants.CLUSTERER_KEY);
-		JavaCallGraph callGraph = clusteringApplet.getGraph();
-		if (callGraph == null) {
-			callGraph = app.graphView.getGraph();
-		}
-		if (callGraph == null) {
-			String msg = "Choose a class for agglomerative clustering.";
-			JOptionPane.showMessageDialog(mainPanel, msg,
-					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
-		} else {
-			setUpAgglomerativeClustering(callGraph);
-		}
-	}
-
-	protected void handleGroupLinkageRequest(JComboBox box) {
-		resetParameterValue(box, ParameterConstants.LINKAGE_KEY);
 		JavaCallGraph callGraph = clusteringApplet.getGraph();
 		if (callGraph == null) {
 			callGraph = app.graphView.getGraph();
@@ -332,7 +278,11 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 			ClusterTextFormatEnum.valueOf(clusterFormat);
 		String text = "*** nothing computed ***";
 
-		if (ClusterTextFormatEnum.NEWICK.equals(textFormatEnum)) {
+		if (ClusterTextFormatEnum.FLAT.equals(textFormatEnum)) {
+			text = cluster.toString();
+		} else if (ClusterTextFormatEnum.NESTED.equals(textFormatEnum)) {
+			text = cluster.toNestedString();
+		} else if (ClusterTextFormatEnum.NEWICK.equals(textFormatEnum)) {
 			text = cluster.toNewickString();
 		} else {
 			text = cluster.toNestedString();
