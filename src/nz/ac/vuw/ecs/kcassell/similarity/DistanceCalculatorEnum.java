@@ -39,14 +39,12 @@ package nz.ac.vuw.ecs.kcassell.similarity;
  *
  */
 public enum DistanceCalculatorEnum {
-	Betweenness,
 	ClientDistance,
 	Czibula,
 	GoogleDistance,
 	Identifier,
 	IntraClass,
 	Levenshtein,
-//	MixedMode,
 	Simon,
 	VectorSpaceModel;
 	
