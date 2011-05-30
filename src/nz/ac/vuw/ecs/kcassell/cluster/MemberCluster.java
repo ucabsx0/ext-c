@@ -38,7 +38,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
+import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import nz.ac.vuw.ecs.kcassell.utils.StringUtils;
 
 /**
@@ -234,11 +236,42 @@ public class MemberCluster implements ClusterIfc<String> {
 		}
 	}
 
+	public String toFlatString() {
+		StringBuffer buf = new StringBuffer(clusterName).append(":\n");
+		toFlatString(buf);
+		String flatString = buf.toString();
+		return flatString;
+	}
+
+	/**
+	 * Print all of the (leaf) elements of a cluster, disregarding
+	 * any nested structure.
+	 * @param buf collects the result
+	 */
+	protected void toFlatString(StringBuffer buf) {
+		String leadSpaces = "  ";
+		// If this is a leaf, print its name
+		if (children == null || children.size() == 0) {
+			buf.append(clusterName).append("\n");
+		}
+
+		for (Object component : children) {
+			if (component instanceof MemberCluster) {
+				MemberCluster cluster = (MemberCluster) component;
+				cluster.toFlatString(buf);
+			} else if (component instanceof String) { // element
+				buf.append(leadSpaces);
+				String name =
+					EclipseUtils.getNameFromHandle(component.toString());
+				buf.append(name).append("\n");
+			}
+		}
+	}
+
 	/**
 	 * Generates a string representation of the tree using the Newick/New
 	 * Hampshire format. Several software packages can create dendrograms based
 	 * on this representation.
-	 * 
 	 * @see http://evolution.genetics.washington.edu/phylip/newicktree.html
 	 */
 	public String toNewickString() {
@@ -315,8 +348,24 @@ public class MemberCluster implements ClusterIfc<String> {
 	}
 
 	public String toString() {
-		// return clusterName + " has " + elementCount + " elements";
-		return toNestedString();
+		String text = "";
+		ApplicationParameters parameters = ApplicationParameters.getSingleton();
+		String clusterFormat =
+			 parameters.getParameter(
+							ParameterConstants.CLUSTER_TEXT_FORMAT_KEY,
+							ClusterTextFormatEnum.NEWICK.toString());
+		ClusterTextFormatEnum textFormatEnum =
+			ClusterTextFormatEnum.valueOf(clusterFormat);
+		if (ClusterTextFormatEnum.FLAT.equals(textFormatEnum)) {
+			text = toFlatString();
+		} else if (ClusterTextFormatEnum.NESTED.equals(textFormatEnum)) {
+			text = toNestedString();
+		} else if (ClusterTextFormatEnum.NEWICK.equals(textFormatEnum)) {
+			text = toNewickString();
+		} else {
+			text = toNestedString();
+		}
+		return text;
 	}
 
 }
