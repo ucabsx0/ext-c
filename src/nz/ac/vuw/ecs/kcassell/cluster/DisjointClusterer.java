@@ -49,12 +49,12 @@ import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 
 	/** One of the two major groups. */
-	protected MemberCluster seed1 = null;
-	protected MemberCluster originalSeed1 = null;
+	protected MemberCluster cluster1 = null;
+	protected MemberCluster seedCluster1 = null;
 
 	/** One of the two major groups. */
-	protected MemberCluster seed2 = null;
-	protected MemberCluster originalSeed2 = null;
+	protected MemberCluster cluster2 = null;
+	protected MemberCluster seedCluster2 = null;
 	
     /**
      * Given a list of existing clusters and a calculator to calculate the
@@ -68,10 +68,10 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 			MemberCluster seed2,
 			List<MemberCluster> clusters,
 			String classHandle) {
-		this.seed1 = seed1;
-		originalSeed1 = seed1;
-		this.seed2 = seed2;
-		originalSeed2 = seed2;
+		this.cluster1 = seed1;
+		seedCluster1 = seed1;
+		this.cluster2 = seed2;
+		seedCluster2 = seed2;
 		try {
 			distanceCalculator = setUpSpecifiedCalculator(classHandle);
 			List<String> memberHandles =
@@ -104,12 +104,20 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 		logger.info(distanceMatrix.toString());
 	}
 
+	public MemberCluster getCluster1() {
+		return cluster1;
+	}
+
+	public MemberCluster getCluster2() {
+		return cluster2;
+	}
+
 	/**
 	 * Make seed1 and seed2 hard to merge
 	 */
 	protected void separateSeeds() {
-		String seed1Name = this.seed1.getClusterName();
-		String seed2Name = this.seed2.getClusterName();
+		String seed1Name = this.cluster1.getClusterName();
+		String seed2Name = this.cluster2.getClusterName();
 		distanceMatrix.setDistance(seed1Name, seed2Name,
 				RefactoringConstants.MAX_DISTANCE);
 	}
@@ -174,8 +182,8 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 		addChildToCluster(cluster, near2);
 		
 		// Name the new cluster based on the seed name, if possible
-		String seed1Name = seed1.getClusterName();
-		String seed2Name = seed2.getClusterName();
+		String seed1Name = cluster1.getClusterName();
+		String seed2Name = cluster2.getClusterName();
 		String nameBase =
 			(seed1Name.equals(near1) || seed2Name.equals(near1)) ? near1 : near2;
 		String clusterName = nameCluster(cluster, nameBase);
@@ -185,9 +193,9 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 		
 		// Reset a seed cluster if necessary
 		if (seed1Name.equals(near1) || seed1Name.equals(near2)) {
-			seed1 = cluster;
+			cluster1 = cluster;
 		} else if (seed2Name.equals(near1) || seed2Name.equals(near2)) {
-			seed2 = cluster;
+			cluster2 = cluster;
 		}
 		return cluster;
 	}
