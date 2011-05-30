@@ -753,7 +753,7 @@ implements ChangeListener, ParameterConstants, RefactoringConstants {
 				String oldId = aggClusteringView.getGraphId();
 
 				if (!oldId.equals(id)) {
-					agglomerationView.setUpAgglomerativeClustering(callGraph);
+					agglomerationView.performAgglomerativeClustering(callGraph);
 				}
 			} // end if agglomeration
 			else if (selectedIndex == SPANNING_FOREST_TAB_INDEX) {

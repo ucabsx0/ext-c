@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
@@ -59,6 +60,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
+import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
@@ -278,6 +280,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
         dendrogramComponent.init();
 		dendrogramComponent.start();
 		splitPane.add(dendrogramComponent, JSplitPane.RIGHT, -1);
+		splitPane.validate();
 		splitPane.repaint();
 	}
 	
@@ -323,34 +326,57 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 			JOptionPane.showMessageDialog(mainPanel, msg,
 					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
 		} else {
-			setUpAgglomerativeClustering(callGraph);
+			performAgglomerativeClustering(callGraph);
 		}
 	}
 
+	/**
+	 * Cluster based on the clusterer chosen by the user.
+	 * @param box
+	 */
 	protected void handleClustererRequest(JComboBox box) {
 		ClusteringView.resetParameterValue(box,
 				ParameterConstants.CLUSTERER_KEY);
 		JavaCallGraph callGraph = app.graphView.getGraph();
-		Object selectedItem = box.getSelectedItem();
-		String sClusterer = selectedItem.toString();
-		if (ClustererEnum.MIXED_MODE.toString().equalsIgnoreCase(sClusterer)) {
-//			Collection<CallGraphNode> clusters = clusterUsingMixedMode(callGraph);
-//			buf.append("Final clusters for " + callGraph.getName());
-//			appendClusterSizes(clusters);
-//			String sClusters = toOutputString(clusters);
-//			buf.append(":\n" + sClusters);
-			String msg = "Mixed mode clustering not yet available here.";
-			JOptionPane.showMessageDialog(mainPanel, msg, "NYI",
-					JOptionPane.WARNING_MESSAGE);
-		} else {	// assume agglomerative clustering
-			if (callGraph == null) {
-				String msg = "Choose a class for agglomerative clustering.";
-				JOptionPane.showMessageDialog(mainPanel, msg, "Choose Class",
-						JOptionPane.INFORMATION_MESSAGE);
+
+		if (callGraph == null) {
+			String msg = "Choose a class for agglomerative clustering.";
+			JOptionPane.showMessageDialog(mainPanel, msg, "Choose Class",
+					JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			Object selectedItem = box.getSelectedItem();
+			String sClusterer = selectedItem.toString();
+			
+			if (ClustererEnum.AGGLOMERATIVE.toString()
+					.equalsIgnoreCase(sClusterer)) {
+				performAgglomerativeClustering(callGraph);
+			} else if (ClustererEnum.MIXED_MODE.toString()
+					.equalsIgnoreCase(sClusterer)) {
+				performMixedModeClustering(callGraph);
 			} else {
-				setUpAgglomerativeClustering(callGraph);
+				String msg =
+					"Agglomerative clustering unavailable for " + sClusterer;
+				JOptionPane.showMessageDialog(mainPanel, msg, "Unavailable",
+						JOptionPane.WARNING_MESSAGE);
 			}
 		}
+	}
+
+	protected void performMixedModeClustering(JavaCallGraph callGraph) {
+		String classHandle = callGraph.getHandle();
+		MixedModeClusterer clusterer = new MixedModeClusterer(callGraph);
+		clusterer.cluster();
+		Collection<MemberCluster> clusters = clusterer
+				.getFinalMemberClusters();
+		// Archaeopteryx displays individual trees, not forests, so
+		// we group the final two clusters for display purposes
+		// TODO find better way to display results
+		MemberCluster mergedCluster = new MemberCluster();
+		mergedCluster.setClusterName("final2");
+		for (MemberCluster cluster : clusters) {
+			mergedCluster.addCluster(cluster);
+		}
+		displayCluster(classHandle, mergedCluster);
 	}
 
 	protected void handleGroupLinkageRequest(JComboBox box) {
@@ -361,7 +387,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 			JOptionPane.showMessageDialog(mainPanel, msg,
 					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
 		} else {
-			setUpAgglomerativeClustering(callGraph);
+			performAgglomerativeClustering(callGraph);
 		}
 	}
 
@@ -369,7 +395,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 	 * Sets up the parts of the display that are calculator-dependent.
 	 * @param callGraph
 	 */
-	public void setUpAgglomerativeClustering(JavaCallGraph callGraph) {
+	public void performAgglomerativeClustering(JavaCallGraph callGraph) {
 		String classHandle = callGraph.getHandle();
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
 		String sCalc =
@@ -452,6 +478,9 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 	protected String saveResultsToFile(String handle,
 			MemberCluster cluster) throws IOException {
 		ApplicationParameters params = ApplicationParameters.getSingleton();
+		String sClusterer =
+			params.getParameter(ParameterConstants.CLUSTERER_KEY,
+								ClustererEnum.AGGLOMERATIVE.toString());
 		String sCalc =
 			params.getParameter(ParameterConstants.CALCULATOR_KEY,
 								DistanceCalculatorEnum.IntraClass.toString());
@@ -460,7 +489,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 				ClusterCombinationEnum.SINGLE_LINK.toString());
 		String nameFromHandle = EclipseUtils.getNameFromHandle(handle);
 		String fileName = RefactoringConstants.DATA_DIR +
-							nameFromHandle + sCalc + sLinkage + ".tree";
+					nameFromHandle + sClusterer + sCalc + sLinkage + ".tree";
 		PrintWriter writer = null;
 		FileWriter fileWriter = null;
 		

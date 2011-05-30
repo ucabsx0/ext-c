@@ -56,6 +56,9 @@ public class MixedModeClusterer implements ClustererIfc<CallGraphNode> {
 	/** The current collection of clusters. */
 	private Collection<CallGraphNode> clusters = null;
 
+	/** The final collection of clusters. */
+	private Collection<MemberCluster> finalMemberClusters = null;
+
 	/** The graph being manipulated. */
 	private JavaCallGraph callGraph = null;
 	
@@ -78,6 +81,11 @@ public class MixedModeClusterer implements ClustererIfc<CallGraphNode> {
 	public Collection<CallGraphNode> getClusters() {
 		return clusters;
 	}
+
+	public Collection<MemberCluster> getFinalMemberClusters() {
+		return finalMemberClusters;
+	}
+
 
 	public Collection<CallGraphNode> cluster(int iteration) {
 		// TODO make incremental
@@ -115,8 +123,7 @@ public class MixedModeClusterer implements ClustererIfc<CallGraphNode> {
 			DisjointClusterer djClusterer =
 				new DisjointClusterer(seed1, seed2, memberClusters, classHandle);
 			djClusterer.cluster();
-			Collection<MemberCluster> finalMemberClusters =
-				djClusterer.getMemberClusters();
+			finalMemberClusters = djClusterer.getMemberClusters();
 			HashMap<String, CallGraphNode> labelsToVertices =
 				callGraph.getLabelsToVertices();
 
