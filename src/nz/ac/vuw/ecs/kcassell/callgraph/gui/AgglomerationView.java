@@ -328,14 +328,28 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 	}
 
 	protected void handleClustererRequest(JComboBox box) {
-		ClusteringView.resetParameterValue(box, ParameterConstants.CLUSTERER_KEY);
+		ClusteringView.resetParameterValue(box,
+				ParameterConstants.CLUSTERER_KEY);
 		JavaCallGraph callGraph = app.graphView.getGraph();
-		if (callGraph == null) {
-			String msg = "Choose a class for agglomerative clustering.";
-			JOptionPane.showMessageDialog(mainPanel, msg,
-					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
-		} else {
-			setUpAgglomerativeClustering(callGraph);
+		Object selectedItem = box.getSelectedItem();
+		String sClusterer = selectedItem.toString();
+		if (ClustererEnum.MIXED_MODE.toString().equalsIgnoreCase(sClusterer)) {
+//			Collection<CallGraphNode> clusters = clusterUsingMixedMode(callGraph);
+//			buf.append("Final clusters for " + callGraph.getName());
+//			appendClusterSizes(clusters);
+//			String sClusters = toOutputString(clusters);
+//			buf.append(":\n" + sClusters);
+			String msg = "Mixed mode clustering not yet available here.";
+			JOptionPane.showMessageDialog(mainPanel, msg, "NYI",
+					JOptionPane.WARNING_MESSAGE);
+		} else {	// assume agglomerative clustering
+			if (callGraph == null) {
+				String msg = "Choose a class for agglomerative clustering.";
+				JOptionPane.showMessageDialog(mainPanel, msg, "Choose Class",
+						JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				setUpAgglomerativeClustering(callGraph);
+			}
 		}
 	}
 

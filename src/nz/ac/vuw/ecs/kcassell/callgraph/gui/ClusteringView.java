@@ -49,7 +49,6 @@ import javax.swing.SwingUtilities;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
-import nz.ac.vuw.ecs.kcassell.cluster.ClusterTextFormatEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.ClustererIfc;
 import nz.ac.vuw.ecs.kcassell.cluster.GraphBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
@@ -269,24 +268,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	}
 
 	protected void displayClusterString(MemberCluster cluster) {
-		ApplicationParameters parameters = ApplicationParameters.getSingleton();
-		String clusterFormat =
-			 parameters.getParameter(
-							ParameterConstants.CLUSTER_TEXT_FORMAT_KEY,
-							ClusterTextFormatEnum.NEWICK.toString());
-		ClusterTextFormatEnum textFormatEnum =
-			ClusterTextFormatEnum.valueOf(clusterFormat);
-		String text = "*** nothing computed ***";
-
-		if (ClusterTextFormatEnum.FLAT.equals(textFormatEnum)) {
-			text = cluster.toString();
-		} else if (ClusterTextFormatEnum.NESTED.equals(textFormatEnum)) {
-			text = cluster.toNestedString();
-		} else if (ClusterTextFormatEnum.NEWICK.equals(textFormatEnum)) {
-			text = cluster.toNewickString();
-		} else {
-			text = cluster.toNestedString();
-		}
+		String text = cluster.toString();
 		clustersTextArea.setText(text);
 	}
 
