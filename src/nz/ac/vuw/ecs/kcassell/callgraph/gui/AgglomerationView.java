@@ -276,12 +276,14 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 		stub.setParameter("url_of_tree_to_load", treeUrlString);
 //      APPLET_PARAM_NAME_FOR_URL_OF_TREE_TO_LOAD isn't public!
         dendrogramComponent = new ArchaeopteryxE();
+		splitPane.add(dendrogramComponent, JSplitPane.RIGHT, -1);
         dendrogramComponent.setStub(stub);
         dendrogramComponent.init();
 		dendrogramComponent.start();
-		splitPane.add(dendrogramComponent, JSplitPane.RIGHT, -1);
-		splitPane.validate();
-		splitPane.repaint();
+		dendrogramComponent.invalidate();
+//		dendrogramComponent.validate();
+//		splitPane.revalidate();
+//		splitPane.repaint();
 	}
 	
 	/**
