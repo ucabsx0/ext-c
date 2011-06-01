@@ -498,7 +498,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 				ParameterConstants.LINKAGE_KEY,
 				ClusterCombinationEnum.SINGLE_LINK.toString());
 		String nameFromHandle = EclipseUtils.getNameFromHandle(handle);
-		String fileName = RefactoringConstants.DATA_DIR +
+		String fileName = RefactoringConstants.DATA_DIR + "Dendrograms/" +
 					nameFromHandle + sClusterer + sCalc + sLinkage + ".tree";
 		PrintWriter writer = null;
 		FileWriter fileWriter = null;
