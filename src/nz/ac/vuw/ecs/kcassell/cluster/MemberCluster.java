@@ -289,21 +289,21 @@ public class MemberCluster implements ClusterIfc<String> {
 		buf.append(leadSpaces).append("(");
 		int nextIndent = indentLevel + 1;
 
-		for (Object component : children) {
+		for (Object child : children) {
 			buf.append("\n");
-			if (component instanceof MemberCluster) {
-				MemberCluster cluster = (MemberCluster) component;
-				cluster.toNewickString(nextIndent, buf, namesSeen, distance);
-			} else if (component instanceof String) { // element
-				String name = EclipseUtils.getNameFromHandle(component
-						.toString());
-				if (namesSeen.contains(name)) {
-					name += "_" + namesSeen.size();
-					namesSeen.add(name);
+			if (child instanceof MemberCluster) {
+				MemberCluster cluster = (MemberCluster) child;
+				
+				// If it's a group of one, treat it as an individual
+				if (cluster.getElementCount() == 1) {
+					Set<?> grandChildGroup = cluster.getChildren();
+					Object grandChild = grandChildGroup.iterator().next();
+					memberToNewickString(buf, namesSeen, leadSpaces, grandChild);
+				} else { // recursively handle the child
+					cluster.toNewickString(nextIndent, buf, namesSeen, distance);
 				}
-				buf.append(leadSpaces).append("  ").append(name);
-				// add Newick branch length
-				buf.append(":").append(String.format("%.2f", distance));
+			} else if (child instanceof String) { // element
+				memberToNewickString(buf, namesSeen, leadSpaces, child);
 			}
 			buf.append(",");
 		}
@@ -313,6 +313,19 @@ public class MemberCluster implements ClusterIfc<String> {
 		buf.append(leadSpaces).append(") ");
 		appendInternalNewickNodeName(buf);
 		appendNewickBranchLength(buf, parentDistance);
+	}
+
+	protected void memberToNewickString(StringBuffer buf,
+			HashSet<String> namesSeen, String leadSpaces, Object component) {
+		String name = EclipseUtils.getNameFromHandle(component
+				.toString());
+		if (namesSeen.contains(name)) {
+			name += "_" + namesSeen.size();
+			namesSeen.add(name);
+		}
+		buf.append(leadSpaces).append("  ").append(name);
+		// add Newick branch length
+		buf.append(":").append(String.format("%.2f", distance));
 	}
 
 	public double getDistance() {
