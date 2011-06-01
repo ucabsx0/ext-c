@@ -173,8 +173,8 @@ public class MemberCluster implements ClusterIfc<String> {
 		return children;
 	}
 
-	protected Double getClusterIteration() {
-		double it = 0.5;
+	protected Integer getClusterIteration() {
+		int it = 0;
 		String name = getClusterName();
 		// Makes use of a naming convention oneName+OtherCount
 		int indexPlus = name.lastIndexOf("+");
@@ -183,7 +183,7 @@ public class MemberCluster implements ClusterIfc<String> {
 		if (indexPlus >= 0) {
 			String sit = name.substring(indexPlus + 1);
 			try {
-				it = Double.parseDouble(sit);
+				it = Integer.parseInt(sit);
 			} catch (Exception e) {
 				// ignore
 			}
@@ -325,7 +325,9 @@ public class MemberCluster implements ClusterIfc<String> {
 		}
 		buf.append(leadSpaces).append("  ").append(name);
 		// add Newick branch length
-		buf.append(":").append(String.format("%.2f", distance));
+		buf.append(":");
+		// Ensure there is a nonzero branch length
+		buf.append(String.format("%.2f", Math.max(0.01, distance)));
 	}
 
 	public double getDistance() {
@@ -353,11 +355,13 @@ public class MemberCluster implements ClusterIfc<String> {
 	 * Matlab). Spaces are replaced with underscores.
 	 */
 	private void appendInternalNewickNodeName(StringBuffer buf) {
-		Double clusteringIteration = getClusterIteration();
-		// String refinedComment = comment.replaceAll(" ", "_");
-		// buf.append(refinedComment);
-		buf.append("it").append(clusteringIteration.intValue());
-		buf.append("-").append(String.format("%.2f", distance));
+		Integer clusteringIteration = getClusterIteration();
+		if (clusteringIteration > 0) {
+			buf.append("it").append(clusteringIteration.intValue());
+			buf.append("-").append(String.format("%.2f", distance));
+		} else {
+			buf.append(getClusterName());
+		}
 	}
 
 	public String toString() {
