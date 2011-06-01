@@ -328,7 +328,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 			JOptionPane.showMessageDialog(mainPanel, msg,
 					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
 		} else {
-			performAgglomerativeClustering(callGraph);
+			performClustering(callGraph);
 		}
 	}
 
@@ -346,27 +346,35 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 			JOptionPane.showMessageDialog(mainPanel, msg, "Choose Class",
 					JOptionPane.INFORMATION_MESSAGE);
 		} else {
-			Object selectedItem = box.getSelectedItem();
-			String sClusterer = selectedItem.toString();
-			
-			if (ClustererEnum.AGGLOMERATIVE.toString()
-					.equalsIgnoreCase(sClusterer)) {
-				performAgglomerativeClustering(callGraph);
-			} else if (ClustererEnum.MIXED_MODE.toString()
-					.equalsIgnoreCase(sClusterer)) {
-				performMixedModeClustering(callGraph);
-			} else {
-				String msg =
-					"Agglomerative clustering unavailable for " + sClusterer;
-				JOptionPane.showMessageDialog(mainPanel, msg, "Unavailable",
-						JOptionPane.WARNING_MESSAGE);
-			}
+			performClustering(callGraph);
+		}
+	}
+
+	protected void performClustering(JavaCallGraph callGraph) {
+		ApplicationParameters parameters = ApplicationParameters.getSingleton();
+		String sClusterer =
+			parameters.getParameter(ParameterConstants.CLUSTERER_KEY,
+					ClustererEnum.AGGLOMERATIVE.toString());
+		
+		if (ClustererEnum.AGGLOMERATIVE.toString()
+				.equalsIgnoreCase(sClusterer)) {
+			performAgglomerativeClustering(callGraph);
+		} else if (ClustererEnum.MIXED_MODE.toString()
+				.equalsIgnoreCase(sClusterer)) {
+			performMixedModeClustering(callGraph);
+		} else {
+			String msg =
+				"Clustering unavailable for " + sClusterer;
+			JOptionPane.showMessageDialog(mainPanel, msg, "Unavailable",
+					JOptionPane.WARNING_MESSAGE);
 		}
 	}
 
 	protected void performMixedModeClustering(JavaCallGraph callGraph) {
 		String classHandle = callGraph.getHandle();
-		MixedModeClusterer clusterer = new MixedModeClusterer(callGraph);
+		JavaCallGraph undirectedGraph =
+			JavaCallGraph.toUndirectedGraph(callGraph);
+		MixedModeClusterer clusterer = new MixedModeClusterer(undirectedGraph);
 		clusterer.cluster();
 		Collection<MemberCluster> clusters = clusterer
 				.getFinalMemberClusters();
@@ -389,7 +397,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 			JOptionPane.showMessageDialog(mainPanel, msg,
 					"Choose Class", JOptionPane.INFORMATION_MESSAGE);
 		} else {
-			performAgglomerativeClustering(callGraph);
+			performClustering(callGraph);
 		}
 	}
 

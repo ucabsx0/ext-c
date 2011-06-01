@@ -136,16 +136,6 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 	}
 
 	/**
-	 * Add a new level of clustering
-	 */
-	protected MemberCluster clusterOnce() {
-		Distance<String> nearest = distanceMatrix.findNearest();
-		MemberCluster cluster = createCluster(nearest);
-		modifyMatrix(cluster);
-		return cluster;
-	}
-
-	/**
 	 * Revises the distanceMatrix after a clustering step by removing the rows
 	 * and columns for the elements that were merged, and creating a row for
 	 * the newly formed cluster
@@ -180,6 +170,10 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 		logger.info("createCluster from " + near1 + ", " + near2);
 		addChildToCluster(cluster, near1);
 		addChildToCluster(cluster, near2);
+		Number distance = neighbors.getDistance();
+		cluster.setDistance(distance.doubleValue());
+		String comment = "dist. = " + distance;
+		cluster.setComment(comment);
 		
 		// Name the new cluster based on the seed name, if possible
 		String seed1Name = cluster1.getClusterName();
@@ -188,8 +182,6 @@ public class DisjointClusterer extends MatrixBasedAgglomerativeClusterer {
 			(seed1Name.equals(near1) || seed2Name.equals(near1)) ? near1 : near2;
 		String clusterName = nameCluster(cluster, nameBase);
 		clusterHistory.put(clusterName, cluster);
-//		MemberCluster justAdded = clusterHistory.get(clusterName);
-//		Set<String> justElements = justAdded.getElements(clusterHistory);
 		
 		// Reset a seed cluster if necessary
 		if (seed1Name.equals(near1) || seed1Name.equals(near2)) {

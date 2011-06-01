@@ -280,6 +280,7 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 		cluster.setDistance(distance.doubleValue());
 		String comment = "dist. = " + distance;
 		cluster.setComment(comment);
+
 		String clusterName =
 			nameCluster(cluster, (near1.compareTo(near2) < 0) ? near1 : near2);
 		clusterHistory.put(clusterName, cluster);
