@@ -42,6 +42,7 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections15.Factory;
 import org.apache.commons.collections15.Transformer;
+import org.eclipse.jdt.core.Flags;
 
 import edu.uci.ics.jung.io.GraphMLMetadata;
 import edu.uci.ics.jung.io.graphml.NodeMetadata;
@@ -49,6 +50,7 @@ import edu.uci.ics.jung.io.graphml.NodeMetadata;
 public class CallGraphNode {
 	public static final Number UNKNOWN_SCORE = Double.NaN;
 	// public static final String GRAPHML_ATTRIBUTE = "attribute";
+	public static final String GRAPHML_ACCESS = "access";
 	public static final String GRAPHML_LABEL = "label";
 	public static final String GRAPHML_MEMBER_TYPE = "memberType";
 	public static final String GRAPHML_SCORE = "score";
@@ -104,6 +106,10 @@ public class CallGraphNode {
 	 */
 	protected Set<String> callees = new TreeSet<String>();
 
+	protected static GraphMLMetadata<CallGraphNode> graphMLAccessMetaData =
+		new GraphMLMetadata<CallGraphNode>(
+			"accessMetadata", "public",
+			new GraphMLAccessMetadataWriter());
 	protected static GraphMLMetadata<CallGraphNode> graphMLMemberTypeMetaData =
 		new GraphMLMetadata<CallGraphNode>(
 			"memberTypeMetadata", "METHOD",
@@ -294,6 +300,10 @@ public class CallGraphNode {
 		return graphMLMemberTypeMetaData;
 	}
 
+	public static GraphMLMetadata<CallGraphNode> getGraphMLAccessMetaData() {
+		return graphMLAccessMetaData;
+	}
+
 	public static GraphMLMetadata<CallGraphNode> getGraphMLScoreMetaData() {
 		return graphMLScoreMetaData;
 	}
@@ -331,6 +341,22 @@ public class CallGraphNode {
 			} catch (UnsupportedEncodingException e) {
 			}
 			return nodeLabel;
+		}
+	}
+
+	public static class GraphMLAccessMetadataWriter implements
+			Transformer<CallGraphNode, String> {
+		public String transform(CallGraphNode node) {
+			String access = "default";
+			int flags = node.getMemberFlags();
+			if (Flags.isPrivate(flags)) {
+				access = "private";
+			} else if (Flags.isProtected(flags)) {
+				access = "protected";
+			} else if (Flags.isPublic(flags)) {
+				access = "public";
+			}
+			return access;
 		}
 	}
 
