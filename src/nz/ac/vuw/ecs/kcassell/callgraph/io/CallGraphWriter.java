@@ -68,6 +68,8 @@ public class CallGraphWriter {
 			new GraphMLWriter<CallGraphNode, CallGraphLink>();
 		TreeMap<String, GraphMLMetadata<CallGraphNode>> map =
 			new TreeMap<String, GraphMLMetadata<CallGraphNode>>();
+		map.put(CallGraphNode.GRAPHML_ACCESS, CallGraphNode
+				.getGraphMLAccessMetaData());
 		map.put(CallGraphNode.GRAPHML_LABEL, CallGraphNode
 				.getGraphMLLabelMetaData());
 		map.put(CallGraphNode.GRAPHML_MEMBER_TYPE, CallGraphNode
