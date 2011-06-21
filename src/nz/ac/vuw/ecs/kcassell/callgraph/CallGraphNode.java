@@ -37,8 +37,6 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.commons.collections15.Factory;
 import org.apache.commons.collections15.Transformer;
@@ -99,12 +97,6 @@ public class CallGraphNode {
 	
 	/** The type of score to use as part of a node label. */
 	protected String scoreTypeForLabel = ScoreType.BASIC;
-
-	/**
-	 * This field is generally used in retrieving the node info from a file, but
-	 * not by the JUNG functions.
-	 */
-	protected Set<String> callees = new TreeSet<String>();
 
 	protected static GraphMLMetadata<CallGraphNode> graphMLAccessMetaData =
 		new GraphMLMetadata<CallGraphNode>(
@@ -206,10 +198,6 @@ public class CallGraphNode {
 		this.userData = userData;
 	}
 
-	public Set<String> getCallees() {
-		return callees;
-	}
-
 	/**
 	 * @return the isInherited
 	 */
@@ -244,10 +232,6 @@ public class CallGraphNode {
 		return showToString;
 	}
 
-	public void addChild(String callee) {
-		callees.add(callee);
-	}
-	
     public String toNestedString()
     {
     	return simpleName + "\n";
@@ -270,10 +254,6 @@ public class CallGraphNode {
 			if ((score != null) && !Double.isNaN(score)) {
 				buf.append("(").append(String.format("%.1f", score))
 						.append(")");
-			}
-
-			if (!callees.isEmpty()) {
-				buf.append(", calls: ").append(callees.toString());
 			}
 		}
 		return buf.toString();

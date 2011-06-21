@@ -34,7 +34,6 @@ package nz.ac.vuw.ecs.kcassell.similarity;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
@@ -96,24 +95,13 @@ implements DistanceCalculatorIfc<String>
         // that this method accesses
         else
         {
-            Set<String> callees = node.getCallees();
+        	Collection<CallGraphNode> successors =
+        		graph.getJungGraph().getSuccessors(node);
 
-            for (CallGraphNode neighbor : neighbors)
+            for (CallGraphNode successor : successors)
             {
-                NodeType neighborType = neighbor.getNodeType();
-                String neighborLabel = neighbor.getLabel();
-                if (neighborType == NodeType.FIELD)
-                {
+                String neighborLabel = successor.getLabel();
                     properties.add(neighborLabel);
-                }
-                else if (neighborType == NodeType.METHOD)
-                {
-                    // Add the called method
-                    if (callees.contains(neighborLabel))
-                    {
-                        properties.add(neighborLabel);
-                    }
-                }
             }
         }
         return properties;
@@ -129,7 +117,15 @@ implements DistanceCalculatorIfc<String>
         CallGraphNode node1 = javaCallGraph.getNode(id1);
         CallGraphNode node2 = javaCallGraph.getNode(id2);
 
-        distance = calculateDistance(node1, node2);
+        if (node1 == null) {
+        	System.err.println("SimonDistanceCalculator.calculateDistance: node "
+        			+ id1 + " not found.");
+        } else if (node2 == null) {
+        	System.err.println("SimonDistanceCalculator.calculateDistance: node "
+        			+ id2 + " not found.");
+        } else {
+        	distance = calculateDistance(node1, node2);
+        }
         return distance;
     }
 

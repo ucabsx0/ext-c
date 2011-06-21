@@ -38,10 +38,11 @@ import junit.framework.TestCase;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.callgraph.NodeType;
-import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class SimonDistanceCalculatorTest extends TestCase
 {
@@ -60,6 +61,7 @@ public class SimonDistanceCalculatorTest extends TestCase
     {
         // Manually create a graph
         graph = new JavaCallGraph();
+        graph.setDefaultEdgeType(EdgeType.DIRECTED);
         nodeA1 = graph.createNode("A1");
         nodeA1.setNodeType(NodeType.FIELD);
         nodeA2 = graph.createNode("A2");
@@ -93,7 +95,6 @@ public class SimonDistanceCalculatorTest extends TestCase
         graph.createLink(nodeM5, nodeM2);
         graph.createLink(nodeM5, nodeM3);
         graph.createLink(nodeM5, nodeM4);
-        nodeM5.addChild("M4");
     }
     
 
@@ -116,14 +117,14 @@ public class SimonDistanceCalculatorTest extends TestCase
         
         HashSet<String> propM5 = SimonDistanceCalculator.getProperties(nodeM5, graph);
 //        System.out.println("propM5 = " + propM5);
-        assertEquals(5, propM5.size()); // A1, A2, A3, M4, M5
+        assertEquals(8, propM5.size()); // A1, A2, A3, M1, M2, M3, M4, M5
 
         Double dist = calculator.calculateDistance(nodeM1, nodeA1);
         assertEquals(1.0 - 2.0/4.0, dist);
         dist = calculator.calculateDistance(nodeM4, nodeA2);
         assertEquals((1.0 - 2.0/7.0), dist);
         dist = calculator.calculateDistance(nodeM4, nodeM5);
-        assertEquals((1.0 - 4.0/5.0), dist);
+        assertEquals((1.0 - 4.0/8.0), dist);
     }
 
     @Test
@@ -176,10 +177,13 @@ public class SimonDistanceCalculatorTest extends TestCase
 
         HashSet<String> propM5 = SimonDistanceCalculator.getProperties(nodeM5, graph);
         //System.out.println("propM5 = " + propM5);
-        assertEquals(5, propM5.size()); // A1, A2, A3, M4, M5
+        assertEquals(8, propM5.size()); // A1, A2, A3, M1, M2, M3, M4, M5
         assertTrue(propM5.contains("A1"));
         assertTrue(propM5.contains("A2"));
         assertTrue(propM5.contains("A3"));
+        assertTrue(propM5.contains("M1"));
+        assertTrue(propM5.contains("M2"));
+        assertTrue(propM5.contains("M3"));
         assertTrue(propM5.contains("M4"));
         assertTrue(propM5.contains("M5"));
     }

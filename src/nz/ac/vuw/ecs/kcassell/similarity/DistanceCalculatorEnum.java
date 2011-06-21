@@ -57,6 +57,8 @@ public enum DistanceCalculatorEnum {
 	 * requires identifiers
 	 */
 	public static boolean usesHandles(DistanceCalculatorEnum calcType) {
-		return Czibula.equals(calcType) || VectorSpaceModel.equals(calcType);
+		boolean useHandles = Czibula.equals(calcType) || Simon.equals(calcType)
+				|| VectorSpaceModel.equals(calcType);
+		return useHandles;
 	}
 }
