@@ -66,6 +66,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.JDeodorantDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
@@ -432,6 +433,13 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 			} else if (DistanceCalculatorEnum.Identifier.equals(calcType)) {
 				IdentifierDistanceCalculator calc =
 					new IdentifierDistanceCalculator();
+				MemberCluster cluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(classHandle, calc);
+				displayCluster(classHandle, cluster);
+			} else if (DistanceCalculatorEnum.JDeodorant.equals(calcType)) {
+				JDeodorantDistanceCalculator calc =
+					new JDeodorantDistanceCalculator(callGraph);
 				MemberCluster cluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(classHandle, calc);

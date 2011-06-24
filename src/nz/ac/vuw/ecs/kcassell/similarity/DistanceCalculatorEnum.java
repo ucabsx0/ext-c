@@ -44,6 +44,7 @@ public enum DistanceCalculatorEnum {
 	GoogleDistance,
 	Identifier,
 	IntraClass,
+	JDeodorant,
 	Levenshtein,
 	Simon,
 	VectorSpaceModel;
@@ -57,8 +58,11 @@ public enum DistanceCalculatorEnum {
 	 * requires identifiers
 	 */
 	public static boolean usesHandles(DistanceCalculatorEnum calcType) {
-		boolean useHandles = Czibula.equals(calcType) || Simon.equals(calcType)
-				|| VectorSpaceModel.equals(calcType);
+		boolean useHandles =
+			Czibula.equals(calcType)
+			|| JDeodorant.equals(calcType)
+			|| Simon.equals(calcType)
+			|| VectorSpaceModel.equals(calcType);
 		return useHandles;
 	}
 }

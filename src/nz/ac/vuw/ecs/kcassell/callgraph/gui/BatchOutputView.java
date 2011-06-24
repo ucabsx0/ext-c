@@ -77,6 +77,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.DistanceMatrix;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.JDeodorantDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
@@ -326,6 +327,15 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					try {
 					    DistanceCalculatorIfc<String> calc =
 					    	new IdentifierDistanceCalculator();
+						agglomerateUsingCalculator(handle, calc);
+					} catch (Exception e) {
+						showAgglomerationError(sCalc, e);
+					}
+				} else if (DistanceCalculatorEnum.JDeodorant.toString()
+						.equalsIgnoreCase(sCalc)) {
+					try {
+					    DistanceCalculatorIfc<String> calc =
+					    	new JDeodorantDistanceCalculator(callGraph);
 						agglomerateUsingCalculator(handle, calc);
 					} catch (Exception e) {
 						showAgglomerationError(sCalc, e);
