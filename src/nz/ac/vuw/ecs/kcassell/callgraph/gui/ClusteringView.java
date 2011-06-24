@@ -58,6 +58,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.JDeodorantDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
@@ -236,6 +237,14 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.IntraClass.equals(calcType)) {
 				setUpIntraClassCalculation(callGraph);
+			} else if (DistanceCalculatorEnum.JDeodorant.equals(calcType)) {
+				JDeodorantDistanceCalculator calc =
+					new JDeodorantDistanceCalculator(callGraph);
+				MemberCluster cluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(classHandle, calc);
+				displayClusterString(cluster);
+				agglomerativePostProcessing(aggApplet);
 			} else if (DistanceCalculatorEnum.Levenshtein.equals(calcType)) {
 				LevenshteinDistanceCalculator calc = new LevenshteinDistanceCalculator();
 				MemberCluster cluster =
