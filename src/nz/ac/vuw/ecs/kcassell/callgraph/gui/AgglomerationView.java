@@ -68,6 +68,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.JDeodorantDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.LocalNeighborhoodDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
@@ -446,6 +447,13 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 				displayCluster(classHandle, cluster);
 			} else if (DistanceCalculatorEnum.Levenshtein.equals(calcType)) {
 				LevenshteinDistanceCalculator calc = new LevenshteinDistanceCalculator();
+				MemberCluster cluster =
+					MatrixBasedAgglomerativeClusterer
+					.clusterUsingCalculator(classHandle, calc);
+				displayCluster(classHandle, cluster);
+			} else if (DistanceCalculatorEnum.LocalNeighborhood.equals(calcType)) {
+				LocalNeighborhoodDistanceCalculator calc =
+					new LocalNeighborhoodDistanceCalculator(callGraph);
 				MemberCluster cluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(classHandle, calc);

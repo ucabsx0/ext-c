@@ -46,6 +46,7 @@ public enum DistanceCalculatorEnum {
 	IntraClass,
 	JDeodorant,
 	Levenshtein,
+	LocalNeighborhood,
 	Simon,
 	VectorSpaceModel;
 	
@@ -61,6 +62,7 @@ public enum DistanceCalculatorEnum {
 		boolean useHandles =
 			Czibula.equals(calcType)
 			|| JDeodorant.equals(calcType)
+			|| LocalNeighborhood.equals(calcType)
 			|| Simon.equals(calcType)
 			|| VectorSpaceModel.equals(calcType);
 		return useHandles;

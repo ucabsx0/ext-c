@@ -50,6 +50,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.JDeodorantDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.LocalNeighborhoodDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
@@ -526,6 +527,8 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			calc = setUpJDeodorantClustering(classHandle);
 		} else if (DistanceCalculatorEnum.Levenshtein.toString().equals(sCalc)) {
 			calc = setUpLevenshteinClustering();
+		} else if (DistanceCalculatorEnum.LocalNeighborhood.toString().equals(sCalc)) {
+			calc = setUpLocalNeighborhoodClustering(classHandle);
 		} else if (DistanceCalculatorEnum.Simon.toString().equals(sCalc)) {
 			calc = setUpSimonClustering(classHandle);
 		} else if (DistanceCalculatorEnum.VectorSpaceModel.toString().equals(sCalc)) {
@@ -583,6 +586,22 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 			new JavaCallGraph(classHandle, EdgeType.UNDIRECTED);
 		DistanceCalculatorIfc<String> calc =
 			new CzibulaDistanceCalculator(callGraph);
+		return calc;
+	}
+	
+	/**
+	 * Set up a LocalNeighborhoodDistanceCalculator
+	 * @param classHandle the Eclipse handle for the class to be clustered
+	 * @return the calculator
+	 * @throws JavaModelException
+	 */
+	protected static DistanceCalculatorIfc<String>
+	setUpLocalNeighborhoodClustering(String classHandle)
+			throws JavaModelException {
+		JavaCallGraph callGraph =
+			new JavaCallGraph(classHandle, EdgeType.UNDIRECTED);
+		DistanceCalculatorIfc<String> calc =
+			new LocalNeighborhoodDistanceCalculator(callGraph );
 		return calc;
 	}
 	
