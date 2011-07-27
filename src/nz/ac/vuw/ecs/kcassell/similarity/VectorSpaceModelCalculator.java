@@ -8,11 +8,18 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
+import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ObjectPersistence;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
+
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
+
 import edu.ucla.sspace.common.Similarity;
 import edu.ucla.sspace.vector.DoubleVector;
 import edu.ucla.sspace.vector.Vector;
@@ -245,12 +252,38 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 //		// Reminder, if you still want the word-to-row mapping, write out the words array too
 //	}
 	
-	public Number calculateDistance(String handle1, String handle2) {
-		Number distance = UNKNOWN_DISTANCE;
-		distance = calculateDistanceBetweenDocuments(handle1, handle2);
-		return distance;
+	/**
+	 * Calculates the conceptual cohesion of the class, which is the average
+	 * conceptual similarity of its methods.
+	 * @param handle1 the Eclipse handle of a class
+	 * @return the conceptual cohesion of the class
+	 * @throws JavaModelException 
+	 */
+	public Double calculateConceptualCohesion(String classHandle)
+	throws JavaModelException {
+		Double cohesion = 0.0;
+		IType type = EclipseUtils.getTypeFromHandle(classHandle);
+		List<IMethod> methods = EclipseSearchUtils.getMethods(type, false);
+		int numMethods = methods.size();
+		int numPairs = 0;
+		Double total = 0.0;
+		if (numMethods > 1) {
+			for (int i = 0; i < numMethods; i++) {
+				IMethod methodI = methods.get(i);
+				String handleI = methodI.getHandleIdentifier();
+				for (int j = i + 1; j < numMethods; j++) {
+					IMethod methodJ = methods.get(j);
+					String handleJ = methodJ.getHandleIdentifier();
+					Number csm = calculateDistance(handleI, handleJ);
+					numPairs++;
+					total += csm.doubleValue();
+				}
+			}
+			cohesion = total/numPairs;
+		}
+		return cohesion;
 	}
-
+	
 	/**
 	 * Calculates the distance between two documents, e.g. two identifiers, based
 	 * on the similarity of the words in the documents
@@ -258,7 +291,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 * @param handle2 the Eclipse handle of a class member
 	 * @return the distance between the documents corresponding to the handles
 	 */
-	public Number calculateDistanceBetweenDocuments(String handle1, String handle2) {
+	public Number calculateDistance(String handle1, String handle2) {
 		double distance = UNKNOWN_DISTANCE.doubleValue();
 		Integer documentInt1 = memberHandleToDocumentNumber.get(handle1);
 		Integer documentInt2 = memberHandleToDocumentNumber.get(handle2);

@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -83,11 +84,15 @@ import nz.ac.vuw.ecs.kcassell.similarity.LocalNeighborhoodDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
+import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -221,6 +226,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					} else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)) {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
+						calculateCCC();
 						clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
@@ -264,6 +270,38 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					(cluster == null) ? "no cluster" : cluster.toNestedString();
 				buf.append("Final cluster:\n" + clusterString);
 				textArea.append(clusterString);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}	// else
+		textArea.repaint();
+	}
+
+	/**
+	 * Calculate Conceptual Cohesion of Classes.
+	 */
+	private void calculateCCC() {
+		GraphView graphView = app.getGraphView();
+		JavaCallGraph callGraph = graphView.getGraph();
+
+		if (callGraph == null) {
+			String msg = "Choose a class.";
+			JOptionPane.showMessageDialog(mainPanel, msg,
+				"No class chosen", JOptionPane.WARNING_MESSAGE);
+		} else {
+			try {
+				textArea.setText("");
+				// initialize the calculator and build the data file
+				String classHandle = callGraph.getHandle();
+				VectorSpaceModelCalculator calc =
+			    	VectorSpaceModelCalculator.getCalculator(classHandle);
+				IType type = EclipseUtils.getTypeFromHandle(classHandle);
+				IJavaProject project =
+					(IJavaProject)type.getAncestor(IJavaElement.JAVA_PROJECT);
+				Set<IType> types = EclipseSearchUtils.getTypes();
+			    Double cohesion = calc.calculateConceptualCohesion(classHandle);
+				textArea.append("CCC for " + classHandle + " = " + cohesion);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

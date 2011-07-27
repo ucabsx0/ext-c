@@ -414,6 +414,57 @@ implements IJavaSearchConstants, RefactoringConstants {
 		return hasSuper;
 	}
 	
+	
+	public static Set<IType> getTypes() {
+		Set<IType> types = null;
+		/*
+		 * public void searchAllTypeNames(char[] packageName,
+                               char[] typeName,
+                               int matchRule,
+                               int searchFor,
+                               IJavaSearchScope scope,
+                               ITypeNameRequestor nameRequestor,
+                               int waitingPolicy,
+                               IProgressMonitor progressMonitor)
+                        throws JavaModelException
+
+    Searches for all top-level types and member types in the given scope. The search can be selecting specific types (given a package or a type name prefix and match modes).
+
+    Parameters:
+        packageName - the full name of the package of the searched types, or a prefix for this package, or a wild-carded string for this package.
+        typeName - the dot-separated qualified name of the searched type (the qualification include the enclosing types if the searched type is a member type), or a prefix for this type, or a wild-carded string for this type.
+        matchRule - one of
+
+            SearchPattern.R_EXACT_MATCH if the package name and type name are the full names of the searched types.
+            SearchPattern.R_PREFIX_MATCH if the package name and type name are prefixes of the names of the searched types.
+            SearchPattern.R_PATTERN_MATCH if the package name and type name contain wild-cards.
+
+        combined with SearchPattern.R_CASE_SENSITIVE, e.g. R_EXACT_MATCH | R_CASE_SENSITIVE if an exact and case sensitive match is requested, or R_PREFIX_MATCH if a prefix non case sensitive match is requested.
+        searchFor - one of
+
+            IJavaSearchConstants.CLASS if searching for classes only
+            IJavaSearchConstants.INTERFACE if searching for interfaces only
+            IJavaSearchConstants.TYPE if searching for both classes and interfaces
+
+        scope - the scope to search in
+        nameRequestor - the requestor that collects the results of the search
+        waitingPolicy - one of
+
+            IJavaSearchConstants.FORCE_IMMEDIATE_SEARCH if the search should start immediately
+            IJavaSearchConstants.CANCEL_IF_NOT_READY_TO_SEARCH if the search should be cancelled if the underlying indexer has not finished indexing the workspace
+            IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH if the search should wait for the underlying indexer to finish indexing the workspace
+
+        progressMonitor - the progress monitor to report progress to, or null if no progress monitor is provided 
+    Throws:
+        JavaModelException - if the search failed. Reasons include:
+
+            the classpath is incorrectly set
+
+
+		 */
+		return types;
+	}
+	
 	/**
 	 * Collects all types that are defined within the specified one -
 	 * inner classes, anonymous inner classes, ...
