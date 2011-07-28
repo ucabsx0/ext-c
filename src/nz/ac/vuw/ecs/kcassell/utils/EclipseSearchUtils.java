@@ -56,6 +56,8 @@ import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
+import org.eclipse.jdt.core.search.TypeNameMatch;
+import org.eclipse.jdt.core.search.TypeNameMatchRequestor;
 
 /**
  * Utility functions for finding relationships between classes and
@@ -98,7 +100,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 	/**
 	 * Find all classes that access methods or fields in this class
 	 * from within the same project.
-	 * @param source metrics for a particular IType
+	 * @param element the Java element the search pattern is based on
 	 * @param scope the elements being examined, e.g. this class or this package
 	 * @return the handles of the classes that have methods that
 	 *  reference methods or fields in this class
@@ -415,53 +417,28 @@ implements IJavaSearchConstants, RefactoringConstants {
 	}
 	
 	
-	public static Set<IType> getTypes() {
-		Set<IType> types = null;
-		/*
-		 * public void searchAllTypeNames(char[] packageName,
-                               char[] typeName,
-                               int matchRule,
-                               int searchFor,
-                               IJavaSearchScope scope,
-                               ITypeNameRequestor nameRequestor,
-                               int waitingPolicy,
-                               IProgressMonitor progressMonitor)
-                        throws JavaModelException
-
-    Searches for all top-level types and member types in the given scope. The search can be selecting specific types (given a package or a type name prefix and match modes).
-
-    Parameters:
-        packageName - the full name of the package of the searched types, or a prefix for this package, or a wild-carded string for this package.
-        typeName - the dot-separated qualified name of the searched type (the qualification include the enclosing types if the searched type is a member type), or a prefix for this type, or a wild-carded string for this type.
-        matchRule - one of
-
-            SearchPattern.R_EXACT_MATCH if the package name and type name are the full names of the searched types.
-            SearchPattern.R_PREFIX_MATCH if the package name and type name are prefixes of the names of the searched types.
-            SearchPattern.R_PATTERN_MATCH if the package name and type name contain wild-cards.
-
-        combined with SearchPattern.R_CASE_SENSITIVE, e.g. R_EXACT_MATCH | R_CASE_SENSITIVE if an exact and case sensitive match is requested, or R_PREFIX_MATCH if a prefix non case sensitive match is requested.
-        searchFor - one of
-
-            IJavaSearchConstants.CLASS if searching for classes only
-            IJavaSearchConstants.INTERFACE if searching for interfaces only
-            IJavaSearchConstants.TYPE if searching for both classes and interfaces
-
-        scope - the scope to search in
-        nameRequestor - the requestor that collects the results of the search
-        waitingPolicy - one of
-
-            IJavaSearchConstants.FORCE_IMMEDIATE_SEARCH if the search should start immediately
-            IJavaSearchConstants.CANCEL_IF_NOT_READY_TO_SEARCH if the search should be cancelled if the underlying indexer has not finished indexing the workspace
-            IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH if the search should wait for the underlying indexer to finish indexing the workspace
-
-        progressMonitor - the progress monitor to report progress to, or null if no progress monitor is provided 
-    Throws:
-        JavaModelException - if the search failed. Reasons include:
-
-            the classpath is incorrectly set
-
-
-		 */
+	public static List<IType> getTypes(IJavaElement project) throws JavaModelException {
+		List<IType> types = null;
+		IJavaSearchScope scope =
+			SearchEngine.createJavaSearchScope(new IJavaElement[] {project});
+		ClassCollector matchRequestor = new ClassCollector();
+		SearchEngine engine = new SearchEngine();
+//		engine.searchAllTypeNames(packageName, packageMatchRule, typeName, typeMatchRule, searchFor,
+//				scope, nameRequestor, waitingPolicy, progressMonitor)
+		String elementName = project.getElementName();
+		if (elementName != null) {
+			char[] projectName = elementName.toCharArray();
+			engine.searchAllTypeNames(
+					projectName,
+					SearchPattern.R_PREFIX_MATCH,
+					null, // any type name
+					SearchPattern.R_PATTERN_MATCH, IJavaSearchConstants.TYPE,
+					scope, matchRequestor,
+					IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, null);
+			types = matchRequestor.matchedTypes;
+		} else {
+			System.err.println("No element name for " + project);
+		}
 		return types;
 	}
 	
@@ -491,6 +468,16 @@ implements IJavaSearchConstants, RefactoringConstants {
 		Set<IType> embedded = collector.getResult();
 		return embedded;
 	}
+
+	private static final class ClassCollector extends TypeNameMatchRequestor {
+		public List<IType> matchedTypes = new ArrayList<IType>();
+
+		@Override
+		public void acceptTypeNameMatch(TypeNameMatch arg0) {
+			matchedTypes.add(arg0.getType());
+		}
+	}
+
 
 	/**
 	 * Uses the JDT SearchEngine to collect all ITypes

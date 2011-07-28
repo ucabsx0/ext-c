@@ -45,8 +45,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -91,7 +89,6 @@ import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -227,7 +224,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
 						calculateCCC();
-						clusterUsingClientDistances();
+						//clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
 				} finally {
@@ -297,11 +294,14 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				VectorSpaceModelCalculator calc =
 			    	VectorSpaceModelCalculator.getCalculator(classHandle);
 				IType type = EclipseUtils.getTypeFromHandle(classHandle);
-				IJavaProject project =
-					(IJavaProject)type.getAncestor(IJavaElement.JAVA_PROJECT);
-				Set<IType> types = EclipseSearchUtils.getTypes();
-			    Double cohesion = calc.calculateConceptualCohesion(classHandle);
-				textArea.append("CCC for " + classHandle + " = " + cohesion);
+				IJavaElement project =
+					type.getAncestor(IJavaElement.PACKAGE_FRAGMENT);
+				List<IType> types = EclipseSearchUtils.getTypes(project);
+				for (IType aType : types) {
+					String typeId = aType.getHandleIdentifier();
+				    Double cohesion = calc.calculateConceptualCohesion(typeId);
+					textArea.append("CCC for " + typeId + " = " + cohesion + "\n");
+				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
