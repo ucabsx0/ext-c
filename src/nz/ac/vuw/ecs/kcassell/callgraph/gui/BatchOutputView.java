@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -89,6 +90,7 @@ import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -223,7 +225,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					} else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)) {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
-						calculateCCC();
+						calculateCCC(mainPanel);
 						//clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
@@ -294,9 +296,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				VectorSpaceModelCalculator calc =
 			    	VectorSpaceModelCalculator.getCalculator(classHandle);
 				IType type = EclipseUtils.getTypeFromHandle(classHandle);
-				IJavaElement project =
-					type.getAncestor(IJavaElement.PACKAGE_FRAGMENT);
-				List<IType> types = EclipseSearchUtils.getTypes(project);
+				IPackageFragment pkg =
+					(IPackageFragment)type.getAncestor(IJavaElement.PACKAGE_FRAGMENT);
+				List<IType> types = EclipseSearchUtils.getTypes(pkg);
 				for (IType aType : types) {
 					String typeId = aType.getHandleIdentifier();
 				    Double cohesion = calc.calculateConceptualCohesion(typeId);
@@ -816,6 +818,36 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					try {
 						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
 						collectFrequentMethods();
+					} finally {
+						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+					}
+				} catch (Exception e) {
+					String msg = "Problem while collecting frequentMethods: "
+							+ e.getMessage();
+					JOptionPane.showMessageDialog(mainPane, msg,
+							"Error Collecting FrequentMethods", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		}; // Thread worker
+
+		worker.start(); // So we don't hold up the dispatch thread.
+	}
+
+	/**
+	 * Determines the frequently called methods in a client class
+	 * @param mainPane the component on which to put the wait cursor
+	 */
+	public void calculateCCC(final Component mainPane) {
+		System.out.println("collecting frequentMethods...");
+
+		Thread worker = new Thread("calculateCCCThread") {
+
+			public void run() {
+
+				try {
+					try {
+						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
+						calculateCCC();
 					} finally {
 						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 					}

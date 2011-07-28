@@ -45,6 +45,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
@@ -417,7 +418,8 @@ implements IJavaSearchConstants, RefactoringConstants {
 	}
 	
 	
-	public static List<IType> getTypes(IJavaElement pkg) throws JavaModelException {
+	public static List<IType> getTypes(IPackageFragment pkg)
+	throws JavaModelException {
 		List<IType> types = null;
 		IJavaSearchScope scope =
 			SearchEngine.createJavaSearchScope(new IJavaElement[] {pkg});
