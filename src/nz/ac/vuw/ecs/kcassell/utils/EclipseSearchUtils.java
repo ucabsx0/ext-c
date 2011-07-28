@@ -417,15 +417,13 @@ implements IJavaSearchConstants, RefactoringConstants {
 	}
 	
 	
-	public static List<IType> getTypes(IJavaElement project) throws JavaModelException {
+	public static List<IType> getTypes(IJavaElement pkg) throws JavaModelException {
 		List<IType> types = null;
 		IJavaSearchScope scope =
-			SearchEngine.createJavaSearchScope(new IJavaElement[] {project});
+			SearchEngine.createJavaSearchScope(new IJavaElement[] {pkg});
 		ClassCollector matchRequestor = new ClassCollector();
 		SearchEngine engine = new SearchEngine();
-//		engine.searchAllTypeNames(packageName, packageMatchRule, typeName, typeMatchRule, searchFor,
-//				scope, nameRequestor, waitingPolicy, progressMonitor)
-		String elementName = project.getElementName();
+		String elementName = pkg.getElementName();
 		if (elementName != null) {
 			char[] projectName = elementName.toCharArray();
 			engine.searchAllTypeNames(
@@ -437,7 +435,7 @@ implements IJavaSearchConstants, RefactoringConstants {
 					IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, null);
 			types = matchRequestor.matchedTypes;
 		} else {
-			System.err.println("No element name for " + project);
+			System.err.println("No element name for " + pkg);
 		}
 		return types;
 	}
