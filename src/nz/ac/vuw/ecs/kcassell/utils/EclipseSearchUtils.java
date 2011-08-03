@@ -46,6 +46,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
@@ -418,29 +419,47 @@ implements IJavaSearchConstants, RefactoringConstants {
 	}
 	
 	
-	public static List<IType> getTypes(IPackageFragment pkg)
-	throws JavaModelException {
-		List<IType> types = null;
+	public static List<IType> getTypes(IJavaElement element) throws JavaModelException {
+		IJavaProject project = element.getJavaProject();
+		project.open(null);
+//		IPackageFragment[] fragments = project.getPackageFragments();
+		List<IPackageFragment> fragments = new ArrayList<IPackageFragment>();
+		IPackageFragmentRoot[] roots = project.getPackageFragmentRoots();
+		for (IPackageFragmentRoot root : roots) {
+			IJavaElement[] children = root.getChildren();
+			for (IJavaElement child : children) {
+				if (child instanceof IPackageFragment) {
+					fragments.add((IPackageFragment)child);
+				}
+			}
+		}
+//		String projectName = project.getElementName();
+		List<IType> types = new ArrayList<IType>();
 		IJavaSearchScope scope =
-			SearchEngine.createJavaSearchScope(new IJavaElement[] {pkg});
+			SearchEngine.createJavaSearchScope(new IJavaElement[] {element});
 		ClassCollector matchRequestor = new ClassCollector();
 		SearchEngine engine = new SearchEngine();
-		String elementName = pkg.getElementName();
-		if (elementName != null) {
-			char[] projectName = elementName.toCharArray();
-			engine.searchAllTypeNames(
-					projectName,
-					SearchPattern.R_PREFIX_MATCH,
-					null, // any type name
-					SearchPattern.R_PATTERN_MATCH, IJavaSearchConstants.TYPE,
-					scope, matchRequestor,
-					IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, null);
-			types = matchRequestor.matchedTypes;
-		} else {
-			System.err.println("No element name for " + pkg);
+		
+		for (IPackageFragment fragment : fragments) {
+			fragment.open(null);
+			String packageName = fragment.getElementName();
+			if (packageName != null) {
+				engine.searchAllTypeNames(
+						packageName.toCharArray(),
+						SearchPattern.R_EXACT_MATCH, // packageMatchRule
+						null, // typeName - the dot-separated qualified name of the searched type
+						SearchPattern.R_PATTERN_MATCH,  // type match rule
+						IJavaSearchConstants.TYPE,
+						scope, matchRequestor,
+						IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, null);
+				types.addAll(matchRequestor.matchedTypes);
+			} else {
+				System.err.println("No element name for " + element);
+			}
 		}
 		return types;
 	}
+	
 	
 	/**
 	 * Collects all types that are defined within the specified one -
