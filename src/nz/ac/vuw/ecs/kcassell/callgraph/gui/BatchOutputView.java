@@ -90,7 +90,7 @@ import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -296,8 +296,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				VectorSpaceModelCalculator calc =
 			    	VectorSpaceModelCalculator.getCalculator(classHandle);
 				IType type = EclipseUtils.getTypeFromHandle(classHandle);
-				IPackageFragment pkg =
-					(IPackageFragment)type.getAncestor(IJavaElement.PACKAGE_FRAGMENT);
+				IJavaProject pkg =
+					(IJavaProject)type.getAncestor(IJavaElement.JAVA_PROJECT);
 				List<IType> types = EclipseSearchUtils.getTypes(pkg);
 				for (IType aType : types) {
 					String typeId = aType.getHandleIdentifier();

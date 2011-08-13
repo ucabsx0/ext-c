@@ -40,6 +40,7 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -58,8 +59,6 @@ import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
-import org.eclipse.jdt.core.search.TypeNameMatch;
-import org.eclipse.jdt.core.search.TypeNameMatchRequestor;
 
 /**
  * Utility functions for finding relationships between classes and
@@ -419,47 +418,34 @@ implements IJavaSearchConstants, RefactoringConstants {
 	}
 	
 	
-	public static List<IType> getTypes(IJavaElement element) throws JavaModelException {
-		IJavaProject project = element.getJavaProject();
-		project.open(null);
-//		IPackageFragment[] fragments = project.getPackageFragments();
-		List<IPackageFragment> fragments = new ArrayList<IPackageFragment>();
-		IPackageFragmentRoot[] roots = project.getPackageFragmentRoots();
+	/**
+	 * Get all the user-defined types defined in a project
+	 * @param project
+	 * @return the types
+	 * @throws JavaModelException
+	 */
+	public static List<IType> getTypes(IJavaProject project)
+	throws JavaModelException {
+		List<IType> types = new ArrayList<IType>();
+		IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
 		for (IPackageFragmentRoot root : roots) {
-			IJavaElement[] children = root.getChildren();
-			for (IJavaElement child : children) {
-				if (child instanceof IPackageFragment) {
-					fragments.add((IPackageFragment)child);
+			if (!root.isReadOnly()) {
+				for (IJavaElement child : root.getChildren()) {
+					if (child.getElementType() == IJavaElement.PACKAGE_FRAGMENT) {
+						IPackageFragment frag = (IPackageFragment) child;
+						for (ICompilationUnit unit : frag.getCompilationUnits()) {
+							for (IType type : unit.getAllTypes()) {
+								if (type.isClass() || type.isEnum()) {
+									types.add(type);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
-//		String projectName = project.getElementName();
-		List<IType> types = new ArrayList<IType>();
-		IJavaSearchScope scope =
-			SearchEngine.createJavaSearchScope(new IJavaElement[] {element});
-		ClassCollector matchRequestor = new ClassCollector();
-		SearchEngine engine = new SearchEngine();
-		
-		for (IPackageFragment fragment : fragments) {
-			fragment.open(null);
-			String packageName = fragment.getElementName();
-			if (packageName != null) {
-				engine.searchAllTypeNames(
-						packageName.toCharArray(),
-						SearchPattern.R_EXACT_MATCH, // packageMatchRule
-						null, // typeName - the dot-separated qualified name of the searched type
-						SearchPattern.R_PATTERN_MATCH,  // type match rule
-						IJavaSearchConstants.TYPE,
-						scope, matchRequestor,
-						IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, null);
-				types.addAll(matchRequestor.matchedTypes);
-			} else {
-				System.err.println("No element name for " + element);
-			}
-		}
 		return types;
-	}
-	
+	}	
 	
 	/**
 	 * Collects all types that are defined within the specified one -
@@ -487,16 +473,6 @@ implements IJavaSearchConstants, RefactoringConstants {
 		Set<IType> embedded = collector.getResult();
 		return embedded;
 	}
-
-	private static final class ClassCollector extends TypeNameMatchRequestor {
-		public List<IType> matchedTypes = new ArrayList<IType>();
-
-		@Override
-		public void acceptTypeNameMatch(TypeNameMatch arg0) {
-			matchedTypes.add(arg0.getType());
-		}
-	}
-
 
 	/**
 	 * Uses the JDT SearchEngine to collect all ITypes
