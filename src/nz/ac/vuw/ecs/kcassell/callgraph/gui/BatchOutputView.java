@@ -225,7 +225,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					} else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)) {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
-						calculateCCC(mainPanel);
+						calculateC3(mainPanel);
 						//clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
@@ -278,9 +278,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	}
 
 	/**
-	 * Calculate Conceptual Cohesion of Classes.
+	 * Calculate Conceptual Cohesion of Classes (C3).
 	 */
-	private void calculateCCC() {
+	private void calculateC3() {
 		GraphView graphView = app.getGraphView();
 		JavaCallGraph callGraph = graphView.getGraph();
 
@@ -302,7 +302,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				for (IType aType : types) {
 					String typeId = aType.getHandleIdentifier();
 				    Double cohesion = calc.calculateConceptualCohesion(typeId);
-					textArea.append("CCC for " + typeId + " = " + cohesion + "\n");
+					textArea.append("C3 for " + typeId + " = " + cohesion + "\n");
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -834,10 +834,10 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	}
 
 	/**
-	 * Determines the frequently called methods in a client class
+	 * Calculates conceptual cohesion of classes (C3)
 	 * @param mainPane the component on which to put the wait cursor
 	 */
-	public void calculateCCC(final Component mainPane) {
+	public void calculateC3(final Component mainPane) {
 		System.out.println("collecting frequentMethods...");
 
 		Thread worker = new Thread("calculateCCCThread") {
@@ -847,7 +847,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				try {
 					try {
 						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
-						calculateCCC();
+						calculateC3();
 					} finally {
 						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 					}
