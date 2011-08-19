@@ -38,6 +38,8 @@ import edu.ucla.sspace.vsm.VectorSpaceModel;
 public class VectorSpaceModelCalculator 
 implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 
+	public static final double MAX_CONCEPTUAL_DISTANCE = 1.0;
+
 	private static final long serialVersionUID = 1L;
 	
 	/** Maps a project name to the calculator for that project. */
@@ -274,12 +276,16 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 				for (int j = i + 1; j < numMethods; j++) {
 					IMethod methodJ = methods.get(j);
 					String handleJ = methodJ.getHandleIdentifier();
-					Number csm = calculateDistance(handleI, handleJ);
+					Number distance = calculateDistance(handleI, handleJ);
+					double similarity = 1.0 - distance.doubleValue();
 					numPairs++;
-					total += csm.doubleValue();
+					total += similarity;
 				}
 			}
 			cohesion = total/numPairs;
+		}
+		if (cohesion < 0.0) {
+			cohesion = 0.0;
 		}
 		return cohesion;
 	}
@@ -309,6 +315,9 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 				System.err.println("No document vector found for " + handle1);
 			}
 		}
+		if (distance < 0.0) {
+			distance = MAX_CONCEPTUAL_DISTANCE;
+		}
 		return distance;
 	}
 
@@ -323,7 +332,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	protected static double calculateCosineDistance(Vector<?> vector1,
 			Vector<?> vector2) {
 		double distance = 1 - Similarity.cosineSimilarity(vector1, vector2);
-		if (distance < 0.0 && distance != UNKNOWN_DISTANCE.doubleValue()) {
+		if (distance < 0.0 || distance == UNKNOWN_DISTANCE.doubleValue()) {
 			distance = 0.0;
 		}
 		return distance;
