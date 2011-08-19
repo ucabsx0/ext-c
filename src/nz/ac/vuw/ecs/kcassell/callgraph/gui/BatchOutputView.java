@@ -305,7 +305,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				for (IType aType : types) {
 					String typeId = aType.getHandleIdentifier();
 				    Double cohesion = calc.calculateConceptualCohesion(typeId);
-				    // TODO get value based on graph view
+				    // TODO get value based on graph view see MetricsDBTransaction.getPreferencesKey
 				    Integer prefKey = 5;
 					SoftwareMeasurement measurement =
 				    	new SoftwareMeasurement(typeId, SoftwareMeasurement.C3, cohesion, prefKey );
