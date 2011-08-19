@@ -47,7 +47,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphLink;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
-import nz.ac.vuw.ecs.kcassell.problemlocation.MetricDatabaseLocator;
+import nz.ac.vuw.ecs.kcassell.persistence.MetricDatabaseLocator;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 
 import org.eclipse.jdt.core.IType;
