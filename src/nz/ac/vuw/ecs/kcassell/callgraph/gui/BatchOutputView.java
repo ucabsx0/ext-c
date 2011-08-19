@@ -67,6 +67,8 @@ import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.ItemSupportList;
 import nz.ac.vuw.ecs.kcassell.cluster.frequentitemsets.fpgrowth.FrequentMethodsMiner;
 import nz.ac.vuw.ecs.kcassell.logging.UtilLogger;
+import nz.ac.vuw.ecs.kcassell.persistence.RecordInserter;
+import nz.ac.vuw.ecs.kcassell.persistence.SoftwareMeasurement;
 import nz.ac.vuw.ecs.kcassell.similarity.ClientDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.CzibulaDistanceCalculator;
@@ -299,11 +301,19 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				IJavaProject pkg =
 					(IJavaProject)type.getAncestor(IJavaElement.JAVA_PROJECT);
 				List<IType> types = EclipseSearchUtils.getTypes(pkg);
+				List<SoftwareMeasurement> measurements = new ArrayList<SoftwareMeasurement>();
 				for (IType aType : types) {
 					String typeId = aType.getHandleIdentifier();
 				    Double cohesion = calc.calculateConceptualCohesion(typeId);
+				    // TODO get value based on graph view
+				    Integer prefKey = 5;
+					SoftwareMeasurement measurement =
+				    	new SoftwareMeasurement(typeId, SoftwareMeasurement.C3, cohesion, prefKey );
+				    measurements.add(measurement);
 					textArea.append("C3 for " + typeId + " = " + cohesion + "\n");
 				}
+				RecordInserter inserter = new RecordInserter();
+				inserter.saveMeasurementsToDB(measurements);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
