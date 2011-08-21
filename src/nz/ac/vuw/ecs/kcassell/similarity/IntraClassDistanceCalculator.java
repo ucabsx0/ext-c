@@ -176,7 +176,11 @@ implements Distance<CallGraphNode>, DistanceCalculatorIfc<String> {
 
 				// Commonality will be (0, 1].  Nodes with few edges to other nodes will
 				// be judged more tightly associated ("Common") and have a higher score.
-				Double commonality = 2.0 / (edgeCount1 + edgeCount2);
+				Double commonality = 0.0;
+				
+				if (edgeCount1 != 0 || edgeCount2 != 0) {
+					commonality = 2.0 / (edgeCount1 + edgeCount2);
+				}
 				distance = pathDistance.doubleValue() + (1 - commonality);
 			}
 		}
