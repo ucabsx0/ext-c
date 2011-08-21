@@ -39,8 +39,13 @@ package nz.ac.vuw.ecs.kcassell.persistence;
  */
 public class SoftwareMeasurement {
 	
-	/** Constant for Conceptual Cohesion of a Class (C3) */
+	/** Constant for Conceptual Cohesion of a Class (C3)
+	 * using LSA. */
 	public final static String C3 = "C3";
+	
+	/** Constant for Conceptual Cohesion of a Class (C3)
+	 * using a VectorSpaceModel. */
+	public final static String C3V = "C3V";
 	
 	/** The Eclipse handle for a java element */
 	private String handle;

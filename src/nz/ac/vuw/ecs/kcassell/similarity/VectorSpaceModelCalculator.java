@@ -17,6 +17,7 @@ import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
 import org.eclipse.jdt.core.JavaModelException;
 
+import edu.ucla.sspace.common.KACSemanticSpace;
 import edu.ucla.sspace.common.Similarity;
 import edu.ucla.sspace.vector.DoubleVector;
 import edu.ucla.sspace.vector.Vector;
@@ -53,8 +54,9 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 
 	/** The vector space model maintains document vectors
 	 * where class members are documents and the "words" are
-	 * stemmed parts of identifiers. */
-	protected VectorSpaceModel vectorSpaceModel = null;
+	 * stemmed parts of identifiers.  This will be either a
+	 * VectorSpaceModel or a LatentSemanticAnalysis object.  */
+	protected KACSemanticSpace semanticSpace = null;
 	
 	/** Maintains a mapping from the member handle to the S-Space
 	 * VectorSpaceModel's document number. */
@@ -175,28 +177,27 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 * remaining tokens are the stemmed words found in identifiers.
 	 * @throws IOException
 	 */
-	public VectorSpaceModel initializeVectorSpace(String fileName)
+	public KACSemanticSpace initializeVectorSpace(String fileName)
 	throws IOException {
-		vectorSpaceModel = new VectorSpaceModel();
+		semanticSpace = new VectorSpaceModel();
 		BufferedReader documentFileReader = new BufferedReader(new FileReader(
 				fileName));
 		int lineNum = 0;
 		String line = null;
 		String memberName = null;
 		while ((line = documentFileReader.readLine()) != null) {
-			vectorSpaceModel.processedDocument = false;  // reset flag for new iteration
-			memberName = processMemberDocument(vectorSpaceModel, line);
+			memberName = processMemberDocument(semanticSpace, line);
 			
-			if (vectorSpaceModel.processedDocument) {
+			if (semanticSpace.getProcessedDocument()) {
 				memberHandleToDocumentNumber.put(memberName, lineNum++);
 			} else {
 				System.out.println("processMemberDocument failed for " + line);
 			}
 		}
-		vectorSpaceModel.processSpace(System.getProperties());
+		semanticSpace.processSpace(System.getProperties());
 //		int vsmColumns = vectorSpaceModel.getVectorLength();
 //		int docsRead = memberHandleToDocumentNumber.size();
-		return vectorSpaceModel;
+		return semanticSpace;
 	}
 
 	/**
@@ -206,7 +207,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 * remaining tokens are the words found in identifiers and comments.
 	 * @throws IOException
 	 */
-	protected static String processMemberDocument(VectorSpaceModel vsm,
+	protected static String processMemberDocument(KACSemanticSpace vsm,
 			String line) throws IOException {
 		String memberName;
 		String restOfMember;
@@ -299,9 +300,9 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 		
 		if (documentInt1 != null && documentInt2 != null) {
 			try {
-				DoubleVector vector1 = vectorSpaceModel.getDocumentVector(documentInt1);
+				DoubleVector vector1 = semanticSpace.getDocumentVector(documentInt1);
 				try {
-					DoubleVector vector2 = vectorSpaceModel.getDocumentVector(documentInt2);
+					DoubleVector vector2 = semanticSpace.getDocumentVector(documentInt2);
 					distance = calculateCosineDistance(vector1, vector2);
 				} catch (IllegalArgumentException e) {
 					System.err.println("No document vector found for " + handle2);
@@ -342,8 +343,8 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 */
 	public Number calculateDistanceBetweenTerms(String handle1, String handle2) {
 		double distance = UNKNOWN_DISTANCE.doubleValue();
-		Vector<?> vector1 = vectorSpaceModel.getVector(handle1);
-		Vector<?> vector2 = vectorSpaceModel.getVector(handle2);
+		Vector<?> vector1 = semanticSpace.getVector(handle1);
+		Vector<?> vector2 = semanticSpace.getVector(handle2);
 		distance = calculateCosineDistance(vector1, vector2);
 		return distance;
 	}
@@ -414,13 +415,13 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 				.get(documentMember2);
 		Integer documentInt3 = memberHandleToDocumentNumber
 				.get(documentMember3);
-		DoubleVector vector0 = vectorSpaceModel
+		DoubleVector vector0 = semanticSpace
 				.getDocumentVector(documentInt0);
-		DoubleVector vector1 = vectorSpaceModel
+		DoubleVector vector1 = semanticSpace
 				.getDocumentVector(documentInt1);
-		DoubleVector vector2 = vectorSpaceModel
+		DoubleVector vector2 = semanticSpace
 				.getDocumentVector(documentInt2);
-		DoubleVector vector3 = vectorSpaceModel
+		DoubleVector vector3 = semanticSpace
 				.getDocumentVector(documentInt3);
 		double similarity01 = Similarity.cosineSimilarity(vector0, vector1);
 		System.out.println("similarity01: " + similarity01);
