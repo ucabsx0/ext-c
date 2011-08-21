@@ -220,50 +220,66 @@ public class EclipseUtils {
 			throws JavaModelException {
 		//TODO initializers and inner classes too?
 		List<String> memberHandles = new ArrayList<String>();
-		
 		IJavaElement element = JavaCore.create(classHandle);
+
+		if (element == null) {
+			System.err.println("  No element created from " + classHandle);
+		} else if (element instanceof IType) {
+			IType type = (IType) element;
+			List<String> fields = getFilteredFieldHandles(type);
+			memberHandles.addAll(fields);
+			List<String> methods = getFilteredMethodHandles(type);
+			memberHandles.addAll(methods);
+		}
+		return memberHandles;
+	}
+
+	public static List<String> getFilteredFieldHandles(IType type)
+	throws JavaModelException {
+		List<String> memberHandles = new ArrayList<String>();
 		ApplicationParameters params =
 			ApplicationParameters.getSingleton();
 		boolean includeStatic = params.getBooleanParameter(
 				ParameterConstants.INCLUDE_STATICS_KEY, true);
 		boolean includeLoggers = params.getBooleanParameter(
 				ParameterConstants.INCLUDE_LOGGERS_KEY, true);
-
-		if (element == null) {
-			System.err.println("  No element created from " + classHandle);
-		} else if (element instanceof IType) {
-			IType type = (IType) element;
-			IField[] fields = type.getFields();
-			for (IField field : fields) {
-				if (field != null) {
-					String className = field.getDeclaringType().getFullyQualifiedName();
-					int flags = field.getFlags();
-					if ((includeStatic || !Flags.isStatic(flags))
-							&& (includeLoggers
-									|| !RefactoringConstants.LOGGER_CLASS
-									     .equals(className))) {
-						memberHandles.add(field.getHandleIdentifier());
-					}
+		IField[] fields = type.getFields();
+		for (IField field : fields) {
+			if (field != null) {
+				String className = field.getDeclaringType().getFullyQualifiedName();
+				int flags = field.getFlags();
+				if ((includeStatic || !Flags.isStatic(flags))
+						&& (includeLoggers
+								|| !RefactoringConstants.LOGGER_CLASS
+								     .equals(className))) {
+					memberHandles.add(field.getHandleIdentifier());
 				}
 			}
-
-			boolean includeConstructors = params.getBooleanParameter(
-					ParameterConstants.INCLUDE_CONSTRUCTORS_KEY, false);
-			boolean includeObjectMethods = params.getBooleanParameter(
-					ParameterConstants.INCLUDE_OBJECT_METHODS_KEY, true);
-			IMethod[] methods = type.getMethods();
-			
-			// Get all method handles except maybe constructors, Object methods
-			for (IMethod method : methods) {
-				if (method != null) {
-					String methodHandle = method.getHandleIdentifier();
-					if ((includeObjectMethods || !isRedefinedObjectMethod(methodHandle))
-						 && (includeConstructors || !method.isConstructor())) {
-						memberHandles.add(methodHandle);
-					}
-				}
-			}	// for
 		}
+		return memberHandles;
+	}
+
+	public static List<String> getFilteredMethodHandles(IType type)
+	throws JavaModelException {
+		List<String> memberHandles = new ArrayList<String>();
+		ApplicationParameters params =
+			ApplicationParameters.getSingleton();
+		boolean includeConstructors = params.getBooleanParameter(
+				ParameterConstants.INCLUDE_CONSTRUCTORS_KEY, false);
+		boolean includeObjectMethods = params.getBooleanParameter(
+				ParameterConstants.INCLUDE_OBJECT_METHODS_KEY, true);
+		IMethod[] methods = type.getMethods();
+		
+		// Get all method handles except maybe constructors, Object methods
+		for (IMethod method : methods) {
+			if (method != null) {
+				String methodHandle = method.getHandleIdentifier();
+				if ((includeObjectMethods || !isRedefinedObjectMethod(methodHandle))
+					 && (includeConstructors || !method.isConstructor())) {
+					memberHandles.add(methodHandle);
+				}
+			}
+		}	// for
 		return memberHandles;
 	}
 

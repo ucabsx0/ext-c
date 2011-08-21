@@ -117,6 +117,19 @@ public class ApplicationParameters {
 	 * If not, use the provided default value
 	 * @param key the parameter name
 	 * @param value the default value to use if none is stored
+	 * @return 0 for false; 1 for true
+	 */
+	public int getBooleanParameterAsInt(String key, boolean value)
+	{
+		value = getBooleanParameter(key, value);
+		return value?1:0;
+	}
+	
+	/**
+	 * Retrieve the stored value for the parameter if it exists.
+	 * If not, use the provided default value
+	 * @param key the parameter name
+	 * @param value the default value to use if none is stored
 	 * @return the parameter's value
 	 */
 	public int getIntParameter(String key, int value)
