@@ -11,13 +11,10 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ObjectPersistence;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
 import edu.ucla.sspace.common.Similarity;
@@ -264,18 +261,16 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	public Double calculateConceptualCohesion(String classHandle)
 	throws JavaModelException {
 		Double cohesion = 0.0;
-		IType type = EclipseUtils.getTypeFromHandle(classHandle);
-		List<IMethod> methods = EclipseSearchUtils.getMethods(type, false);
-		int numMethods = methods.size();
+		List<String> methodHandles =
+			EclipseUtils.getFilteredMemberHandles(classHandle);
+		int numMethods = methodHandles.size();
 		int numPairs = 0;
 		Double total = 0.0;
 		if (numMethods > 1) {
 			for (int i = 0; i < numMethods; i++) {
-				IMethod methodI = methods.get(i);
-				String handleI = methodI.getHandleIdentifier();
+				String handleI = methodHandles.get(i);
 				for (int j = i + 1; j < numMethods; j++) {
-					IMethod methodJ = methods.get(j);
-					String handleJ = methodJ.getHandleIdentifier();
+					String handleJ = methodHandles.get(j);
 					Number distance = calculateDistance(handleI, handleJ);
 					double similarity = 1.0 - distance.doubleValue();
 					numPairs++;

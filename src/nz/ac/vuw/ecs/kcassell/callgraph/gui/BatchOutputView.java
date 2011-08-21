@@ -301,14 +301,15 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				IJavaProject pkg =
 					(IJavaProject)type.getAncestor(IJavaElement.JAVA_PROJECT);
 				List<IType> types = EclipseSearchUtils.getTypes(pkg);
+			    //Integer prefKey = 1;
+				int prefKey = RecordInserter.getPreferencesKey();
 				List<SoftwareMeasurement> measurements = new ArrayList<SoftwareMeasurement>();
 				for (IType aType : types) {
 					String typeId = aType.getHandleIdentifier();
 				    Double cohesion = calc.calculateConceptualCohesion(typeId);
 				    // TODO get value based on graph view see MetricsDBTransaction.getPreferencesKey
-				    Integer prefKey = 5;
 					SoftwareMeasurement measurement =
-				    	new SoftwareMeasurement(typeId, SoftwareMeasurement.C3, cohesion, prefKey );
+				    	new SoftwareMeasurement(typeId, SoftwareMeasurement.C3, cohesion, prefKey);
 				    measurements.add(measurement);
 					textArea.append("C3 for " + typeId + " = " + cohesion + "\n");
 				}
