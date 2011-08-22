@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -22,7 +21,6 @@ import edu.ucla.sspace.common.Similarity;
 import edu.ucla.sspace.lsa.LatentSemanticAnalysis;
 import edu.ucla.sspace.vector.DoubleVector;
 import edu.ucla.sspace.vector.Vector;
-import edu.ucla.sspace.vsm.VectorSpaceModel;
 
 /**
  * The LSACalculator uses Latent Semantic Analysis (LSA) to
