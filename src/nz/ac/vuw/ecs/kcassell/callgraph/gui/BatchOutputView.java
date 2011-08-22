@@ -80,6 +80,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.JDeodorantDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.LSACalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LocalNeighborhoodDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
@@ -259,7 +260,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					.buildDocumentsForPublicMethods(callGraph, memberClientsFile);
 				textArea.setText(documents);
 				String fileName = calculator.getDataFileNameFromHandle(classHandle);
-				calculator.initializeVectorSpace(fileName);
+				calculator.initializeSemanticSpace(fileName);
 				
 				// Aggl. clustering using the ClientDistanceCalculator
 				List<String> memberHandles = calculator.getMemberHandles();
@@ -295,8 +296,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				textArea.setText("");
 				// initialize the calculator and build the data file
 				String classHandle = callGraph.getHandle();
-				VectorSpaceModelCalculator calc =
-			    	VectorSpaceModelCalculator.getCalculator(classHandle);
+				LSACalculator calc =
+			    	LSACalculator.getCalculator(classHandle);
 				IType type = EclipseUtils.getTypeFromHandle(classHandle);
 				IJavaProject pkg =
 					(IJavaProject)type.getAncestor(IJavaElement.JAVA_PROJECT);
@@ -309,7 +310,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				    Double cohesion = calc.calculateConceptualCohesion(typeId);
 				    // TODO get value based on graph view see MetricsDBTransaction.getPreferencesKey
 					SoftwareMeasurement measurement =
-				    	new SoftwareMeasurement(typeId, SoftwareMeasurement.C3V, cohesion, prefKey);
+				    	new SoftwareMeasurement(typeId, SoftwareMeasurement.C3, cohesion, prefKey);
 				    measurements.add(measurement);
 					textArea.append("C3 for " + typeId + " = " + cohesion + "\n");
 				}

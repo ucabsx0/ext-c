@@ -34,11 +34,12 @@ import edu.ucla.sspace.vsm.VectorSpaceModel;
  *
  */
 public class VectorSpaceModelCalculator 
+// TODO extends SemanticsCalculator
 implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 
 	public static final double MAX_CONCEPTUAL_DISTANCE = 1.0;
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 	
 	/** Maps a project name to the calculator for that project. */
 	protected static transient Hashtable<String, VectorSpaceModelCalculator> calculatorMap =
@@ -73,10 +74,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 */
 	protected VectorSpaceModelCalculator(String handle)
 	throws IOException {
-//		vsmHandle = handle;
 		projectName = EclipseUtils.getProjectNameFromHandle(handle);
-//		String fileName = getDataFileNameFromHandle(handle);
-//		initializeVectorSpace(fileName);
 		calculatorMap.put(projectName, this);
 	}
 	
@@ -104,7 +102,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 				try {
 					calculator = new VectorSpaceModelCalculator(handle);
 					String fileName = calculator.getDataFileNameFromHandle(handle);
-					calculator.initializeVectorSpace(fileName);
+					calculator.initializeSemanticSpace(fileName);
 					calculator.save();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -128,8 +126,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	public String getDataFileNameFromHandle(String handle) {
 //		String className = EclipseUtils.getNameFromHandle(handle);
 		projectName = EclipseUtils.getProjectNameFromHandle(handle);
-	    String memberDocumentFile = DATA_DIR +
-			"MemberDocuments/" + projectName + "/" +
+	    String memberDocumentFile = MEMBER_DOCUMENTS_DIR + projectName + "/" +
 			projectName + "Members.txt";
 //		className + "Members.txt";
 	    // TODO remove debug
@@ -140,9 +137,9 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	/**
 	 * Save the serialized version of this calculator.
 	 */
-	public void save() {
-		String serializationFile = DATA_DIR +
-			"MemberDocuments/" + projectName + "/" + projectName + ".ser";
+	protected void save() {
+		String serializationFile =
+			MEMBER_DOCUMENTS_DIR + projectName + "/" + projectName + "VSM.ser";
 		try {
 			ObjectPersistence.saveToFile(this, serializationFile);
 		} catch (Exception e) {
@@ -155,10 +152,10 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 * Recreates a calculator from a file containing the serialized object.
 	 * @param name the name of the project to restore
 	 */
-	public static VectorSpaceModelCalculator restore(String name) {
+	protected static VectorSpaceModelCalculator restore(String name) {
 		VectorSpaceModelCalculator calc = null;
-		String serializationFile = DATA_DIR +
-			"MemberDocuments/" + name + "/" + name + ".ser";
+		String serializationFile =
+			MEMBER_DOCUMENTS_DIR + name + "/" + name + "VSM.ser";
 		try {
 			Object object = ObjectPersistence.readFromFile(serializationFile);
 			calc = (VectorSpaceModelCalculator)object;
@@ -177,7 +174,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 * remaining tokens are the stemmed words found in identifiers.
 	 * @throws IOException
 	 */
-	public KACSemanticSpace initializeVectorSpace(String fileName)
+	public KACSemanticSpace initializeSemanticSpace(String fileName)
 	throws IOException {
 		semanticSpace = new VectorSpaceModel();
 		BufferedReader documentFileReader = new BufferedReader(new FileReader(
@@ -363,7 +360,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 			VectorSpaceModelCalculator calculator =
 				new VectorSpaceModelCalculator(handle);
 			String fileName = calculator.getDataFileNameFromHandle(handle);
-			calculator.initializeVectorSpace(fileName);
+			calculator.initializeSemanticSpace(fileName);
 			//testCohesionTests(semanticAnalyzer);
 			calculator.testFreecol();
 		} catch (IOException e) {

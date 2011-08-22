@@ -67,6 +67,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.JDeodorantDistanceCalculator;
+import nz.ac.vuw.ecs.kcassell.similarity.LSACalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LocalNeighborhoodDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
@@ -458,6 +459,15 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(classHandle, calc);
 				displayCluster(classHandle, cluster);
+			} else if (DistanceCalculatorEnum.LSA.equals(calcType)) {
+				LSACalculator calc =
+			    	LSACalculator.getCalculator(classHandle);
+				List<String> names =
+					EclipseUtils.getFilteredMemberHandles(classHandle);
+				MatrixBasedAgglomerativeClusterer clusterer =
+					new MatrixBasedAgglomerativeClusterer(names, calc);
+				MemberCluster cluster = clusterer.getSingleCluster();
+				displayCluster(classHandle, cluster);
 			} else if (DistanceCalculatorEnum.Simon.equals(calcType)) {
 				SimonDistanceCalculator calc =
 					new SimonDistanceCalculator(callGraph);
@@ -583,6 +593,11 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 				MemberCluster sCluster =
 					MatrixBasedAgglomerativeClusterer
 					.clusterUsingCalculator(handle, calc);
+				displayCluster(handle, sCluster);
+			} else if (DistanceCalculatorEnum.LSA.equals(calcType)) {
+				LSACalculator calc =
+			    	LSACalculator.getCalculator(handle);
+				MemberCluster sCluster = MatrixBasedAgglomerativeClusterer.clusterUsingCalculator(handle, calc);
 				displayCluster(handle, sCluster);
 			} else if (DistanceCalculatorEnum.VectorSpaceModel.equals(calcType)) {
 				VectorSpaceModelCalculator calc =

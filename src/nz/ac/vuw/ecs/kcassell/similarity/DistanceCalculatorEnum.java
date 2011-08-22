@@ -47,6 +47,7 @@ public enum DistanceCalculatorEnum {
 	JDeodorant,
 	Levenshtein,
 	LocalNeighborhood,
+	LSA, // Latent Semantic Analysis
 	Simon,
 	VectorSpaceModel;
 	

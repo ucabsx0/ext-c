@@ -59,6 +59,9 @@ public interface RefactoringConstants {
 	/** The root directory beneath which graph data, etc. is stored. */
 	public static final String DATA_DIR = PROJECT_ROOT + "datasets/";
 
+	/** The root directory beneath which member documents are stored. */
+	public static final String MEMBER_DOCUMENTS_DIR = DATA_DIR + "MemberDocuments/";
+
 	/** A value to use when the distance is unknown.  All true distances
 	 * should be positive. */
 	public static final Number UNKNOWN_DISTANCE = -1.0;
