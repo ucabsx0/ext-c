@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ObjectPersistence;
@@ -186,7 +187,10 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 				System.out.println("processMemberDocument failed for " + line);
 			}
 		}
-		semanticSpace.processSpace(System.getProperties());
+		Properties props = System.getProperties();
+		props.setProperty(
+			LatentSemanticAnalysis.RETAIN_DOCUMENT_SPACE_PROPERTY, "true");
+		semanticSpace.processSpace(props);
 		return semanticSpace;
 	}
 
@@ -271,7 +275,7 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 				} catch (IllegalArgumentException e) {
 					System.err.println("No document vector found for " + handle2);
 				}
-			} catch (IllegalArgumentException e) {
+			} catch (Exception e) {
 				System.err.println("No document vector found for " + handle1);
 			}
 		}
