@@ -100,7 +100,8 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 					calculator = new LSACalculator(handle);
 					String fileName = calculator.getDataFileNameFromHandle(handle);
 					calculator.initializeSemanticSpace(fileName);
-					calculator.save();
+					// All of the S-space objects are not Serializable
+//					calculator.save();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
