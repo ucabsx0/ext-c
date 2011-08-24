@@ -80,7 +80,6 @@ import nz.ac.vuw.ecs.kcassell.similarity.IdentifierDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IdentifierGoogleDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.IntraClassDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.JDeodorantDistanceCalculator;
-import nz.ac.vuw.ecs.kcassell.similarity.LSACalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LevenshteinDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.LocalNeighborhoodDistanceCalculator;
 import nz.ac.vuw.ecs.kcassell.similarity.SimonDistanceCalculator;
@@ -228,7 +227,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					} else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)) {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
-						calculateC3(mainPanel);
+						calculateC3V(mainPanel);
 						//clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
@@ -281,9 +280,10 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	}
 
 	/**
-	 * Calculate Conceptual Cohesion of Classes (C3).
+	 * Calculate Conceptual Cohesion of Classes (C3V) using a 
+	 * vector space model.
 	 */
-	private void calculateC3() {
+	private void calculateC3V() {
 		GraphView graphView = app.getGraphView();
 		JavaCallGraph callGraph = graphView.getGraph();
 
@@ -296,8 +296,10 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				textArea.setText("");
 				// initialize the calculator and build the data file
 				String classHandle = callGraph.getHandle();
-				LSACalculator calc =
-			    	LSACalculator.getCalculator(classHandle);
+				VectorSpaceModelCalculator calc =
+					VectorSpaceModelCalculator.getCalculator(classHandle);
+//				LSACalculator calc =
+//			    	LSACalculator.getCalculator(classHandle);
 				IType type = EclipseUtils.getTypeFromHandle(classHandle);
 				IJavaProject pkg =
 					(IJavaProject)type.getAncestor(IJavaElement.JAVA_PROJECT);
@@ -310,9 +312,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				    Double cohesion = calc.calculateConceptualCohesion(typeId);
 				    // TODO get value based on graph view see MetricsDBTransaction.getPreferencesKey
 					SoftwareMeasurement measurement =
-				    	new SoftwareMeasurement(typeId, SoftwareMeasurement.C3, cohesion, prefKey);
+				    	new SoftwareMeasurement(typeId, SoftwareMeasurement.C3V, cohesion, prefKey);
 				    measurements.add(measurement);
-					textArea.append("C3 for " + typeId + " = " + cohesion + "\n");
+					textArea.append("C3V for " + typeId + " = " + cohesion + "\n");
 				}
 				RecordInserter inserter = new RecordInserter();
 				inserter.saveMeasurementsToDB(measurements);
@@ -846,20 +848,21 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	}
 
 	/**
-	 * Calculates conceptual cohesion of classes (C3)
+	 * Calculates conceptual cohesion of classes (C3V) using a vector
+	 * space model
 	 * @param mainPane the component on which to put the wait cursor
 	 */
-	public void calculateC3(final Component mainPane) {
+	public void calculateC3V(final Component mainPane) {
 		System.out.println("collecting frequentMethods...");
 
-		Thread worker = new Thread("calculateCCCThread") {
+		Thread worker = new Thread("calculateC3VThread") {
 
 			public void run() {
 
 				try {
 					try {
 						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
-						calculateC3();
+						calculateC3V();
 					} finally {
 						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 					}

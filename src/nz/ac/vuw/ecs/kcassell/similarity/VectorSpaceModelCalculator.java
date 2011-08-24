@@ -324,7 +324,8 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 	 */
 	protected static double calculateCosineDistance(Vector<?> vector1,
 			Vector<?> vector2) {
-		double distance = 1 - Similarity.cosineSimilarity(vector1, vector2);
+		double similarity = Similarity.cosineSimilarity(vector1, vector2);
+		double distance = 1.0 - similarity;
 		if (distance < 0.0 || distance == UNKNOWN_DISTANCE.doubleValue()) {
 			distance = 0.0;
 		}
