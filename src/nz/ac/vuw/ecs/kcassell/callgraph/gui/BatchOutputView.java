@@ -87,6 +87,7 @@ import nz.ac.vuw.ecs.kcassell.similarity.VectorSpaceModelCalculator;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseSearchUtils;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
+import nz.ac.vuw.ecs.kcassell.utils.GodClassesMM30;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
 import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 
@@ -283,7 +284,40 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * Calculate Conceptual Cohesion of Classes (C3V) using a 
 	 * vector space model.
 	 */
-	private void calculateC3V() {
+	private void calculateC3VForGodClasses() {
+		try {
+			textArea.setText("");
+			// initialize the calculator and build the data file
+			GodClassesMM30 mm30 = new GodClassesMM30();
+			List<String> types = mm30.getAllClasses();
+			
+			VectorSpaceModelCalculator calc = null;
+			int prefKey = 5; // TODO RecordInserter.getPreferencesKey();
+			List<SoftwareMeasurement> measurements = new ArrayList<SoftwareMeasurement>();
+			for (String typeId : types) {
+				calc = VectorSpaceModelCalculator.getCalculator(typeId);
+				Double cohesion = calc.calculateConceptualCohesion(typeId);
+				// TODO get value based on graph view see
+				// MetricsDBTransaction.getPreferencesKey
+				SoftwareMeasurement measurement = new SoftwareMeasurement(
+						typeId, SoftwareMeasurement.C3V, cohesion, prefKey);
+				measurements.add(measurement);
+				textArea.append("C3V for " + typeId + " = " + cohesion + "\n");
+			}
+			RecordInserter inserter = new RecordInserter();
+			inserter.saveMeasurementsToDB(measurements);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		textArea.repaint();
+	}
+
+	/**
+	 * Calculate Conceptual Cohesion of Classes (C3V) using a 
+	 * vector space model.
+	 */
+	private void calculateC3VForTypesInProject() {
 		GraphView graphView = app.getGraphView();
 		JavaCallGraph callGraph = graphView.getGraph();
 
@@ -301,9 +335,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 //				LSACalculator calc =
 //			    	LSACalculator.getCalculator(classHandle);
 				IType type = EclipseUtils.getTypeFromHandle(classHandle);
-				IJavaProject pkg =
+				IJavaProject project =
 					(IJavaProject)type.getAncestor(IJavaElement.JAVA_PROJECT);
-				List<IType> types = EclipseSearchUtils.getTypes(pkg);
+				List<IType> types = EclipseSearchUtils.getTypes(project);
 			    //Integer prefKey = 1;
 				int prefKey = RecordInserter.getPreferencesKey();
 				List<SoftwareMeasurement> measurements = new ArrayList<SoftwareMeasurement>();
@@ -339,14 +373,16 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				DistanceCalculatorEnum.IntraClass.toString());
 		logger.info("Aggregating using " + sClusterer + " and " + sCalc);
 		MetricsView metricsView = app.getMetricsView();
-		String[] classHandles = metricsView.getClassHandles();
+		// TODO String[] classHandles = metricsView.getClassHandles();
+		GodClassesMM30 mm30 = new GodClassesMM30();
+		List<String> classHandles = mm30.getAllClasses();
 		// "=Weka/<weka.classifiers.meta{MultiClassClassifier.java[MultiClassClassifier";
 
-		int iterations = classHandles.length; // Math.min(20, classHandles.length);
+		int iterations = classHandles.size();  // classHandles.length; // Math.min(20, classHandles.length);
 		activateProgressBar(iterations);
 		for (int i = 0;  i < iterations; i++) {
 			progressBar.setValue(i);
-			String handle = classHandles[i];
+			String handle = classHandles.get(i); //[i];
 			clusterOneSelection(sClusterer, sCalc, handle);
 		}
 		inactivateProgressBar();
@@ -862,7 +898,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				try {
 					try {
 						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
-						calculateC3V();
+						calculateC3VForGodClasses();
+//						calculateC3VForTypesInProject();
 					} finally {
 						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 					}
