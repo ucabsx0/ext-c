@@ -275,6 +275,7 @@ public class EclipseUtils {
 			if (method != null) {
 				String methodHandle = method.getHandleIdentifier();
 				if ((includeObjectMethods || !isRedefinedObjectMethod(methodHandle))
+//						&& (methodHandle.indexOf("TipText") < 0)
 					 && (includeConstructors || !method.isConstructor())) {
 					memberHandles.add(methodHandle);
 				}
