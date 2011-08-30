@@ -56,7 +56,7 @@ public class MetricDatabaseLocator implements IDatabaseConstants, Constants {
 	protected String sqlQuery = null;
 	
 	private static UtilLogger utilLogger =
-		new UtilLogger("BetweennessCalculator");
+		new UtilLogger("MetricDatabaseLocator");
 
 	public String getSqlQuery() {
 		return sqlQuery;
@@ -67,6 +67,8 @@ public class MetricDatabaseLocator implements IDatabaseConstants, Constants {
 	}
 
 	/**
+	 * Collects all the software measurements for classes that match the 
+	 * SQL query.
 	 * @param args
 	 */
 	public List<TypeMetrics> findProblemClasses() throws SQLException {
@@ -105,7 +107,7 @@ public class MetricDatabaseLocator implements IDatabaseConstants, Constants {
 			boolean gotResultSet = statement.execute(sqlQuery);
 			if (gotResultSet) {
 				resultSet = statement.getResultSet();
-				problemHandles = processResults(resultSet);
+				problemHandles = collectMetricResults(resultSet);
 			}
 
 			statement.close();
@@ -129,26 +131,26 @@ public class MetricDatabaseLocator implements IDatabaseConstants, Constants {
 		return problemHandles;
 	}
 
-	private List<TypeMetrics> processResults(ResultSet resultSet)
+	public static List<TypeMetrics> collectMetricResults(ResultSet resultSet)
 			throws SQLException {
 		List<TypeMetrics> problemClasses = new ArrayList<TypeMetrics>();
 		EclipseUtils.prepareWorkspace();
 
 		while (resultSet.next()) {
-			TypeMetrics problem = new TypeMetrics();
+			TypeMetrics problemClassMetrics = new TypeMetrics();
 			String handle = resultSet.getString(HANDLE_FIELD.trim());
 			IJavaElement element = JavaCore.create(handle);
-			problem.setHandle(handle);
-			problem.setJavaElement(element);
+			problemClassMetrics.setHandle(handle);
+			problemClassMetrics.setJavaElement(element);
 
 			ResultSetMetaData metaData = resultSet.getMetaData();
 			for (int i = 2; i <= metaData.getColumnCount(); i++) {
 				String metricName = metaData.getColumnName(i);
 				Double value = resultSet.getDouble(metricName);
 				Metric metric = new Metric(metricName, value);
-				problem.setValue(metric);
+				problemClassMetrics.setValue(metric);
 			}
-			problemClasses.add(problem);
+			problemClasses.add(problemClassMetrics);
 		}
 		return problemClasses;
 	}

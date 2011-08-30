@@ -228,6 +228,13 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					} else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)) {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
+						GodClassesMM30 godClassesMM30 = new GodClassesMM30();
+//						try {
+//							godClassesMM30.printMetricValues();
+//						} catch (SQLException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
 						calculateC3V(mainPanel);
 						//clusterUsingClientDistances();
 					} // TEST_BUTTON
@@ -289,20 +296,27 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			textArea.setText("");
 			// initialize the calculator and build the data file
 			GodClassesMM30 mm30 = new GodClassesMM30();
-			List<String> types = mm30.getAllClasses();
+			List<String> types = mm30.getAllClassesRBetw();
 			
 			VectorSpaceModelCalculator calc = null;
 			int prefKey = 5; // TODO RecordInserter.getPreferencesKey();
 			List<SoftwareMeasurement> measurements = new ArrayList<SoftwareMeasurement>();
 			for (String typeId : types) {
-				calc = VectorSpaceModelCalculator.getCalculator(typeId);
-				Double cohesion = calc.calculateConceptualCohesion(typeId);
-				// TODO get value based on graph view see
-				// MetricsDBTransaction.getPreferencesKey
-				SoftwareMeasurement measurement = new SoftwareMeasurement(
-						typeId, SoftwareMeasurement.C3V, cohesion, prefKey);
-				measurements.add(measurement);
-				textArea.append("C3V for " + typeId + " = " + cohesion + "\n");
+				try {
+					calc = VectorSpaceModelCalculator.getCalculator(typeId);
+					Double cohesion = calc.calculateConceptualCohesion(typeId);
+					// TODO get value based on graph view see
+					// MetricsDBTransaction.getPreferencesKey
+					SoftwareMeasurement measurement = new SoftwareMeasurement(
+							typeId, SoftwareMeasurement.C3V, cohesion, prefKey);
+					measurements.add(measurement);
+					textArea.append("C3V for " + typeId + " = " + cohesion + "\n");
+				} catch (Exception jme) {
+					// TODO Auto-generated catch block
+					logger.warning("Unable to calculate C3V for " + typeId);
+					textArea.append("Unable to calculate C3V for " + typeId + "\n");
+					//jme.printStackTrace();
+				}
 			}
 			RecordInserter inserter = new RecordInserter();
 			inserter.saveMeasurementsToDB(measurements);
