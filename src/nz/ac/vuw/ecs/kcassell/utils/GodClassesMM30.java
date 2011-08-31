@@ -317,7 +317,7 @@ public class GodClassesMM30 implements IDatabaseConstants, Constants {
 				resultSet = selectMetricValues(selectStatement, handle);
 				metrics = collectMetricResults(resultSet, metrics);
 			}
-			printResults(metrics);
+			printNonCohesionResults(metrics);
 			statement.close();
 			connection.commit();
 
@@ -338,7 +338,7 @@ public class GodClassesMM30 implements IDatabaseConstants, Constants {
 		return metrics;
 	}
 
-	private void printResults(Map<String, TypeMetrics> metrics) {
+	private void printCohesionResults(Map<String, TypeMetrics> metrics) {
 		PrintStream out = System.out;
 		DecimalFormat formatter = new DecimalFormat();
 		formatter.setGroupingUsed(false);
@@ -368,12 +368,47 @@ public class GodClassesMM30 implements IDatabaseConstants, Constants {
 		}
 	}
 
+	private void printNonCohesionResults(Map<String, TypeMetrics> metrics) {
+		PrintStream out = System.out;
+		DecimalFormat formatter = new DecimalFormat();
+		formatter.setGroupingUsed(false);
+		formatter.setMaximumFractionDigits(3);
+
+		out.print(HANDLE_FIELD.trim()); out.print(",");
+		out.print("NF,");
+		out.print("NM,");
+		out.print(WMC.trim()); out.print("\n");
+		Set<String> keySet = metrics.keySet();
+		for (String key : keySet) {
+			TypeMetrics typeMetrics = metrics.get(key);
+			Map<String, Metric> valueMap =
+				typeMetrics.getValues();
+			out.print(key);
+			printValue(out, valueMap, NUM_FIELDS, formatter);
+			printValue(out, valueMap, NUM_METHODS, formatter);
+			printValue(out, valueMap, WMC, formatter);
+			out.print("\n");
+		}
+	}
+
 	protected void printValue(PrintStream out,
 			Map<String, Metric> valueMap, String acronym,
 			NumberFormat formatter) {
 		Metric metric = valueMap.get(acronym);
 		if (metric != null) {
 			double value = metric.getValue();
+			// NUM_FIELDS counts instance fields, we want static fields too
+			if (NUM_FIELDS.equals(acronym)) {
+				Metric metricStatic = valueMap.get(NUM_STAT_FIELDS);
+				if (metricStatic != null) {
+					value += metricStatic.getValue();
+				}
+			} else if (NUM_METHODS.equals(acronym)) {
+				Metric metricStatic = valueMap.get(NUM_STAT_METHODS);
+				if (metricStatic != null) {
+					value += metricStatic.getValue();
+				}
+			}
 			String sValue = formatter.format(value);
 			out.print(","); out.print(sValue);
 		} else {

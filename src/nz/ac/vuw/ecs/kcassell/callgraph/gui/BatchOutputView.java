@@ -41,6 +41,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -229,13 +230,13 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
 						GodClassesMM30 godClassesMM30 = new GodClassesMM30();
-//						try {
-//							godClassesMM30.printMetricValues();
-//						} catch (SQLException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-						calculateC3V(mainPanel);
+						try {
+							godClassesMM30.printMetricValues();
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+//						calculateC3V(mainPanel);
 						//clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
