@@ -230,13 +230,13 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
 						GodClassesMM30 godClassesMM30 = new GodClassesMM30();
-						try {
-							godClassesMM30.printMetricValues();
-						} catch (SQLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-//						calculateC3V(mainPanel);
+//						try {
+//							godClassesMM30.printMetricValues();
+//						} catch (SQLException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+						calculateC3V(mainPanel);
 						//clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
@@ -297,7 +297,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			textArea.setText("");
 			// initialize the calculator and build the data file
 			GodClassesMM30 mm30 = new GodClassesMM30();
-			List<String> types = mm30.getAllClassesRBetw();
+			List<String> types = mm30.getAllClassesRECOOP();
 			
 			VectorSpaceModelCalculator calc = null;
 			int prefKey = 5; // TODO RecordInserter.getPreferencesKey();
