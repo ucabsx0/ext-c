@@ -41,7 +41,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -383,6 +382,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		ApplicationParameters params = ApplicationParameters.getSingleton();
 		String sClusterer = params.getParameter(
 				CLUSTERER_KEY, ClustererEnum.MIXED_MODE.toString());
+		textArea.append("Parame = " + params + "\n");
 		String sCalc = params.getParameter(
 				ParameterConstants.CALCULATOR_KEY,
 				DistanceCalculatorEnum.IntraClass.toString());
