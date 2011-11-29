@@ -1,0 +1,112 @@
+(
+  (
+    (
+      (
+        (
+          m_Bias:0.33,
+          getBias:0.33
+        ) it6-0.33:0.60,
+        decompose:0.93
+      ) it26-0.93:0.07,
+      (
+        (
+          (
+            (
+              m_Classifier:0.01,
+              listOptions:0.01
+            ) it2-0.00:0.40,
+            setClassifier:0.40
+          ) it10-0.40:0.10,
+          getClassifier:0.50
+        ) it17-0.50:0.33,
+        (
+          globalInfo:0.75,
+          main:0.75
+        ) it24-0.75:0.08
+      ) it25-0.83:0.17
+    ) it32-1.00:0.01,
+    (
+      (
+        m_ClassIndex:0.60,
+        (
+          getClassIndex:0.50,
+          setClassIndex:0.50
+        ) it16-0.50:0.10
+      ) it23-0.60:0.40,
+      (
+        (
+          m_DataFileName:0.01,
+          getRevision:0.01
+        ) it5-0.00:0.60,
+        (
+          getDataFileName:0.50,
+          setDataFileName:0.50
+        ) it15-0.50:0.10
+      ) it22-0.60:0.40
+    ) it31-1.00:0.01
+  ) it35-1.00:0.01,
+  (
+    (
+      (
+        (
+          m_ClassifierOptions:0.01,
+          setOptions:0.01
+        ) it3-0.00:1.00,
+        (
+          m_Variance:0.33,
+          getVariance:0.33
+        ) it7-0.33:0.67
+      ) it27-1.00:0.01,
+      (
+        (
+          m_Error:0.33,
+          getError:0.33
+        ) it9-0.33:0.67,
+        (
+          m_Sigma:0.33,
+          getSigma:0.33
+        ) it8-0.33:0.67
+      ) it28-1.00:0.01
+    ) it33-1.00:0.01,
+    (
+      (
+        (
+          (
+            m_Debug:0.01,
+            getTechnicalInformation:0.01
+          ) it1-0.00:0.60,
+          (
+            getDebug:0.50,
+            setDebug:0.50
+          ) it12-0.50:0.10
+        ) it19-0.60:0.40,
+        (
+          m_TrainPoolSize:0.60,
+          (
+            getTrainPoolSize:0.50,
+            setTrainPoolSize:0.50
+          ) it11-0.50:0.10
+        ) it18-0.60:0.40
+      ) it29-1.00:0.01,
+      (
+        (
+          m_Seed:0.60,
+          (
+            getSeed:0.50,
+            setSeed:0.50
+          ) it13-0.50:0.10
+        ) it20-0.60:0.40,
+        (
+          (
+            m_TrainIterations:0.01,
+            getOptions:0.01
+          ) it4-0.00:0.60,
+          (
+            getTrainIterations:0.50,
+            setTrainIterations:0.50
+          ) it14-0.50:0.10
+        ) it21-0.60:0.40
+      ) it30-1.00:0.01
+    ) it34-1.00:0.01
+  ) it36-1.00:0.01
+) it37-1.00:0.01;
