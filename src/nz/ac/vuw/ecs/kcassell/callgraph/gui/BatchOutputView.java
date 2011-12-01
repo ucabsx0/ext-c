@@ -37,10 +37,6 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -60,7 +56,6 @@ import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.cluster.BetweennessClusterer;
-import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
 import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
@@ -100,7 +95,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class BatchOutputView implements ActionListener, ParameterConstants {
-	private static final String CLUSTER_BUTTON_LABEL = "Cluster";
+	private static final String CLUSTER_BUTTON_LABEL = "Cluster Selections";
+	private static final String CLUSTER30_BUTTON_LABEL = "Cluster 30 Open Source";
 
 	/** The label used for the button to initiate a count of the
 	 * number of disconnected subgraphs.  */
@@ -175,6 +171,11 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		aggButton.addActionListener(this);
 		leftPanel.add(aggButton);
 
+		JButton agg30Button = new JButton(CLUSTER30_BUTTON_LABEL);
+		agg30Button.setPreferredSize(BUTTON_SIZE);
+		agg30Button.addActionListener(this);
+		leftPanel.add(agg30Button);
+
 		JButton subgraphButton = new JButton(DISCONNECTED_BUTTON_LABEL);
 		subgraphButton.setPreferredSize(BUTTON_SIZE);
 		subgraphButton.addActionListener(this);
@@ -221,6 +222,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 
 					if (CLUSTER_BUTTON_LABEL.equals(command)) {
 						clusterAllSelections(mainPanel);
+					} else if (CLUSTER30_BUTTON_LABEL.equals(command)) {
+						clusterOpen30(mainPanel);
 					} else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
 						countAllDisconnectedSubgraphs(mainPanel);
 					} else if (DISTANCES_BUTTON_LABEL.equals(command)) {
@@ -228,15 +231,11 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					} else if (FREQUENT_METHODS_BUTTON_LABEL.equals(command)) {
 						collectFrequentMethods(mainPanel);
 					} else if (TEST_BUTTON.equals(command)) {
-						GodClassesMM30 godClassesMM30 = new GodClassesMM30();
-//						try {
-//							godClassesMM30.printMetricValues();
-//						} catch (SQLException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-						calculateC3V(mainPanel);
-						//clusterUsingClientDistances();
+							clusterOpen30(mainPanel);
+//						GodClassesMM30 godClassesMM30 = new GodClassesMM30();
+//						godClassesMM30.printMetricValues();
+//						calculateC3V(mainPanel);
+//						clusterUsingClientDistances();
 					} // TEST_BUTTON
 					textArea.repaint();
 				} finally {
@@ -280,7 +279,6 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				buf.append("Final cluster:\n" + clusterString);
 				textArea.append(clusterString);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}	// else
@@ -296,7 +294,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			textArea.setText("");
 			// initialize the calculator and build the data file
 			GodClassesMM30 mm30 = new GodClassesMM30();
-			List<String> types = mm30.getAllClassesRECOOP();
+			List<String> types = mm30.getAllClassesBetw();
 			
 			VectorSpaceModelCalculator calc = null;
 			int prefKey = 5; // TODO RecordInserter.getPreferencesKey();
@@ -312,7 +310,6 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					measurements.add(measurement);
 					textArea.append("C3V for " + typeId + " = " + cohesion + "\n");
 				} catch (Exception jme) {
-					// TODO Auto-generated catch block
 					logger.warning("Unable to calculate C3V for " + typeId);
 					textArea.append("Unable to calculate C3V for " + typeId + "\n");
 					//jme.printStackTrace();
@@ -321,7 +318,6 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			RecordInserter inserter = new RecordInserter();
 			inserter.saveMeasurementsToDB(measurements);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		textArea.repaint();
@@ -367,12 +363,40 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				RecordInserter inserter = new RecordInserter();
 				inserter.saveMeasurementsToDB(measurements);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}	// else
 		textArea.repaint();
 	}
+
+	/**
+	 * Clusters the members of 30 open source classes.
+	 * @return
+	 */
+	protected StringBuffer clusterOpen30() {
+		ApplicationParameters params = ApplicationParameters.getSingleton();
+		String sClusterer = params.getParameter(
+				CLUSTERER_KEY, ClustererEnum.MIXED_MODE.toString());
+		textArea.append("Parame = " + params + "\n");
+		String sCalc = params.getParameter(
+				ParameterConstants.CALCULATOR_KEY,
+				DistanceCalculatorEnum.IntraClass.toString());
+		logger.info("Aggregating using " + sClusterer + " and " + sCalc);
+		GodClassesMM30 mm30 = new GodClassesMM30();
+		List<String> classHandles = mm30.getAllClasses();
+		// "=Weka/<weka.classifiers.meta{MultiClassClassifier.java[MultiClassClassifier";
+
+		int iterations = classHandles.size();
+		activateProgressBar(iterations);
+		for (int i = 0;  i < iterations; i++) {
+			progressBar.setValue(i);
+			String handle = classHandles.get(i);
+			clusterOneSelection(sClusterer, sCalc, handle);
+		}
+		inactivateProgressBar();
+		return buf;
+	}
+
 
 	/**
 	 * Clusters the members of all classes in the metrics view.
@@ -388,16 +412,14 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				DistanceCalculatorEnum.IntraClass.toString());
 		logger.info("Aggregating using " + sClusterer + " and " + sCalc);
 		MetricsView metricsView = app.getMetricsView();
-		// TODO String[] classHandles = metricsView.getClassHandles();
-		GodClassesMM30 mm30 = new GodClassesMM30();
-		List<String> classHandles = mm30.getAllClasses();
+		String[] classHandles = metricsView.getClassHandles();
 		// "=Weka/<weka.classifiers.meta{MultiClassClassifier.java[MultiClassClassifier";
 
-		int iterations = classHandles.size();  // classHandles.length; // Math.min(20, classHandles.length);
+		int iterations = classHandles.length; // Math.min(20, classHandles.length);
 		activateProgressBar(iterations);
 		for (int i = 0;  i < iterations; i++) {
 			progressBar.setValue(i);
-			String handle = classHandles.get(i); //[i];
+			String handle = classHandles[i];
 			clusterOneSelection(sClusterer, sCalc, handle);
 		}
 		inactivateProgressBar();
@@ -408,104 +430,69 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	protected void clusterOneSelection(String sClusterer, String sCalc,
 			String handle) {
 		buf = new StringBuffer(RUN_SEPARATOR);
+		buf.append(handle).append("\n");
 		long start = System.currentTimeMillis();
 		try {
 			JavaCallGraph callGraph = getGraphFromHandle(handle);
 			// TODO other calculators for all clusterers
+			DistanceCalculatorEnum calcEnum = DistanceCalculatorEnum.valueOf(sCalc);
 			if (ClustererEnum.AGGLOMERATIVE.toString().equalsIgnoreCase(
 					sClusterer)) {
-				if (DistanceCalculatorEnum.IntraClass.toString()
-						.equalsIgnoreCase(sCalc)) {
-					DistanceCalculatorIfc<String> calc =
-						new IntraClassDistanceCalculator(callGraph);
-					agglomerateUsingCalculator(sCalc, calc);
-				} else if (DistanceCalculatorEnum.Czibula.toString()
-						.equalsIgnoreCase(sCalc)) {
-					try {
-					    DistanceCalculatorIfc<String> calc =
-					    	new CzibulaDistanceCalculator(callGraph);
+				try {
+					if (DistanceCalculatorEnum.IntraClass.equals(calcEnum)) {
+						DistanceCalculatorIfc<String> calc = new IntraClassDistanceCalculator(
+								callGraph);
+						agglomerateUsingCalculator(sCalc, calc);
+					} else if (DistanceCalculatorEnum.Czibula.equals(calcEnum)) {
+						DistanceCalculatorIfc<String> calc = new CzibulaDistanceCalculator(
+								callGraph);
 						agglomerateUsingCalculator(handle, calc);
-					} catch (Exception e) {
-						showAgglomerationError(sCalc, e);
-					}
-				} else if (DistanceCalculatorEnum.Identifier.toString()
-						.equalsIgnoreCase(sCalc)) {
-					try {
-					    DistanceCalculatorIfc<String> calc =
-					    	new IdentifierDistanceCalculator();
+					} else if (DistanceCalculatorEnum.Identifier.equals(calcEnum)) {
+						DistanceCalculatorIfc<String> calc = new IdentifierDistanceCalculator();
 						agglomerateUsingCalculator(handle, calc);
-					} catch (Exception e) {
-						showAgglomerationError(sCalc, e);
-					}
-				} else if (DistanceCalculatorEnum.JDeodorant.toString()
-						.equalsIgnoreCase(sCalc)) {
-					try {
-					    DistanceCalculatorIfc<String> calc =
-					    	new JDeodorantDistanceCalculator(callGraph);
+					} else if (DistanceCalculatorEnum.JDeodorant.equals(calcEnum)) {
+						DistanceCalculatorIfc<String> calc = new JDeodorantDistanceCalculator(
+								callGraph);
 						agglomerateUsingCalculator(handle, calc);
-					} catch (Exception e) {
-						showAgglomerationError(sCalc, e);
-					}
-				} else if (DistanceCalculatorEnum.Levenshtein.toString()
-						.equalsIgnoreCase(sCalc)) {
-					try {
-					    DistanceCalculatorIfc<String> calc =
-					    	new LevenshteinDistanceCalculator();
+					} else if (DistanceCalculatorEnum.Levenshtein.equals(calcEnum)) {
+						DistanceCalculatorIfc<String> calc = new LevenshteinDistanceCalculator();
 						agglomerateUsingCalculator(handle, calc);
-					} catch (Exception e) {
-						showAgglomerationError(sCalc, e);
-					}
-				} else if (DistanceCalculatorEnum.LocalNeighborhood.toString()
-						.equalsIgnoreCase(sCalc)) {
-					try {
-					    DistanceCalculatorIfc<String> calc =
-					    	new LocalNeighborhoodDistanceCalculator(callGraph);
+					} else if (DistanceCalculatorEnum.LocalNeighborhood.equals(calcEnum)) {
+						DistanceCalculatorIfc<String> calc = new LocalNeighborhoodDistanceCalculator(
+								callGraph);
 						agglomerateUsingCalculator(handle, calc);
-					} catch (Exception e) {
-						showAgglomerationError(sCalc, e);
-					}
-				} else if (DistanceCalculatorEnum.Simon.toString()
-						.equalsIgnoreCase(sCalc)) {
-					try {
-					    DistanceCalculatorIfc<String> calc =
-					    	new SimonDistanceCalculator(callGraph);
+					} else if (DistanceCalculatorEnum.Simon.equals(calcEnum)) {
+						DistanceCalculatorIfc<String> calc = new SimonDistanceCalculator(
+								callGraph);
 						agglomerateUsingCalculator(handle, calc);
-					} catch (Exception e) {
-						showAgglomerationError(sCalc, e);
-					}
-				} else if (DistanceCalculatorEnum.VectorSpaceModel.toString()
-						.equalsIgnoreCase(sCalc)) {
-					try {
-					    DistanceCalculatorIfc<String> calc =
-					    	VectorSpaceModelCalculator.getCalculator(handle);
+					} else if (DistanceCalculatorEnum.VectorSpaceModel.equals(calcEnum)) {
+						DistanceCalculatorIfc<String> calc = VectorSpaceModelCalculator
+								.getCalculator(handle);
 						agglomerateUsingCalculator(handle, calc);
-					} catch (Exception e) {
-						showAgglomerationError(sCalc, e);
+					} else if (DistanceCalculatorEnum.GoogleDistance.equals(calcEnum)) {
+						try {
+							DistanceCalculatorIfc<String> calc = new IdentifierGoogleDistanceCalculator();
+							agglomerateUsingCalculator(handle, calc);
+						} catch (Exception e) {
+							String msg = "Unable to calculate distances.  (No web access?)";
+							JOptionPane.showMessageDialog(mainPanel, msg,
+									"Error Clustering",
+									JOptionPane.WARNING_MESSAGE);
+						}
 					}
-				} else if (DistanceCalculatorEnum.GoogleDistance.toString()
-						.equalsIgnoreCase(sCalc)) {
-					try {
-						DistanceCalculatorIfc<String> calc =
-							new IdentifierGoogleDistanceCalculator();
-						agglomerateUsingCalculator(handle, calc);
-					} catch (Exception e) {
-						String msg = "Unable to calculate distances.  (No web access?)";
-						JOptionPane.showMessageDialog(mainPanel, msg,
-							"Error Clustering", JOptionPane.WARNING_MESSAGE);
-					}
+				} catch (Exception e) {
+					showAgglomerationError(sCalc, e);
 				}
-			} else if (ClustererEnum.BETWEENNESS.toString()
-					.equalsIgnoreCase(sClusterer)) {
-				Collection<CallGraphNode> clusters =
-					clusterUsingBetweenness(callGraph);
+			} else if (ClustererEnum.BETWEENNESS.toString().equalsIgnoreCase(
+					sClusterer)) {
+				Collection<CallGraphNode> clusters = clusterUsingBetweenness(callGraph);
 				buf.append("Final clusters for " + callGraph.getName());
 				appendClusterSizes(clusters);
 				String sClusters = toOutputString(clusters);
 				buf.append(":\n" + sClusters);
-			} else if (ClustererEnum.MIXED_MODE.toString()
-					.equalsIgnoreCase(sClusterer)) {
-				Collection<CallGraphNode> clusters =
-					clusterUsingMixedMode(callGraph);
+			} else if (ClustererEnum.MIXED_MODE.toString().equalsIgnoreCase(
+					sClusterer)) {
+				Collection<CallGraphNode> clusters = clusterUsingMixedMode(callGraph);
 				buf.append("Final clusters for " + callGraph.getName());
 				appendClusterSizes(clusters);
 				String sClusters = toOutputString(clusters);
@@ -514,14 +501,12 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			textArea.append(buf.toString());
 		} catch (JavaModelException e) {
 			buf.append(e.toString());
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		long end = System.currentTimeMillis();
 		buf.append("Clustering above took " + (end - start) + " millis");
 		buf.append(CLASS_SEPARATOR);
 	}
-
 
 	protected void showAgglomerationError(String sCalc, Exception e) {
 		String msg = "Problem agglomerating with the " + sCalc + "calculator: " + e;
@@ -538,55 +523,13 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * @param calc the distance calculator
 	 * @throws JavaModelException
 	 */
-	protected void agglomerateUsingCalculator(String handle,
-			DistanceCalculatorIfc<String> calc) throws JavaModelException {
+	protected MemberCluster agglomerateUsingCalculator(String handle,
+			DistanceCalculatorIfc<String> calc) throws Exception {
 		MemberCluster cluster =
 			MatrixBasedAgglomerativeClusterer
 			.clusterUsingCalculator(handle, calc);
-		reportAgglomerationResults(handle, calc.getType().toString(), cluster);
-	}
-
-
-	/**
-	 * Saves agglomerated clusters to a file in Newick format
-	 * @param handle the handle of the class whose members were clustered
-	 * @param sCalc the distance calculator used
-	 * @param cluster the final cluster produced
-	 */
-	private void reportAgglomerationResults(String handle,
-			String sCalc, MemberCluster cluster) {
-		ApplicationParameters params = ApplicationParameters.getSingleton();
-		String sLinkage = params.getParameter(
-				LINKAGE_KEY, ClusterCombinationEnum.SINGLE_LINK.toString());
-		String nameFromHandle = EclipseUtils.getNameFromHandle(handle);
-		String fileName = RefactoringConstants.DATA_DIR +
-							nameFromHandle + sCalc + sLinkage + ".tree";
-		PrintWriter writer = null;
-		FileWriter fileWriter = null;
-
-		try {
-			fileWriter = new FileWriter(fileName);
-			writer = new PrintWriter(
-					new BufferedWriter(fileWriter));
-			String clusterString = cluster.toNewickString();
-			writer.print(clusterString );
-			buf.append("Clusters produced from " + handle + " saved to:\n  "
-					+ fileName + "\n");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if (writer != null) {
-				writer.close();
-			} else if (fileWriter != null) {
-				try {
-					fileWriter.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
+		AgglomerationView.saveResultsToFile(handle, cluster);
+		return cluster;
 	}
 
 
@@ -744,7 +687,6 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					progressBar.setValue(i);
 				} catch (JavaModelException e) {
 					textArea.append(e.toString());
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				long end = System.currentTimeMillis();
@@ -791,6 +733,39 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						textArea.setText("");
 						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
 						clusterSelections();
+					} finally {
+						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+					}
+				} catch (Exception e) {
+					String msg = "Problem while clustering: "
+							+ e.getMessage();
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(mainPane, msg,
+							"Error Clustering", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		}; // Thread worker
+
+		worker.start(); // So we don't hold up the dispatch thread.
+	}
+
+	/**
+	 * Run agglomerative clustering on all classes in the metric view and
+	 * report the results in the text area.
+	 * @param mainPane the component on which to put the wait cursor
+	 */
+	public void clusterOpen30(final Component mainPane) {
+		System.out.println("clustering...");
+
+		Thread worker = new Thread("BatchClusterThread") {
+
+			public void run() {
+
+				try {
+					try {
+						textArea.setText("");
+						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
+						clusterOpen30();
 					} finally {
 						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 					}
@@ -903,8 +878,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * space model
 	 * @param mainPane the component on which to put the wait cursor
 	 */
-	public void calculateC3V(final Component mainPane) {
-		System.out.println("collecting frequentMethods...");
+	private void calculateC3V(final Component mainPane) {
+		System.out.println("calculating C3V...");
 
 		Thread worker = new Thread("calculateC3VThread") {
 
@@ -919,10 +894,10 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
 					}
 				} catch (Exception e) {
-					String msg = "Problem while collecting frequentMethods: "
+					String msg = "Problem while calculating C3V: "
 							+ e.getMessage();
 					JOptionPane.showMessageDialog(mainPane, msg,
-							"Error Collecting FrequentMethods", JOptionPane.WARNING_MESSAGE);
+							"Error calculating C3V", JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		}; // Thread worker

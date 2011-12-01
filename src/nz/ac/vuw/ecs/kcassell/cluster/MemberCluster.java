@@ -33,7 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package nz.ac.vuw.ecs.kcassell.cluster;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -136,41 +135,34 @@ public class MemberCluster implements ClusterIfc<String> {
 	}
 
 	/**
-	 * Using cluster IDs and a hash table mapping ids to clusters, identify all
-	 * the elements in the cluster
-	 * 
-	 * @param clusterHistory
-	 *            maps String ids to MemberClusters. Ids that don't represent
-	 *            clusters map to null.
-	 * @return the elements in the cluster (including those in subclusters.
-	 */
-	public Set<String> getElements(HashMap<String, MemberCluster> clusterHistory) {
-		Set<String> elements = new HashSet<String>();
-
-		for (Object obj : children) {
-			if (obj instanceof String) {
-				String sObj = (String) obj;
-				MemberCluster cluster = clusterHistory.get(sObj);
-				if (cluster == null) {
-					elements.add(sObj);
-				} else {
-					Set<String> elements2 = cluster.getElements();
-					elements.addAll(elements2);
-				}
-			} else if (obj instanceof MemberCluster) {
-				MemberCluster cluster = (MemberCluster) obj;
-				Set<String> elements2 = cluster.getElements();
-				elements.addAll(elements2);
-			}
-		}
-		return elements;
-	}
-
-	/**
 	 * @return the children
 	 */
 	public Set<?> getChildren() {
 		return children;
+	}
+	
+	/**
+	 * @param cutOff the distance for which the clusters should be determined
+	 * @return all the clusters that existed at the given distance cut off.
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Set getClustersAtDistance(double cutOff) {
+		Set clusters = new TreeSet(new ClusterComparator());
+		
+		if (distance <= cutOff) {
+			clusters.add(this);
+		} else {
+			for (Object child : children) {
+				if (child instanceof MemberCluster) {
+					MemberCluster subcluster = (MemberCluster)child;
+					Set subclusters = subcluster.getClustersAtDistance(cutOff);
+					clusters.addAll(subclusters);
+				} else {
+					clusters.add(child);
+				}
+			} // for
+		} // else (distance > cutoff)
+		return clusters;
 	}
 
 	protected Integer getClusterIteration() {

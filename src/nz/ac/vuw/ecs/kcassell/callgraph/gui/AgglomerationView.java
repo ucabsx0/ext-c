@@ -519,7 +519,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 	 * @return the file where the data was saved
 	 * @throws IOException 
 	 */
-	protected String saveResultsToFile(String handle,
+	public static String saveResultsToFile(String handle,
 			MemberCluster cluster) throws IOException {
 		ApplicationParameters params = ApplicationParameters.getSingleton();
 		String sClusterer =
