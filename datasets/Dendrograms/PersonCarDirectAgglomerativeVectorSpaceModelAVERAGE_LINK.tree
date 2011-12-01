@@ -1,106 +1,67 @@
-#DENDROSCOPE
-{TREE 'Tree1'
-((((((firstName:0.04,setFirstName:0.04)it1-0.04:0.14,getFirstName:0.18)it6-0.18:0.2,(getPersonInfo:0.24,getPersonName:0.24)it8-0.24:0.13)it14-0.38:0.27,((lastName:0.18,getLastName:0.18)it7-0.18:0.12,setLastName:0.3)it9-0.30:0.34)it16-0.64:0.33,((id:0.11,setId:0.11)it2-0.11:0.22,getId:0.33)it10-0.33:0.65)it21-0.98:0.02,((((((make:0.11,setMake:0.11)it3-0.11:0.22,getMake:0.33)it11-0.33:0.36,getCarDescription:0.69)it17-0.69:0.14,(getCarInfo:0.46,toString:0.46)it15-0.46:0.37)it18-0.84:0.06,((model:0.11,setModel:0.11)it4-0.11:0.22,getModel:0.33)it12-0.33:0.57)it19-0.90:0.07,((vin:0.11,setVin:0.11)it5-0.11:0.22,getVin:0.33)it13-0.33:0.64)it20-0.97:0.03)it22-1.00;
-}
-{GRAPHVIEW
-nnodes=45 nedges=44
-nodes
-1: nh=2 nw=2 fg=0 51 204 bg=0 0 0 w=1 sh=0 x=0.0 y=13.7734375 fx=1 lc=0 0 0 lk=null ft='Dialog-PLAIN-16' lx=0 ly=0 ll=7 lv=1 lb='it22-1.00';
-2: fg=255 0 51 x=0.02 y=7.78125 ll=3 lb='it21-0.98';
-3: x=0.35 y=5.3125 lb='it16-0.64';
-4: x=0.62 y=3.375 lb='it14-0.38';
-5: x=0.82 y=2.25 lb='it6-0.18';
-6: x=0.96 y=1.5 lb='it1-0.04';
-7: x=1.0 y=1.0 lb='firstName';
-8: x=1.0 y=2.0 lb='setFirstName';
-9: x=1.0 y=3.0 lb='getFirstName';
-10: x=0.75 y=4.5 lb='it8-0.24';
-11: x=0.99 y=4.0 lb='getPersonInfo';
-12: x=0.99 y=5.0 lb='getPersonName';
-13: x=0.69 y=7.25 lb='it9-0.30';
-14: x=0.81 y=6.5 lb='it7-0.18';
-15: x=0.99 y=6.0 lb='lastName';
-16: x=0.99 y=7.0 lb='getLastName';
-17: x=0.99 y=8.0 lb='setLastName';
-18: x=0.67 y=10.25 lb='it10-0.33';
-19: x=0.89 y=9.5 lb='it2-0.11';
-20: x=1.0 y=9.0 lb='id';
-21: x=1.0 y=10.0 lb='setId';
-22: x=1.0 y=11.0 lb='getId';
-23: fg=0 51 204 x=0.03 y=19.765625 lb='it20-0.97';
-24: x=0.1 y=17.28125 lb='it19-0.90';
-25: x=0.16 y=15.3125 lb='it18-0.84';
-26: x=0.3 y=14.125 lb='it17-0.69';
-27: x=0.66 y=13.25 lb='it11-0.33';
-28: x=0.88 y=12.5 lb='it3-0.11';
-29: x=0.99 y=12.0 lb='make';
-30: x=0.99 y=13.0 lb='setMake';
-31: x=0.99 y=14.0 lb='getMake';
-32: x=0.99 y=15.0 lb='getCarDescription';
-33: x=0.53 y=16.5 lb='it15-0.46';
-34: x=0.99 y=16.0 lb='getCarInfo';
-35: fg=0 0 0 x=0.99 y=17.0 lb='toString';
-36: fg=0 51 204 x=0.67 y=19.25 lb='it12-0.33';
-37: x=0.89 y=18.5 lb='it4-0.11';
-38: x=1.0 y=18.0 lb='model';
-39: x=1.0 y=19.0 lb='setModel';
-40: x=1.0 y=20.0 lb='getModel';
-41: x=0.67 y=22.25 lb='it13-0.33';
-42: x=0.89 y=21.5 lb='it5-0.11';
-43: x=1.0 y=21.0 lb='vin';
-44: x=1.0 y=22.0 lb='setVin';
-45: x=1.0 y=23.0 lb='getVin';
-edges
-6: fg=255 0 51 w=3 sh=1 ip= < 0.96 1.0> dr=1 lc=0 0 0 lk=null lx=0 ly=0 ll=11 lv=1;
-7: ip= < 0.96 2.0>;
-5: ip= < 0.82 1.5>;
-8: ip= < 0.82 3.0>;
-4: ip= < 0.62 2.25>;
-10: ip= < 0.75 4.0>;
-11: ip= < 0.75 5.0>;
-9: ip= < 0.62 4.5>;
-3: ip= < 0.35 3.375>;
-14: ip= < 0.81 6.0>;
-15: ip= < 0.81 7.0>;
-13: ip= < 0.69 6.5>;
-16: ip= < 0.69 8.0>;
-12: ip= < 0.35 7.25>;
-2: ip= < 0.02 5.3125>;
-19: ip= < 0.89 9.0>;
-20: ip= < 0.89 10.0>;
-18: ip= < 0.67 9.5>;
-21: ip= < 0.67 11.0>;
-17: ip= < 0.02 10.25>;
-1: fg=0 51 204 ip= < 0.0 7.78125>;
-28: ip= < 0.88 12.0>;
-29: ip= < 0.88 13.0>;
-27: ip= < 0.66 12.5>;
-30: ip= < 0.66 14.0>;
-26: ip= < 0.3 13.25>;
-31: ip= < 0.3 15.0>;
-25: ip= < 0.16 14.125>;
-33: ip= < 0.53 16.0>;
-34: fg=0 0 0 ip= < 0.53 17.0>;
-32: fg=0 51 204 ip= < 0.16 16.5>;
-24: ip= < 0.1 15.3125>;
-37: ip= < 0.89 18.0>;
-38: ip= < 0.89 19.0>;
-36: ip= < 0.67 18.5>;
-39: ip= < 0.67 20.0>;
-35: ip= < 0.1 19.25>;
-23: ip= < 0.03 17.28125>;
-42: ip= < 0.89 21.0>;
-43: ip= < 0.89 22.0>;
-41: ip= < 0.67 21.5>;
-44: ip= < 0.67 23.0>;
-40: ip= < 0.03 22.25>;
-22: ip= < 0.0 19.765625>;
-}
-{DENDRO
-root=1
-drawer=RectangularPhylogram
-toscale=true
-radiallabels=false
-collapsed=0
-trans=angle:3.1415927 scaleX:704.0 scaleY:20.772728 flipH:0 flipV:0 leftMargin:502 rightMargin:502 topMargin:328 bottomMargin:328;
-}
+(
+  (
+    (
+      (
+        (
+          (
+            firstName:0.04,
+            setFirstName:0.04
+          ) it1-0.04:0.14,
+          getFirstName:0.18
+        ) it6-0.18:0.20,
+        (
+          getPersonInfo:0.24,
+          getPersonName:0.24
+        ) it8-0.24:0.13
+      ) it14-0.38:0.27,
+      (
+        (
+          lastName:0.18,
+          getLastName:0.18
+        ) it7-0.18:0.12,
+        setLastName:0.30
+      ) it9-0.30:0.34
+    ) it16-0.64:0.33,
+    (
+      (
+        id:0.11,
+        setId:0.11
+      ) it2-0.11:0.22,
+      getId:0.33
+    ) it10-0.33:0.65
+  ) it21-0.98:0.02,
+  (
+    (
+      (
+        (
+          (
+            (
+              make:0.11,
+              setMake:0.11
+            ) it3-0.11:0.22,
+            getMake:0.33
+          ) it11-0.33:0.36,
+          getCarDescription:0.69
+        ) it17-0.69:0.14,
+        (
+          getCarInfo:0.46,
+          toString:0.46
+        ) it15-0.46:0.37
+      ) it18-0.84:0.06,
+      (
+        (
+          model:0.11,
+          setModel:0.11
+        ) it4-0.11:0.22,
+        getModel:0.33
+      ) it12-0.33:0.57
+    ) it19-0.90:0.07,
+    (
+      (
+        vin:0.11,
+        setVin:0.11
+      ) it5-0.11:0.22,
+      getVin:0.33
+    ) it13-0.33:0.64
+  ) it20-0.97:0.03
+) it22-1.00:0.01;

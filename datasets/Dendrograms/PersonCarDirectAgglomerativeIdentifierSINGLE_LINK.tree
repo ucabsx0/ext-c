@@ -4,64 +4,64 @@
       (
         (
           (
-            firstName:0.01,
-            getFirstName:0.01
-          ) it1-0.00:0.01,
-          setFirstName:0.01
-        ) it7-0.00:0.67,
+            firstName:0.33,
+            getFirstName:0.33
+          ) it1-0.33:0.01,
+          setFirstName:0.33
+        ) it3-0.33:0.17,
         (
           (
-            getLastName:0.01,
-            lastName:0.01
-          ) it2-0.00:0.01,
-          setLastName:0.01
-        ) it8-0.00:0.67
-      ) it15-0.67:0.01,
+            getLastName:0.33,
+            lastName:0.33
+          ) it2-0.33:0.01,
+          setLastName:0.33
+        ) it4-0.33:0.17
+      ) it11-0.50:0.01,
       (
         (
-          getCarDescription:0.67,
-          getCarInfo:0.67
-        ) it14-0.67:0.01,
+          getCarDescription:0.50,
+          getCarInfo:0.50
+        ) it10-0.50:0.01,
         (
-          getPersonInfo:0.67,
-          getPersonName:0.67
-        ) it13-0.67:0.01
-      ) it16-0.67:0.01
-    ) it17-0.67:0.33,
-    (
-      (
-        getVin:0.01,
-        vin:0.01
-      ) it6-0.00:0.01,
-      setVin:0.01
-    ) it12-0.00:1.00
-  ) it20-1.00:0.01,
-  (
+          getPersonInfo:0.50,
+          getPersonName:0.50
+        ) it9-0.50:0.01
+      ) it16-0.50:0.01
+    ) it17-0.50:0.25,
     (
       (
         (
-          getId:0.01,
-          id:0.01
-        ) it3-0.00:0.01,
-        setId:0.01
-      ) it9-0.00:1.00,
-      toString:1.00
-    ) it18-1.00:0.01,
-    (
+          (
+            getId:0.50,
+            id:0.50
+          ) it5-0.50:0.01,
+          setId:0.50
+        ) it12-0.50:0.17,
+        (
+          (
+            getMake:0.50,
+            make:0.50
+          ) it6-0.50:0.01,
+          setMake:0.50
+        ) it13-0.50:0.17
+      ) it18-0.67:0.01,
       (
         (
-          getMake:0.01,
-          make:0.01
-        ) it4-0.00:0.01,
-        setMake:0.01
-      ) it10-0.00:1.00,
-      (
+          (
+            getModel:0.50,
+            model:0.50
+          ) it7-0.50:0.01,
+          setModel:0.50
+        ) it14-0.50:0.17,
         (
-          getModel:0.01,
-          model:0.01
-        ) it5-0.00:0.01,
-        setModel:0.01
-      ) it11-0.00:1.00
-    ) it19-1.00:0.01
-  ) it21-1.00:0.01
+          (
+            getVin:0.50,
+            vin:0.50
+          ) it8-0.50:0.01,
+          setVin:0.50
+        ) it15-0.50:0.17
+      ) it19-0.67:0.01
+    ) it20-0.67:0.08
+  ) it21-0.75:0.25,
+  toString:1.00
 ) it22-1.00:0.01;
