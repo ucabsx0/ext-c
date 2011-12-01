@@ -208,62 +208,121 @@ public class MemberClusterTest extends TestCase {
         assertTrue(indexMethod1 > -1);
         assertTrue(indexMethod2 > -1);
         assertTrue(indexMethod3 > -1);
-}
+    }
 
-    @Test
-    public void testToNewickString()
-    {
-        String field1 = "field1";
-        String field2 = "field2";
-        String field3 = "field3";
-        Vector<String> fieldVec = new Vector<String>();
-        fieldVec.add(field2);
-        fieldVec.add(field3);
-        fieldVec.add(field1);
-        MemberCluster clusterFields = new MemberCluster();
-        clusterFields.setClusterName("3fields");
-        clusterFields.setDistance(0.3);
-        clusterFields.addElements(fieldVec);
-        String newickString = clusterFields.toNewickString();
-        System.out.println(newickString);
-        int indexComment = newickString.indexOf("0.3");
-        int indexField1 = newickString.indexOf("field1");
-        int indexField2 = newickString.indexOf("field2");
-        int indexField3 = newickString.indexOf("field3");
-        assertTrue(indexComment > -1);
-        assertTrue(indexField1 > -1);
-        assertTrue(indexField2 > -1);
-        assertTrue(indexField3 > -1);
+	@Test
+	public void testToNewickString() {
+		String field1 = "field1";
+		String field2 = "field2";
+		String field3 = "field3";
+		Vector<String> fieldVec = new Vector<String>();
+		fieldVec.add(field2);
+		fieldVec.add(field3);
+		fieldVec.add(field1);
+		MemberCluster clusterFields = new MemberCluster();
+		clusterFields.setClusterName("3fields");
+		clusterFields.setDistance(0.3);
+		clusterFields.addElements(fieldVec);
+		String newickString = clusterFields.toNewickString();
+		System.out.println(newickString);
+		int indexComment = newickString.indexOf("0.3");
+		int indexField1 = newickString.indexOf("field1");
+		int indexField2 = newickString.indexOf("field2");
+		int indexField3 = newickString.indexOf("field3");
+		assertTrue(indexComment > -1);
+		assertTrue(indexField1 > -1);
+		assertTrue(indexField2 > -1);
+		assertTrue(indexField3 > -1);
 
-        String method1 = "method1";
-        String method2 = "method2";
-        String method3 = "method3";
-        Vector<String> methodVec = new Vector<String>();
-        methodVec.add(method2);
-        methodVec.add(method3);
-        methodVec.add(method1);
-        MemberCluster clusterMethods = new MemberCluster();
-        clusterMethods.setClusterName("3methods");
-        clusterMethods.setDistance(0.5);
-        clusterMethods.addElements(methodVec);
-        
-        clusterFields.addCluster(clusterMethods);
-        newickString = clusterFields.toNewickString();
-        System.out.println(newickString);
+		String method1 = "method1";
+		String method2 = "method2";
+		String method3 = "method3";
+		Vector<String> methodVec = new Vector<String>();
+		methodVec.add(method2);
+		methodVec.add(method3);
+		methodVec.add(method1);
+		MemberCluster clusterMethods = new MemberCluster();
+		clusterMethods.setClusterName("3methods");
+		clusterMethods.setDistance(0.5);
+		clusterMethods.addElements(methodVec);
 
-        indexField1 = newickString.indexOf("field1");
-        indexField2 = newickString.indexOf("field2");
-        indexField3 = newickString.indexOf("field3");
-        int indexMethod1 = newickString.indexOf("method1");
-        int indexMethod2 = newickString.indexOf("method2");
-        int indexMethod3 = newickString.indexOf("method3");
-        assertTrue(indexField1 > -1);
-        assertTrue(indexField2 > -1);
-        assertTrue(indexField3 > -1);
-        assertTrue(indexMethod1 > -1);
-        assertTrue(indexMethod2 > -1);
-        assertTrue(indexMethod3 > -1);
-}
+		clusterFields.addCluster(clusterMethods);
+		newickString = clusterFields.toNewickString();
+		System.out.println(newickString);
 
+		indexField1 = newickString.indexOf("field1");
+		indexField2 = newickString.indexOf("field2");
+		indexField3 = newickString.indexOf("field3");
+		int indexMethod1 = newickString.indexOf("method1");
+		int indexMethod2 = newickString.indexOf("method2");
+		int indexMethod3 = newickString.indexOf("method3");
+		assertTrue(indexField1 > -1);
+		assertTrue(indexField2 > -1);
+		assertTrue(indexField3 > -1);
+		assertTrue(indexMethod1 > -1);
+		assertTrue(indexMethod2 > -1);
+		assertTrue(indexMethod3 > -1);
+	}
+
+	@Test
+	public void testGetClustersAtDistance() {
+		String field1 = "field1";
+		String field2 = "field2";
+		String field3 = "field3";
+		Vector<String> fieldVec = new Vector<String>();
+		fieldVec.add(field2);
+		fieldVec.add(field3);
+		fieldVec.add(field1);
+		MemberCluster clusterFields = new MemberCluster();
+		clusterFields.setClusterName("3fields");
+		clusterFields.setDistance(0.3);
+		clusterFields.addElements(fieldVec);
+
+		String method1 = "method1";
+		String method2 = "method2";
+		String method3 = "method3";
+		Vector<String> methodVec = new Vector<String>();
+		methodVec.add(method2);
+		methodVec.add(method3);
+		methodVec.add(method1);
+		MemberCluster clusterMethods = new MemberCluster();
+		clusterMethods.setClusterName("3methods");
+		clusterMethods.setDistance(0.5);
+		clusterMethods.addElements(methodVec);
+		
+		MemberCluster topCluster = new MemberCluster();
+		topCluster.addCluster(clusterFields);
+		topCluster.addCluster(clusterMethods);
+		topCluster.setDistance(1.0);
+		
+		Set<?> subclusters = topCluster.getClustersAtDistance(1.0);
+		assertEquals(1, subclusters.size());
+
+		subclusters = topCluster.getClustersAtDistance(0.9);
+		assertEquals(2, subclusters.size());
+		assertTrue(subclusters.contains(clusterFields));
+		assertTrue(subclusters.contains(clusterMethods));
+
+		subclusters = topCluster.getClustersAtDistance(0.5);
+		assertEquals(2, subclusters.size());
+		assertTrue(subclusters.contains(clusterFields));
+		assertTrue(subclusters.contains(clusterMethods));
+
+		subclusters = topCluster.getClustersAtDistance(0.49);
+		assertEquals(4, subclusters.size());
+		assertTrue(subclusters.contains(clusterFields));
+		assertTrue(subclusters.contains(method1));
+		assertTrue(subclusters.contains(method2));
+		assertTrue(subclusters.contains(method3));
+
+		subclusters = topCluster.getClustersAtDistance(0.2);
+		assertEquals(6, subclusters.size());
+		assertTrue(subclusters.contains(field1));
+		assertTrue(subclusters.contains(field2));
+		assertTrue(subclusters.contains(field3));
+		assertTrue(subclusters.contains(method1));
+		assertTrue(subclusters.contains(method2));
+		assertTrue(subclusters.contains(method3));
+	}
 
 }
