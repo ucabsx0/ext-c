@@ -37,10 +37,15 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -56,6 +61,7 @@ import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphCluster;
 import nz.ac.vuw.ecs.kcassell.callgraph.CallGraphNode;
 import nz.ac.vuw.ecs.kcassell.callgraph.JavaCallGraph;
 import nz.ac.vuw.ecs.kcassell.cluster.BetweennessClusterer;
+import nz.ac.vuw.ecs.kcassell.cluster.ClusterCombinationEnum;
 import nz.ac.vuw.ecs.kcassell.cluster.MatrixBasedAgglomerativeClusterer;
 import nz.ac.vuw.ecs.kcassell.cluster.MemberCluster;
 import nz.ac.vuw.ecs.kcassell.cluster.MixedModeClusterer;
@@ -119,6 +125,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	private static final String  RUN_SEPARATOR =
 		"======================================\n";
 
+	private static final String  CSV_SEP = "|";
+
 	/** The main panel for this view. */
     private JSplitPane mainPanel = null;
     
@@ -136,6 +144,13 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
     
     /** Accumulates the clustering results. */
 	private StringBuffer buf = new StringBuffer(RUN_SEPARATOR);
+	
+	/** A writer for the cluster size data. */
+	private BufferedWriter clusterCountWriter = null;
+
+	/** A writer for the cluster size data. */
+	private BufferedWriter clusterSizesWriter = null;
+
 
     protected static final UtilLogger logger =
     	new UtilLogger("BatchOutputView");
@@ -381,20 +396,60 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		String sCalc = params.getParameter(
 				ParameterConstants.CALCULATOR_KEY,
 				DistanceCalculatorEnum.IntraClass.toString());
+		String sLinkage = params.getParameter(
+				ParameterConstants.LINKAGE_KEY,
+				ClusterCombinationEnum.SINGLE_LINK.toString());
 		logger.info("Aggregating using " + sClusterer + " and " + sCalc);
 		GodClassesMM30 mm30 = new GodClassesMM30();
 		List<String> classHandles = mm30.getAllClasses();
 		// "=Weka/<weka.classifiers.meta{MultiClassClassifier.java[MultiClassClassifier";
 
-		int iterations = classHandles.size();
-		activateProgressBar(iterations);
-		for (int i = 0;  i < iterations; i++) {
-			progressBar.setValue(i);
-			String handle = classHandles.get(i);
-			clusterOneSelection(sClusterer, sCalc, handle);
+		String clusterCountsFile = RefactoringConstants.DATA_DIR +
+			sClusterer + sCalc + sLinkage + "Counts.csv";
+		String clusterSizesFile = RefactoringConstants.DATA_DIR +
+		sClusterer + sCalc + sLinkage + "Sizes.csv";
+
+		try {
+			clusterCountWriter = new BufferedWriter(new FileWriter(clusterCountsFile));
+			clusterSizesWriter = new BufferedWriter(new FileWriter(clusterSizesFile));
+			String csvHeader = "Class" + CSV_SEP + 0.999 + CSV_SEP
+				+ 0.9 + CSV_SEP + 0.75 + CSV_SEP + 0.5 + "\n";
+			clusterCountWriter.write(csvHeader);
+			clusterSizesWriter.write(csvHeader);
+			buf.append(csvHeader);
+
+			int iterations = classHandles.size();
+			activateProgressBar(iterations);
+			for (int i = 0; i < iterations; i++) {
+				progressBar.setValue(i);
+				String handle = classHandles.get(i);
+				clusterOneSelection(sClusterer, sCalc, handle);
+			}
+		} catch (Exception ioe) {
+			ioe.printStackTrace();
+		} finally {
+			closeClusterFiles();
 		}
 		inactivateProgressBar();
 		return buf;
+	}
+
+
+	private void closeClusterFiles() {
+		if (clusterCountWriter != null) {
+			try {
+				clusterCountWriter.close();
+			} catch (Exception e1) {
+				// just ignore it
+			}
+		}
+		if (clusterSizesWriter != null) {
+			try {
+				clusterSizesWriter.close();
+			} catch (Exception e1) {
+				// just ignore it
+			}
+		}
 	}
 
 
@@ -528,8 +583,54 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		MemberCluster cluster =
 			MatrixBasedAgglomerativeClusterer
 			.clusterUsingCalculator(handle, calc);
-		AgglomerationView.saveResultsToFile(handle, cluster);
+		String className = EclipseUtils.getNameFromHandle(handle);
+		MemberCluster.saveResultsToFile(className, cluster);
+		// TODO move this elsewhere
+		TreeSet<?> clusters999 = cluster.getClustersAtDistance(0.999);
+		TreeSet<?> clusters9 = cluster.getClustersAtDistance(0.9);
+		TreeSet<?> clusters75 = cluster.getClustersAtDistance(0.75);
+		TreeSet<?> clusters5 = cluster.getClustersAtDistance(0.5);
+		String countRow = writeClusterCounts(className, clusters999, clusters9,
+				clusters75, clusters5);
+		String countSizes = writeClusterSizes(className, clusters999, clusters9,
+				clusters75, clusters5);
+		buf.append(countRow);
+
 		return cluster;
+	}
+
+
+	private String writeClusterCounts(String className, Set<?> clusters999,
+			Set<?> clusters9, Set<?> clusters75, Set<?> clusters5)
+			throws IOException {
+		int size999 = clusters999.size();
+		int size9 = clusters9.size();
+		int size75 = clusters75.size();
+		int size5 = clusters5.size();
+		String row = className + CSV_SEP + size999 + CSV_SEP
+		+ size9 + CSV_SEP + size75 + CSV_SEP + size5 + "\n";
+		clusterCountWriter.write(row);
+		return row;
+	}
+
+	private String writeClusterSizes(String className, TreeSet<?> clusters999,
+			TreeSet<?> clusters9, TreeSet<?> clusters75, TreeSet<?> clusters5)
+			throws IOException {
+		String sizes999 = clusterSizesToString(clusters999);
+		String sizes9 = clusterSizesToString(clusters9);
+		String sizes75 = clusterSizesToString(clusters75);
+		String sizes5 = clusterSizesToString(clusters5);
+		String row = className + CSV_SEP + sizes999 + CSV_SEP
+		+ sizes9 + CSV_SEP + sizes75 + CSV_SEP + sizes5 + "\n";
+		clusterCountWriter.write(row);
+		return row;
+	}
+
+
+	private String clusterSizesToString(TreeSet<?> clusters) {
+		StringBuffer sbuf = new StringBuffer();
+		// TODO Auto-generated method stub
+		return sbuf.toString();
 	}
 
 

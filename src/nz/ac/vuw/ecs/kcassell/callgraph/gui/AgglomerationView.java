@@ -37,10 +37,7 @@ import java.applet.AppletStub;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
@@ -501,7 +498,8 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 //		displayClusterString(cluster);
 		String file;
 		try {
-			file = saveResultsToFile(classHandle, cluster);
+			String className = EclipseUtils.getNameFromHandle(classHandle);
+			file = MemberCluster.saveResultsToFile(className, cluster);
 			showDendrogram(file);
 		} catch (IOException e) {
 			String msg = "Problems preparing dendrogram";
@@ -511,54 +509,6 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 		}
 	}
 	
-	/**
-	 * Saves agglomerated clusters to a file in Newick format
-	 * @param handle the handle of the class whose members were clustered
-	 * @param sCalc the distance calculator used
-	 * @param cluster the final cluster produced
-	 * @return the file where the data was saved
-	 * @throws IOException 
-	 */
-	public static String saveResultsToFile(String handle,
-			MemberCluster cluster) throws IOException {
-		ApplicationParameters params = ApplicationParameters.getSingleton();
-		String sClusterer =
-			params.getParameter(ParameterConstants.CLUSTERER_KEY,
-								ClustererEnum.AGGLOMERATIVE.toString());
-		String sCalc =
-			params.getParameter(ParameterConstants.CALCULATOR_KEY,
-								DistanceCalculatorEnum.IntraClass.toString());
-		String sLinkage = params.getParameter(
-				ParameterConstants.LINKAGE_KEY,
-				ClusterCombinationEnum.SINGLE_LINK.toString());
-		String nameFromHandle = EclipseUtils.getNameFromHandle(handle);
-		String fileName = RefactoringConstants.DATA_DIR + "Dendrograms/" +
-					nameFromHandle + sClusterer + sCalc + sLinkage + ".tree";
-		PrintWriter writer = null;
-		FileWriter fileWriter = null;
-		
-		try {
-			fileWriter = new FileWriter(fileName);
-			writer = new PrintWriter(
-					new BufferedWriter(fileWriter));
-			String clusterString = cluster.toNewickString();
-			writer.print(clusterString );
-		} finally {
-			if (writer != null) {
-				writer.close();
-			} else if (fileWriter != null) {
-				try {
-					fileWriter.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		return fileName;
-	}
-
-
 	/**
 	 * Sets up the parts of the display that are calculator-dependent.
 	 * @param callGraph

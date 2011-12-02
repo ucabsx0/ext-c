@@ -32,14 +32,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
+import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
+import nz.ac.vuw.ecs.kcassell.utils.RefactoringConstants;
 import nz.ac.vuw.ecs.kcassell.utils.StringUtils;
 
 /**
@@ -146,8 +153,8 @@ public class MemberCluster implements ClusterIfc<String> {
 	 * @return all the clusters that existed at the given distance cut off.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Set getClustersAtDistance(double cutOff) {
-		Set clusters = new TreeSet(new ClusterComparator());
+	public TreeSet getClustersAtDistance(double cutOff) {
+		TreeSet clusters = new TreeSet(new ClusterComparator());
 		
 		if (distance <= cutOff) {
 			clusters.add(this);
@@ -155,7 +162,7 @@ public class MemberCluster implements ClusterIfc<String> {
 			for (Object child : children) {
 				if (child instanceof MemberCluster) {
 					MemberCluster subcluster = (MemberCluster)child;
-					Set subclusters = subcluster.getClustersAtDistance(cutOff);
+					TreeSet subclusters = subcluster.getClustersAtDistance(cutOff);
 					clusters.addAll(subclusters);
 				} else {
 					clusters.add(child);
@@ -375,6 +382,66 @@ public class MemberCluster implements ClusterIfc<String> {
 			text = toNestedString();
 		}
 		return text;
+	}
+
+	/**
+	 * Saves agglomerated clusters to a file in Newick format
+	 * @param className the name of the class whose members were clustered
+	 * @param cluster the final cluster produced
+	 * @return the file where the data was saved
+	 * @throws IOException 
+	 */
+	public static String saveResultsToFile(String className,
+			MemberCluster cluster) throws IOException {
+		ApplicationParameters params = ApplicationParameters.getSingleton();
+		String sClusterer =
+			params.getParameter(ParameterConstants.CLUSTERER_KEY,
+								ClustererEnum.AGGLOMERATIVE.toString());
+		String sCalc =
+			params.getParameter(ParameterConstants.CALCULATOR_KEY,
+								DistanceCalculatorEnum.IntraClass.toString());
+		String sLinkage = params.getParameter(
+				ParameterConstants.LINKAGE_KEY,
+				ClusterCombinationEnum.SINGLE_LINK.toString());
+
+		String newickFile = RefactoringConstants.DATA_DIR + "Dendrograms/" +
+					className + sClusterer + sCalc + sLinkage + ".tree";
+		cluster.writeNewickToFile(newickFile);
+		return newickFile;
+	}
+
+	/**
+	 * Write the Newick representation of the cluster to the specified file.
+	 * @param fileName
+	 * @throws IOException
+	 */
+	protected void writeNewickToFile(String fileName) throws IOException {
+		PrintWriter writer = null;
+		FileWriter fileWriter = null;
+		
+		try {
+			fileWriter = new FileWriter(fileName);
+			writer = new PrintWriter(
+					new BufferedWriter(fileWriter));
+			String clusterString = toNewickString();
+			writer.print(clusterString );
+		} finally {
+			if (writer != null) {
+				writer.close();
+			} else if (fileWriter != null) {
+				try {
+					fileWriter.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public String subclusterSizesToString() {
+		StringBuffer buf = new StringBuffer();
+		// TODO
+		return buf.toString();
 	}
 
 }
