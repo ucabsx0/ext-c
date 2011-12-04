@@ -129,6 +129,27 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 		logger.info(distanceMatrix.toString());
 	}
 
+    /**
+     * Given a list of (nonclustered) objects and a calculator to calculate
+     * the distances between them, initialize the clusterer by building
+     * the distance matrix.
+     * @param elements a collection of things to be clustered
+     * @param calc calculates the distances between objects
+     * @param linkage e.g. single link
+     */
+	public MatrixBasedAgglomerativeClusterer(List<String> elements,
+			DistanceCalculatorIfc<String> calc,
+			String linkage) {
+		distanceCalculator = calc;
+		whichLink = ClusterCombinationEnum.valueOf(linkage);
+		for (String element : elements) {
+			clusterHistory.put(element, null);
+		}
+		buildDistanceMatrix(elements);
+		originalMatrix = distanceMatrix;
+		logger.info(distanceMatrix.toString());
+	}
+
 	/**
 	 * Use the distance calculator to fill in the distance matrix
 	 * for the elements provided.
@@ -705,6 +726,29 @@ public class MatrixBasedAgglomerativeClusterer implements ClustererIfc<String> {
 		}
 		MatrixBasedAgglomerativeClusterer clusterer =
 			new MatrixBasedAgglomerativeClusterer(names, calc);
+		MemberCluster cluster = clusterer.getSingleCluster();
+		return cluster;
+	}
+
+	/**
+	 * Cluster based on the identifiers.
+	 * @param handle the handle of the class whose members are to be clustered
+	 * @param calc the distance calculator to use
+	 * @throws JavaModelException
+	 */
+	public static MemberCluster clusterUsingCalculator(String handle,
+			DistanceCalculatorIfc<String> calc,
+			String linkage)
+	throws JavaModelException {
+		List<String> names = null;
+		DistanceCalculatorEnum calcType = calc.getType();
+		if (DistanceCalculatorEnum.usesHandles(calcType)) {
+			names = EclipseUtils.getFilteredMemberHandles(handle);
+		} else {
+			names = EclipseUtils.getFilteredMemberNames(handle);
+		}
+		MatrixBasedAgglomerativeClusterer clusterer =
+			new MatrixBasedAgglomerativeClusterer(names, calc, linkage);
 		MemberCluster cluster = clusterer.getSingleCluster();
 		return cluster;
 	}

@@ -30,24 +30,23 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-package nz.ac.vuw.ecs.kcassell.callgraph;
+package nz.ac.vuw.ecs.kcassell.cluster;
 
 import java.util.Comparator;
 
 /**
  * By default, this comparator compares the size of the clusters. The default
- * ordering of nodes will have the smallest clusters first. This can be switched
+ * ordering of clusters will have the smallest clusters first. This can be switched
  * by setting the isAscending flag to false. If sizes are equal, the names are
- * compared, and if still equal, the node ids. Thus, a value of 0 should never
- * occur.
+ * compared.
  * 
  * @author kcassell
  */
-public class ClusterSizeComparator implements Comparator<CallGraphNode> {
+public class MemberClusterSizeComparator implements Comparator<Object> {
 	/**
 	 * Toggles the meaning of the comparison. If ascending, then clusters with a
 	 * smaller size come first, e.g. compare(lowSizeNode, highSizeNode) < 0 If
-	 * not ascending, then nodes with a larger size come first, e.g.
+	 * not ascending, then clusters with a larger size come first, e.g.
 	 * compare(lowSizeNode, highSizeNode) > 0
 	 */
 	boolean isAscending = true;
@@ -61,24 +60,24 @@ public class ClusterSizeComparator implements Comparator<CallGraphNode> {
 	 * same, then the returned value is based on the names.
 	 */
 	// @Override
-	public int compare(CallGraphNode node1, CallGraphNode node2) {
+	public int compare(Object object1, Object object2) {
 		int result = 0;
 
-		if (node1 == null && node2 == null) {
+		if (object1 == null && object2 == null) {
 			result = 0;
-		} else if (node1 == null) {
+		} else if (object1 == null) {
 			result = -1;
-		} else if (node2 == null) {
+		} else if (object2 == null) {
 			result = 1;
 		} else { // normal case
-			CallGraphCluster cluster1 = null;
-			CallGraphCluster cluster2 = null;
+			MemberCluster cluster1 = null;
+			MemberCluster cluster2 = null;
 			
-			if (node1 instanceof CallGraphCluster) {
-				cluster1 = (CallGraphCluster)node1;
+			if (object1 instanceof MemberCluster) {
+				cluster1 = (MemberCluster)object1;
 			}
-			if (node2 instanceof CallGraphCluster) {
-				cluster2 = (CallGraphCluster)node2;
+			if (object2 instanceof MemberCluster) {
+				cluster2 = (MemberCluster)object2;
 			}
 			
 			// Both nodes are non-clusters (size 1)
@@ -93,7 +92,7 @@ public class ClusterSizeComparator implements Comparator<CallGraphNode> {
 			}
 			
 			if (result == 0) {
-				result = compareNames(node1, node2);
+				result = compareNames(object1, object2);
 			}
 
 		}
@@ -105,26 +104,14 @@ public class ClusterSizeComparator implements Comparator<CallGraphNode> {
 		return result;
 	}
 
-	protected int compareNames(CallGraphNode node1, CallGraphNode node2) {
+	protected int compareNames(Object object1, Object object2) {
 		int result;
-		String name1 = node1.getSimpleName();
-		String name2 = node2.getSimpleName();
-		int id1 = node1.getId();
-		int id2 = node2.getId();
+		String name1 = (object1 instanceof MemberCluster) ? ((MemberCluster) object1)
+				.getClusterName() : object1.toString();
+		String name2 = (object2 instanceof MemberCluster) ? ((MemberCluster) object2)
+				.getClusterName() : object2.toString();
 
-		if ((name1 == null) && (name2 == null)) {
-			result = id1 - id2;
-		} else if (name1 == null) {
-			result = -1;
-		} else if (name2 == null) {
-			result = 1;
-		} else {
-			result = name1.compareTo(name2);
-
-			if (result == 0) {
-				result = id1 - id2;
-			}
-		}
+		result = name1.compareTo(name2);
 		return result;
 	}
 

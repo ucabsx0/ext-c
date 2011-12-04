@@ -36,7 +36,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -57,6 +59,10 @@ import nz.ac.vuw.ecs.kcassell.utils.StringUtils;
  * @author kcassell
  */
 public class MemberCluster implements ClusterIfc<String> {
+
+	/** The separator used between elements in an output
+	 *  list of cluster sizes. */ 
+	static String QUANTITY_SEP = ",";
 
 	/** The subcomponents are either string elements or MemberClusters */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -152,9 +158,8 @@ public class MemberCluster implements ClusterIfc<String> {
 	 * @param cutOff the distance for which the clusters should be determined
 	 * @return all the clusters that existed at the given distance cut off.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public TreeSet getClustersAtDistance(double cutOff) {
-		TreeSet clusters = new TreeSet(new ClusterComparator());
+	public ArrayList<Object> getClustersAtDistance(double cutOff) {
+		ArrayList<Object> clusters = new ArrayList<Object>();
 		
 		if (distance <= cutOff) {
 			clusters.add(this);
@@ -162,7 +167,7 @@ public class MemberCluster implements ClusterIfc<String> {
 			for (Object child : children) {
 				if (child instanceof MemberCluster) {
 					MemberCluster subcluster = (MemberCluster)child;
-					TreeSet subclusters = subcluster.getClustersAtDistance(cutOff);
+					ArrayList<Object> subclusters = subcluster.getClustersAtDistance(cutOff);
 					clusters.addAll(subclusters);
 				} else {
 					clusters.add(child);
@@ -438,10 +443,64 @@ public class MemberCluster implements ClusterIfc<String> {
 		}
 	}
 	
-	public String subclusterSizesToString() {
-		StringBuffer buf = new StringBuffer();
-		// TODO
-		return buf.toString();
+	/**
+	 * Output the cluster sizes.  If there are multiple clusters
+	 * of the same size, put the number in parentheses.
+	 * @param clusters clusters ordered by size
+	 * @return something like:  "5,3,1(4)"
+	 */
+	public static String clusterSizesToString(ArrayList<Object> clusters) {
+		StringBuffer sbuf = new StringBuffer();
+		int previousClusterSize = -1;
+		int sameQuantity = 1;  // # of consecutive clusters of this size
+		ArrayList<Object> sortedClusters =
+			new ArrayList<Object>(clusters);
+		MemberClusterSizeComparator comparator = new MemberClusterSizeComparator();
+		comparator.setAscending(false);
+		Collections.sort(sortedClusters, comparator);
+		
+		for (Object object : sortedClusters) {
+			int clusterSize = determineClusterSize(object);
+
+			if (previousClusterSize == -1) {
+				sameQuantity = 1;
+			} else if (previousClusterSize == clusterSize) {
+				sameQuantity++;
+			} else { // produce output for the previous cluster size
+				appendQuantityToBuffer(sbuf, previousClusterSize, sameQuantity);
+				sameQuantity = 1;
+			}
+			previousClusterSize = clusterSize;
+		} // for
+		// handle the last one
+		appendQuantityToBuffer(sbuf, previousClusterSize, sameQuantity);
+		sbuf.deleteCharAt(sbuf.length() - 1);  // remove trailing separator
+		return sbuf.toString();
 	}
+
+	private static void appendQuantityToBuffer(StringBuffer sbuf,
+			int previousClusterSize, int sameQuantity) {
+		// only 1 cluster of the previous size
+		if (sameQuantity == 1) {
+			sbuf.append(previousClusterSize).append(QUANTITY_SEP );
+		} else { // mult. clusters of the previous size
+			sbuf.append(previousClusterSize);
+			sbuf.append("(").append(sameQuantity).append(")");
+			sbuf.append(QUANTITY_SEP );
+		}
+	}
+
+	private static int determineClusterSize(Object object) {
+		int clusterSize = 1;
+		if (object instanceof MemberCluster) {
+			MemberCluster cluster = (MemberCluster)object;
+			clusterSize = cluster.getElementCount();
+		} else {
+			clusterSize = 1;
+		}
+		return clusterSize;
+	}
+
+
 
 }

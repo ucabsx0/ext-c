@@ -44,8 +44,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -103,6 +101,7 @@ import edu.uci.ics.jung.graph.util.EdgeType;
 public class BatchOutputView implements ActionListener, ParameterConstants {
 	private static final String CLUSTER_BUTTON_LABEL = "Cluster Selections";
 	private static final String CLUSTER30_BUTTON_LABEL = "Cluster 30 Open Source";
+	private static final String CLUSTER6x30_BUTTON_LABEL = "Cluster 6x30 Open Source";
 
 	/** The label used for the button to initiate a count of the
 	 * number of disconnected subgraphs.  */
@@ -119,14 +118,15 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	private static final String DISTANCES_BUTTON_LABEL = "Compute Distances";
 	
 	private static final Dimension BUTTON_SIZE = new Dimension(150, 60);
-	private static final String  CLASS_SEPARATOR =
-		"--------------------------------------\n";
+//	private static final String  CLASS_SEPARATOR =
+//		"--------------------------------------\n";
 
 	private static final String  RUN_SEPARATOR =
 		"======================================\n";
 
-	private static final String  CSV_SEP = "|";
-
+	/** The field separator for the CSV file. */
+	static final String  CSV_SEP = "|";
+	
 	/** The main panel for this view. */
     private JSplitPane mainPanel = null;
     
@@ -191,6 +191,11 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		agg30Button.addActionListener(this);
 		leftPanel.add(agg30Button);
 
+		JButton agg6x30Button = new JButton(CLUSTER6x30_BUTTON_LABEL);
+		agg6x30Button.setPreferredSize(BUTTON_SIZE);
+		agg6x30Button.addActionListener(this);
+		leftPanel.add(agg6x30Button);
+
 		JButton subgraphButton = new JButton(DISCONNECTED_BUTTON_LABEL);
 		subgraphButton.setPreferredSize(BUTTON_SIZE);
 		subgraphButton.addActionListener(this);
@@ -239,6 +244,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 						clusterAllSelections(mainPanel);
 					} else if (CLUSTER30_BUTTON_LABEL.equals(command)) {
 						clusterOpen30(mainPanel);
+					} else if (CLUSTER6x30_BUTTON_LABEL.equals(command)) {
+						cluster6x30(mainPanel);
 					} else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
 						countAllDisconnectedSubgraphs(mainPanel);
 					} else if (DISTANCES_BUTTON_LABEL.equals(command)) {
@@ -392,13 +399,46 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		ApplicationParameters params = ApplicationParameters.getSingleton();
 		String sClusterer = params.getParameter(
 				CLUSTERER_KEY, ClustererEnum.MIXED_MODE.toString());
-		textArea.append("Parame = " + params + "\n");
+		textArea.append("Params = " + params + "\n");
 		String sCalc = params.getParameter(
 				ParameterConstants.CALCULATOR_KEY,
 				DistanceCalculatorEnum.IntraClass.toString());
 		String sLinkage = params.getParameter(
 				ParameterConstants.LINKAGE_KEY,
 				ClusterCombinationEnum.SINGLE_LINK.toString());
+		cluster30(sClusterer, sCalc, sLinkage);
+		return buf;
+	}
+
+	/**
+	 * Agglomeratively clusters the members of 30 open source classes using
+	 *  6 different combinations of distance function and group linkage.
+	 */
+	protected StringBuffer cluster6x30() {
+		String[] calculators = { DistanceCalculatorEnum.LocalNeighborhood.toString(),
+				DistanceCalculatorEnum.Simon.toString()
+		};
+		String[] linkages = { ClusterCombinationEnum.SINGLE_LINK.toString(),
+				ClusterCombinationEnum.AVERAGE_LINK.toString(),
+				ClusterCombinationEnum.COMPLETE_LINK.toString()
+		};
+		
+		for (int i = 0; i < calculators.length; i++) {
+			for (int j = 0; j < linkages.length; j++) {
+				textArea.append("Agglomerating with: " + calculators[i] +
+						" (" + linkages[j] + ")\n");
+				cluster30(ClustererEnum.AGGLOMERATIVE.toString(),
+						calculators[i], linkages[j]);
+			}
+		}
+		return buf;
+	}
+
+
+	/**
+	 * Clusters the members of 30 open source classes.
+	 */
+	private void cluster30(String sClusterer, String sCalc, String sLinkage) {
 		logger.info("Aggregating using " + sClusterer + " and " + sCalc);
 		GodClassesMM30 mm30 = new GodClassesMM30();
 		List<String> classHandles = mm30.getAllClasses();
@@ -423,15 +463,14 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			for (int i = 0; i < iterations; i++) {
 				progressBar.setValue(i);
 				String handle = classHandles.get(i);
-				clusterOneSelection(sClusterer, sCalc, handle);
+				clusterOne(sClusterer, sCalc, sLinkage, handle);
 			}
 		} catch (Exception ioe) {
 			ioe.printStackTrace();
 		} finally {
 			closeClusterFiles();
+			inactivateProgressBar();
 		}
-		inactivateProgressBar();
-		return buf;
 	}
 
 
@@ -465,6 +504,8 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		String sCalc = params.getParameter(
 				ParameterConstants.CALCULATOR_KEY,
 				DistanceCalculatorEnum.IntraClass.toString());
+		String linkage = params.getParameter(ParameterConstants.LINKAGE_KEY,
+				ClusterCombinationEnum.AVERAGE_LINK.toString());
 		logger.info("Aggregating using " + sClusterer + " and " + sCalc);
 		MetricsView metricsView = app.getMetricsView();
 		String[] classHandles = metricsView.getClassHandles();
@@ -475,18 +516,18 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		for (int i = 0;  i < iterations; i++) {
 			progressBar.setValue(i);
 			String handle = classHandles[i];
-			clusterOneSelection(sClusterer, sCalc, handle);
+			clusterOne(sClusterer, sCalc, linkage, handle);
 		}
 		inactivateProgressBar();
 		return buf;
 	}
 
 
-	protected void clusterOneSelection(String sClusterer, String sCalc,
+	protected void clusterOne(String sClusterer, String sCalc, String linkage,
 			String handle) {
-		buf = new StringBuffer(RUN_SEPARATOR);
-		buf.append(handle).append("\n");
-		long start = System.currentTimeMillis();
+//		buf = new StringBuffer(RUN_SEPARATOR);
+//		buf.append(handle).append("\n");
+//		long start = System.currentTimeMillis();
 		try {
 			JavaCallGraph callGraph = getGraphFromHandle(handle);
 			// TODO other calculators for all clusterers
@@ -497,37 +538,37 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					if (DistanceCalculatorEnum.IntraClass.equals(calcEnum)) {
 						DistanceCalculatorIfc<String> calc = new IntraClassDistanceCalculator(
 								callGraph);
-						agglomerateUsingCalculator(sCalc, calc);
+						agglomerateUsingCalculator(handle, calc, linkage);
 					} else if (DistanceCalculatorEnum.Czibula.equals(calcEnum)) {
 						DistanceCalculatorIfc<String> calc = new CzibulaDistanceCalculator(
 								callGraph);
-						agglomerateUsingCalculator(handle, calc);
+						agglomerateUsingCalculator(handle, calc, linkage);
 					} else if (DistanceCalculatorEnum.Identifier.equals(calcEnum)) {
 						DistanceCalculatorIfc<String> calc = new IdentifierDistanceCalculator();
-						agglomerateUsingCalculator(handle, calc);
+						agglomerateUsingCalculator(handle, calc, linkage);
 					} else if (DistanceCalculatorEnum.JDeodorant.equals(calcEnum)) {
 						DistanceCalculatorIfc<String> calc = new JDeodorantDistanceCalculator(
 								callGraph);
-						agglomerateUsingCalculator(handle, calc);
+						agglomerateUsingCalculator(handle, calc, linkage);
 					} else if (DistanceCalculatorEnum.Levenshtein.equals(calcEnum)) {
 						DistanceCalculatorIfc<String> calc = new LevenshteinDistanceCalculator();
-						agglomerateUsingCalculator(handle, calc);
+						agglomerateUsingCalculator(handle, calc, linkage);
 					} else if (DistanceCalculatorEnum.LocalNeighborhood.equals(calcEnum)) {
 						DistanceCalculatorIfc<String> calc = new LocalNeighborhoodDistanceCalculator(
 								callGraph);
-						agglomerateUsingCalculator(handle, calc);
+						agglomerateUsingCalculator(handle, calc, linkage);
 					} else if (DistanceCalculatorEnum.Simon.equals(calcEnum)) {
 						DistanceCalculatorIfc<String> calc = new SimonDistanceCalculator(
 								callGraph);
-						agglomerateUsingCalculator(handle, calc);
+						agglomerateUsingCalculator(handle, calc, linkage);
 					} else if (DistanceCalculatorEnum.VectorSpaceModel.equals(calcEnum)) {
 						DistanceCalculatorIfc<String> calc = VectorSpaceModelCalculator
 								.getCalculator(handle);
-						agglomerateUsingCalculator(handle, calc);
+						agglomerateUsingCalculator(handle, calc, linkage);
 					} else if (DistanceCalculatorEnum.GoogleDistance.equals(calcEnum)) {
 						try {
 							DistanceCalculatorIfc<String> calc = new IdentifierGoogleDistanceCalculator();
-							agglomerateUsingCalculator(handle, calc);
+							agglomerateUsingCalculator(handle, calc, linkage);
 						} catch (Exception e) {
 							String msg = "Unable to calculate distances.  (No web access?)";
 							JOptionPane.showMessageDialog(mainPanel, msg,
@@ -558,9 +599,9 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			buf.append(e.toString());
 			e.printStackTrace();
 		}
-		long end = System.currentTimeMillis();
-		buf.append("Clustering above took " + (end - start) + " millis");
-		buf.append(CLASS_SEPARATOR);
+//		long end = System.currentTimeMillis();
+//		buf.append("Clustering above took " + (end - start) + " millis");
+//		buf.append(CLASS_SEPARATOR);
 	}
 
 	protected void showAgglomerationError(String sCalc, Exception e) {
@@ -579,20 +620,22 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * @throws JavaModelException
 	 */
 	protected MemberCluster agglomerateUsingCalculator(String handle,
-			DistanceCalculatorIfc<String> calc) throws Exception {
+			DistanceCalculatorIfc<String> calc,
+			String linkage) throws Exception {
+		ClusterCombinationEnum.valueOf(linkage);
 		MemberCluster cluster =
 			MatrixBasedAgglomerativeClusterer
-			.clusterUsingCalculator(handle, calc);
+			.clusterUsingCalculator(handle, calc, linkage);
 		String className = EclipseUtils.getNameFromHandle(handle);
 		MemberCluster.saveResultsToFile(className, cluster);
 		// TODO move this elsewhere
-		TreeSet<?> clusters999 = cluster.getClustersAtDistance(0.999);
-		TreeSet<?> clusters9 = cluster.getClustersAtDistance(0.9);
-		TreeSet<?> clusters75 = cluster.getClustersAtDistance(0.75);
-		TreeSet<?> clusters5 = cluster.getClustersAtDistance(0.5);
+		ArrayList<Object> clusters999 = cluster.getClustersAtDistance(0.999);
+		ArrayList<Object> clusters9 = cluster.getClustersAtDistance(0.9);
+		ArrayList<Object> clusters75 = cluster.getClustersAtDistance(0.75);
+		ArrayList<Object> clusters5 = cluster.getClustersAtDistance(0.5);
 		String countRow = writeClusterCounts(className, clusters999, clusters9,
 				clusters75, clusters5);
-		String countSizes = writeClusterSizes(className, clusters999, clusters9,
+		writeClusterSizes(className, clusters999, clusters9,
 				clusters75, clusters5);
 		buf.append(countRow);
 
@@ -600,37 +643,32 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	}
 
 
-	private String writeClusterCounts(String className, Set<?> clusters999,
-			Set<?> clusters9, Set<?> clusters75, Set<?> clusters5)
+	private String writeClusterCounts(String className, ArrayList<Object> clusters999,
+			ArrayList<Object> clusters9, ArrayList<Object> clusters75, ArrayList<Object> clusters5)
 			throws IOException {
-		int size999 = clusters999.size();
-		int size9 = clusters9.size();
-		int size75 = clusters75.size();
-		int size5 = clusters5.size();
-		String row = className + CSV_SEP + size999 + CSV_SEP
-		+ size9 + CSV_SEP + size75 + CSV_SEP + size5 + "\n";
+		int count999 = clusters999.size();
+		int count9 = clusters9.size();
+		int count75 = clusters75.size();
+		int count5 = clusters5.size();
+		String row = className + CSV_SEP + count999 + CSV_SEP
+		+ count9 + CSV_SEP + count75 + CSV_SEP + count5 + "\n";
 		clusterCountWriter.write(row);
+		clusterCountWriter.flush();
 		return row;
 	}
 
-	private String writeClusterSizes(String className, TreeSet<?> clusters999,
-			TreeSet<?> clusters9, TreeSet<?> clusters75, TreeSet<?> clusters5)
+	private String writeClusterSizes(String className, ArrayList<Object> clusters999,
+			ArrayList<Object> clusters9, ArrayList<Object> clusters75, ArrayList<Object> clusters5)
 			throws IOException {
-		String sizes999 = clusterSizesToString(clusters999);
-		String sizes9 = clusterSizesToString(clusters9);
-		String sizes75 = clusterSizesToString(clusters75);
-		String sizes5 = clusterSizesToString(clusters5);
+		String sizes999 = MemberCluster.clusterSizesToString(clusters999);
+		String sizes9 = MemberCluster.clusterSizesToString(clusters9);
+		String sizes75 = MemberCluster.clusterSizesToString(clusters75);
+		String sizes5 = MemberCluster.clusterSizesToString(clusters5);
 		String row = className + CSV_SEP + sizes999 + CSV_SEP
 		+ sizes9 + CSV_SEP + sizes75 + CSV_SEP + sizes5 + "\n";
-		clusterCountWriter.write(row);
+		clusterSizesWriter.write(row);
+		clusterSizesWriter.flush();
 		return row;
-	}
-
-
-	private String clusterSizesToString(TreeSet<?> clusters) {
-		StringBuffer sbuf = new StringBuffer();
-		// TODO Auto-generated method stub
-		return sbuf.toString();
 	}
 
 
@@ -876,6 +914,35 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 					e.printStackTrace();
 					JOptionPane.showMessageDialog(mainPane, msg,
 							"Error Clustering", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		}; // Thread worker
+
+		worker.start(); // So we don't hold up the dispatch thread.
+	}
+
+	/**
+	 * Agglomeratively clusters the members of 30 open source classes using
+	 *  6 different combinations of distance function and group linkage.
+	 * @param mainPane the component on which to put the wait cursor
+	 */
+	public void cluster6x30(final Component mainPane) {
+		System.out.println("clustering...");
+
+		Thread worker = new Thread("Batch6x30ClusterThread") {
+
+			public void run() {
+
+				try {
+					try {
+						textArea.setText("");
+						mainPane.setCursor(RefactoringConstants.WAIT_CURSOR);
+						cluster6x30();
+					} finally {
+						mainPane.setCursor(RefactoringConstants.DEFAULT_CURSOR);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}; // Thread worker
