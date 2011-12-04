@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package nz.ac.vuw.ecs.kcassell.cluster;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.Vector;
 
@@ -295,7 +296,7 @@ public class MemberClusterTest extends TestCase {
 		topCluster.addCluster(clusterMethods);
 		topCluster.setDistance(1.0);
 		
-		Set<?> subclusters = topCluster.getClustersAtDistance(1.0);
+		ArrayList<Object> subclusters = topCluster.getClustersAtDistance(1.0);
 		assertEquals(1, subclusters.size());
 
 		subclusters = topCluster.getClustersAtDistance(0.9);
@@ -324,5 +325,61 @@ public class MemberClusterTest extends TestCase {
 		assertTrue(subclusters.contains(method2));
 		assertTrue(subclusters.contains(method3));
 	}
+
+    @Test
+    public void testClusterSizesToString()
+    {
+        MemberCluster clusterFields1 = new MemberCluster();
+        int elementCount = clusterFields1.getElementCount();
+        assertEquals(0, elementCount);
+        Set<String> elements = clusterFields1.getElements();
+        assertEquals(0, elements.size());
+        
+        String field1 = "field1";
+        String field2 = "field2";
+        String field3 = "field3";
+        Vector<String> fieldVec = new Vector<String>();
+        fieldVec.add(field2);
+        fieldVec.add(field3);
+        fieldVec.add(field1);
+        clusterFields1.setClusterName("3fields");
+        clusterFields1.addElements(fieldVec);
+        elementCount = clusterFields1.getElementCount();
+        assertEquals(3, elementCount);
+        elements = clusterFields1.getElements();
+        
+        MemberCluster clusterFields2 = new MemberCluster();
+        clusterFields2.setClusterName("clusterFields2");
+        clusterFields2.addElements(fieldVec);
+        elementCount = clusterFields2.getElementCount();
+        assertEquals(3, elementCount);
+
+        String method1 = "method1";
+        String method2 = "method2";
+        Vector<String> methodVec = new Vector<String>();
+        methodVec.add(method2);
+        methodVec.add(method1);
+        MemberCluster clusterMethods = new MemberCluster();
+        clusterMethods.setClusterName("2methods");
+        clusterMethods.addElements(methodVec);
+        
+        MemberCluster topCluster = new MemberCluster();
+        topCluster.addCluster(clusterFields1);
+        topCluster.addCluster(clusterMethods);
+        elementCount = topCluster.getElementCount();
+        assertEquals(5, elementCount);
+        
+        ArrayList<Object> clusters = new ArrayList<Object>();
+        clusters.add(clusterFields1);
+        clusters.add(topCluster);
+        clusters.add(clusterFields2);
+        clusters.add(clusterMethods);
+        
+        String sizesToString = MemberCluster.clusterSizesToString(clusters);
+        System.out.println(sizesToString);
+        assertEquals("5,3(2),2", sizesToString);
+    }
+
+
 
 }
