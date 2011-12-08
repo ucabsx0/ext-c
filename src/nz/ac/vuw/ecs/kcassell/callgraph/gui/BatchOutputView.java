@@ -99,6 +99,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class BatchOutputView implements ActionListener, ParameterConstants {
+	private static final String C3V_BUTTON_LABEL = "Calculate C3V";
 	private static final String CLUSTER_BUTTON_LABEL = "Cluster Selections";
 	private static final String CLUSTER30_BUTTON_LABEL = "Cluster 30 Open Source";
 	private static final String CLUSTER6x30_BUTTON_LABEL = "Cluster 6x30 Open Source";
@@ -210,6 +211,11 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		frequentMethodsButton.setPreferredSize(BUTTON_SIZE);
 		frequentMethodsButton.addActionListener(this);
 		leftPanel.add(frequentMethodsButton);
+		
+		JButton c3vButton = new JButton(C3V_BUTTON_LABEL);
+		c3vButton.setPreferredSize(BUTTON_SIZE);
+		c3vButton.addActionListener(this);
+		leftPanel.add(c3vButton);
 
 		progressLabel = new JLabel("Progress:");
 		progressLabel.setVisible(false);
@@ -240,12 +246,16 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 				try {
 					mainPanel.setCursor(RefactoringConstants.WAIT_CURSOR);
 
-					if (CLUSTER_BUTTON_LABEL.equals(command)) {
+					if (C3V_BUTTON_LABEL.equals(command)) {
+						calculateC3V(mainPanel);
+					} else if (CLUSTER_BUTTON_LABEL.equals(command)) {
 						clusterAllSelections(mainPanel);
 					} else if (CLUSTER30_BUTTON_LABEL.equals(command)) {
 						clusterOpen30(mainPanel);
 					} else if (CLUSTER6x30_BUTTON_LABEL.equals(command)) {
 						cluster6x30(mainPanel);
+					} else if (C3V_BUTTON_LABEL.equals(command)) {
+							calculateC3V(mainPanel);
 					} else if (DISCONNECTED_BUTTON_LABEL.equals(command)) {
 						countAllDisconnectedSubgraphs(mainPanel);
 					} else if (DISTANCES_BUTTON_LABEL.equals(command)) {
@@ -622,12 +632,13 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	protected MemberCluster agglomerateUsingCalculator(String handle,
 			DistanceCalculatorIfc<String> calc,
 			String linkage) throws Exception {
-		ClusterCombinationEnum.valueOf(linkage);
 		MemberCluster cluster =
 			MatrixBasedAgglomerativeClusterer
 			.clusterUsingCalculator(handle, calc, linkage);
 		String className = EclipseUtils.getNameFromHandle(handle);
-		MemberCluster.saveResultsToFile(className, cluster);
+		MemberCluster.saveResultsToFile(className, cluster,
+				ClustererEnum.AGGLOMERATIVE.toString(),
+				calc.getType().toString(), linkage);
 		// TODO move this elsewhere
 		ArrayList<Object> clusters999 = cluster.getClustersAtDistance(0.999);
 		ArrayList<Object> clusters9 = cluster.getClustersAtDistance(0.9);

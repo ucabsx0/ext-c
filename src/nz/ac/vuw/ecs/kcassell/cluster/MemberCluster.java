@@ -43,8 +43,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import nz.ac.vuw.ecs.kcassell.similarity.ClustererEnum;
-import nz.ac.vuw.ecs.kcassell.similarity.DistanceCalculatorEnum;
 import nz.ac.vuw.ecs.kcassell.utils.ApplicationParameters;
 import nz.ac.vuw.ecs.kcassell.utils.EclipseUtils;
 import nz.ac.vuw.ecs.kcassell.utils.ParameterConstants;
@@ -397,18 +395,10 @@ public class MemberCluster implements ClusterIfc<String> {
 	 * @throws IOException 
 	 */
 	public static String saveResultsToFile(String className,
-			MemberCluster cluster) throws IOException {
-		ApplicationParameters params = ApplicationParameters.getSingleton();
-		String sClusterer =
-			params.getParameter(ParameterConstants.CLUSTERER_KEY,
-								ClustererEnum.AGGLOMERATIVE.toString());
-		String sCalc =
-			params.getParameter(ParameterConstants.CALCULATOR_KEY,
-								DistanceCalculatorEnum.IntraClass.toString());
-		String sLinkage = params.getParameter(
-				ParameterConstants.LINKAGE_KEY,
-				ClusterCombinationEnum.SINGLE_LINK.toString());
-
+			MemberCluster cluster,
+			String sClusterer,
+			String sCalc,
+			String sLinkage) throws IOException {
 		String newickFile = RefactoringConstants.DATA_DIR + "Dendrograms/" +
 					className + sClusterer + sCalc + sLinkage + ".tree";
 		cluster.writeNewickToFile(newickFile);

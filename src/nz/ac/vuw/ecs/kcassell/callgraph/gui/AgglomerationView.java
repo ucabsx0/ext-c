@@ -499,7 +499,18 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 		String file;
 		try {
 			String className = EclipseUtils.getNameFromHandle(classHandle);
-			file = MemberCluster.saveResultsToFile(className, cluster);
+			ApplicationParameters params = ApplicationParameters.getSingleton();
+			String sClusterer =
+				params.getParameter(ParameterConstants.CLUSTERER_KEY,
+									ClustererEnum.AGGLOMERATIVE.toString());
+			String sCalc =
+				params.getParameter(ParameterConstants.CALCULATOR_KEY,
+									DistanceCalculatorEnum.IntraClass.toString());
+			String sLinkage = params.getParameter(
+					ParameterConstants.LINKAGE_KEY,
+					ClusterCombinationEnum.SINGLE_LINK.toString());
+			file = MemberCluster.saveResultsToFile(className, cluster,
+					sClusterer, sCalc, sLinkage);
 			showDendrogram(file);
 		} catch (IOException e) {
 			String msg = "Problems preparing dendrogram";
