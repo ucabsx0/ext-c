@@ -326,7 +326,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 			textArea.setText("");
 			// initialize the calculator and build the data file
 			GodClassesMM30 mm30 = new GodClassesMM30();
-			List<String> types = mm30.getAllClassesBetw();
+			List<String> types = mm30.getCommandLineClasses();
 			
 			VectorSpaceModelCalculator calc = null;
 			int prefKey = 5; // TODO RecordInserter.getPreferencesKey();

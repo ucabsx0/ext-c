@@ -433,6 +433,17 @@ public class GodClassesMM30 implements IDatabaseConstants, Constants {
 		return allClassesRECOOP;
 	}
 
+	public ArrayList<String> getCommandLineClasses() {
+		ArrayList<String> classes = new ArrayList<String>();
+		classes.add("=JenaAggNhoodSim/<jena.cmdline{CommandLine.java[CommandLine");
+		classes.add("=JenaAggNhoodSim75/<jena.cmdline{CommandLine.java[CommandLine");
+		classes.add("=JenaAggSimSin/<jena.cmdline{CommandLine.java[CommandLine");
+		classes.add("=JenaAggNhoodSim/<jena.cmdline{CommandLineExtract.java[CommandLineExtract");
+		classes.add("=JenaAggNhoodSim75/<jena.cmdline{CommandLineExtract.java[CommandLineExtract");
+		classes.add("=JenaAggSimSin/<jena.cmdline{CommandLineExtract.java[CommandLineExtract");
+		return classes ;
+	}
+
 	/**
 	 * Collects all the software measurements for classes that match the SQL
 	 * query.
