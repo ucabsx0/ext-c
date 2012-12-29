@@ -191,6 +191,8 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 				System.out.println("processMemberDocument failed for " + line);
 			}
 		}
+		documentFileReader.close();
+		
 		semanticSpace.processSpace(System.getProperties());
 //		int vsmColumns = vectorSpaceModel.getVectorLength();
 //		int docsRead = memberHandleToDocumentNumber.size();

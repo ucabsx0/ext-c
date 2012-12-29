@@ -129,12 +129,15 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 	protected JPanel controlPanel = null;
 
 	/** Where the user selects the distance calculator. */
+	@SuppressWarnings("rawtypes")
 	protected JComboBox calculatorBox = null;
 
 	/** Where the user selects the clusterer. */
+	@SuppressWarnings("rawtypes")
 	protected JComboBox clustererBox = null;
 
 	/** Where the user selects the group linkage type. */
+	@SuppressWarnings("rawtypes")
 	protected JComboBox groupLinkageBox = null;
 
 	/** The visualization area for agglomerative clustering. */
@@ -203,6 +206,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 		return controlPanel;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private JComboBox createLinkageCombo() {
 		Vector<String> menuItems = new Vector<String>();
 		for (ClusterCombinationEnum linkage : ClusterCombinationEnum.values()) {
@@ -218,6 +222,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 		return linkageBox;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private JComboBox createCalculatorCombo() {
 		Vector<String> menuItems = new Vector<String>();
 		for (DistanceCalculatorEnum calc : DistanceCalculatorEnum.values()) {
@@ -227,6 +232,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 				menuItems.add(calc.toString());
 			}
 		}
+		@SuppressWarnings("unchecked")
 		JComboBox calculatorBox = new JComboBox(menuItems);
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
 		String sCalc = parameters.getParameter(
@@ -237,11 +243,13 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 		return calculatorBox;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private JComboBox createClustererCombo() {
 		Vector<String> menuItems = new Vector<String>();
 		for (ClustererEnum calc : ClustererEnum.values()) {
 			menuItems.add(calc.toString());
 		}
+		@SuppressWarnings("unchecked")
 		JComboBox clustererBox = new JComboBox(menuItems);
 		ApplicationParameters parameters = ApplicationParameters.getSingleton();
 		String sClusterer = parameters.getParameter(
@@ -294,6 +302,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 	public void actionPerformed(ActionEvent event) {
 		Object source = event.getSource();
 		if (source instanceof JComboBox) {
+			@SuppressWarnings("rawtypes")
 			final JComboBox box = (JComboBox) source;
 			final String sourceName = box.getName();
 
@@ -318,6 +327,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	protected void handleCalculatorRequest(JComboBox box) {
 		ClusteringView.resetParameterValue(box, ParameterConstants.CALCULATOR_KEY);
 		JavaCallGraph callGraph = app.getGraphView().getGraph();
@@ -337,6 +347,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 	 * Cluster based on the clusterer chosen by the user.
 	 * @param box
 	 */
+	@SuppressWarnings("rawtypes")
 	protected void handleClustererRequest(JComboBox box) {
 		ClusteringView.resetParameterValue(box,
 				ParameterConstants.CLUSTERER_KEY);
@@ -390,6 +401,7 @@ implements ClusterUIConstants, ParameterConstants, ActionListener {
 		displayCluster(classHandle, mergedCluster);
 	}
 
+	@SuppressWarnings("rawtypes")
 	protected void handleGroupLinkageRequest(JComboBox box) {
 		ClusteringView.resetParameterValue(box, ParameterConstants.LINKAGE_KEY);
 		JavaCallGraph callGraph = app.graphView.getGraph();

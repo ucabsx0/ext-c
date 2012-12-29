@@ -119,13 +119,16 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
     protected JLabel graphLabel = null;
      
     /** Where the user selects the edge type - directed or undirected. */
-    protected JComboBox edgeTypeBox = null;
+    @SuppressWarnings("rawtypes")
+	protected JComboBox edgeTypeBox = null;
 
     /** Where the user selects the layout. */
-    protected JComboBox layoutBox = null;
+    @SuppressWarnings("rawtypes")
+	protected JComboBox layoutBox = null;
 
     /** Where the user selects how to size nodes. */
-    protected JComboBox sizingBox = null;
+    @SuppressWarnings("rawtypes")
+	protected JComboBox sizingBox = null;
 	
 	/** Indicates whether constructors should be included in the graph. */
     protected JCheckBox includeConstructorsButton = null;
@@ -294,13 +297,15 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 	}
 
 
+	@SuppressWarnings("rawtypes")
 	private JComboBox createLayoutCombo() {
 		Vector<String> layouts = new Vector<String>();
         for (GraphLayoutEnum layout : GraphLayoutEnum.values())
         {
         	layouts.add(layout.toString());
         }
-    	JComboBox layoutBox = new JComboBox(layouts);
+    	@SuppressWarnings("unchecked")
+		JComboBox layoutBox = new JComboBox(layouts);
     	ApplicationParameters parameters = app.getApplicationParameters();
     	String sLayout =
     		parameters.getParameter(GRAPH_LAYOUT_KEY, GraphLayoutEnum.FRLayout.toString());
@@ -309,6 +314,7 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 		return layoutBox;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private JComboBox createEdgeTypeCombo() {
 		Vector<String> edgeTypes = new Vector<String>();
         for (EdgeType edgeType : EdgeType.values())
@@ -324,6 +330,7 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 		return edgeTypeBox;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private JComboBox createSizingCombo() {
 		String[] options = {
 //				ScoreType.MCCABE,
@@ -332,7 +339,8 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 				ScoreType.HUB,
 				ScoreType.INDEGREE,
 				ScoreType.OUTDEGREE};
-    	JComboBox box = new JComboBox(options);
+    	@SuppressWarnings("unchecked")
+		JComboBox box = new JComboBox(options);
     	ApplicationParameters parameters = app.getApplicationParameters();
     	String sSizing =
     		parameters.getParameter(NODE_SIZING_KEY, ScoreType.AUTHORITY.toString());
@@ -549,6 +557,7 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
     /**
      * Redisplays the graph based on the user's menu selections.
      */
+	@SuppressWarnings("rawtypes")
 	public void actionPerformed(ActionEvent event) {
 		Object source = event.getSource();
 		if (source instanceof JComboBox) {
@@ -642,7 +651,8 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
     }
 
 
-    private void handleSizingRequest(JComboBox box) {
+    @SuppressWarnings("rawtypes")
+	private void handleSizingRequest(JComboBox box) {
 		Object selectedItem = box.getSelectedItem();
 		String selected = selectedItem.toString();
 		ApplicationParameters parameters = app.getApplicationParameters();
@@ -654,6 +664,7 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 	}
 
 
+	@SuppressWarnings("rawtypes")
 	private void handleEdgeTypeRequest(JComboBox box) {
 		Object selectedItem = box.getSelectedItem();
 		String selected = selectedItem.toString();
@@ -689,6 +700,7 @@ implements ActionListener, ParameterConstants, ClusterUIConstants, ItemListener
 	 * @param box contains the list of possible layouts
 	 * @return the Layout object
 	 */
+	@SuppressWarnings("rawtypes")
 	private Layout<CallGraphNode, CallGraphLink> handleLayoutRequest(JComboBox box) {
 		doLayout = true;
 		Object selectedItem = box.getSelectedItem();

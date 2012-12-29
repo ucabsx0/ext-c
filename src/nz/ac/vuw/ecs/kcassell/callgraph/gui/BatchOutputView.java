@@ -277,6 +277,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 		}); // invokeLater
 	}
 
+	@SuppressWarnings("unused")
 	private void clusterUsingClientDistances() {
 		GraphView graphView = app.getGraphView();
 		JavaCallGraph callGraph = graphView.getGraph();
@@ -359,6 +360,7 @@ public class BatchOutputView implements ActionListener, ParameterConstants {
 	 * Calculate Conceptual Cohesion of Classes (C3V) using a 
 	 * vector space model.
 	 */
+	@SuppressWarnings("unused")
 	private void calculateC3VForTypesInProject() {
 		GraphView graphView = app.getGraphView();
 		JavaCallGraph callGraph = graphView.getGraph();

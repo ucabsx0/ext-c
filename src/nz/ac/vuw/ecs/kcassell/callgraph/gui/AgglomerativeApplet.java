@@ -76,6 +76,7 @@ implements ClusterUIConstants, ParameterConstants {
 	protected Layout<CallGraphNode, CallGraphLink> layout = null;
 
 	/** Where the user selects the text format. */
+	@SuppressWarnings("rawtypes")
 	protected JComboBox textFormatBox = null;
 
 	/** The panel with the controls (e.g. JComboBoxes) */
@@ -108,11 +109,13 @@ implements ClusterUIConstants, ParameterConstants {
 		visualizer.repaint();
 	}
 
+	@SuppressWarnings("rawtypes")
 	private JComboBox createClusterTextFormatCombo() {
 		Vector<String> menuItems = new Vector<String>();
 		for (ClusterTextFormatEnum format : ClusterTextFormatEnum.values()) {
 			menuItems.add(format.toString());
 		}
+		@SuppressWarnings("unchecked")
 		JComboBox clustererBox = new JComboBox(menuItems);
 		String sFormat = parameters.getParameter(
 				CLUSTER_TEXT_FORMAT_KEY,

@@ -61,6 +61,7 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 //import org.eclipse.jdt.launching.JavaRuntime;
 
+@SuppressWarnings("restriction")
 public class GroovyTestProject {
     public static final String TEST_PROJECT_NAME = "TestProject";
 

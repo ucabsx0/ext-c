@@ -119,6 +119,7 @@ implements ClusterUIConstants, ActionListener {
 	 * Resets the agglomerative clusterer based on the chosen
 	 * distance calculator.
 	 */
+	@SuppressWarnings("rawtypes")
 	public void actionPerformed(ActionEvent event) {
 		Object source = event.getSource();
 		String sourceName = "";
@@ -131,6 +132,7 @@ implements ClusterUIConstants, ActionListener {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	protected void handleCalculatorRequest(JComboBox box) {
         String msg = "Not yet implemented";
         JOptionPane.showMessageDialog(mainPanel, msg,

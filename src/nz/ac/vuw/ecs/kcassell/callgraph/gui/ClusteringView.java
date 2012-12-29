@@ -152,6 +152,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		Object source = event.getSource();
 		if (source instanceof JComboBox) {
+			@SuppressWarnings("rawtypes")
 			final JComboBox box = (JComboBox) source;
 			final String sourceName = box.getName();
 
@@ -176,6 +177,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 	 * @param box the menu containing the selection
 	 * @param parameter the parameter to change
 	 */
+	@SuppressWarnings("rawtypes")
 	public static void resetParameterValue(JComboBox box, String parameter) {
 		Object selectedItem = box.getSelectedItem();
 		String newValue = selectedItem.toString();
@@ -183,6 +185,7 @@ public class ClusteringView implements ClusterUIConstants, ActionListener{
 		parameters.setParameter(parameter, newValue);
 	}
 
+	@SuppressWarnings("rawtypes")
 	protected void handleClusterTextFormatRequest(JComboBox box) {
 		resetParameterValue(box, ParameterConstants.CLUSTER_TEXT_FORMAT_KEY);
 		JavaCallGraph callGraph = clusteringApplet.getGraph();

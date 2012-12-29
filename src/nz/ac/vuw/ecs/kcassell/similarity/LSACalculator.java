@@ -188,6 +188,8 @@ implements DistanceCalculatorIfc<String>, RefactoringConstants, Serializable {
 				System.out.println("processMemberDocument failed for " + line);
 			}
 		}
+		documentFileReader.close();
+		
 		Properties props = System.getProperties();
 		props.setProperty(
 			LatentSemanticAnalysis.RETAIN_DOCUMENT_SPACE_PROPERTY, "true");
