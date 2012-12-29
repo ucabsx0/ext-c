@@ -510,6 +510,7 @@ public class GodClassesMM30 implements IDatabaseConstants, Constants {
 		return metrics;
 	}
 
+	@SuppressWarnings("unused")
 	private void printCohesionResults(Map<String, TypeMetrics> metrics) {
 		PrintStream out = System.out;
 		DecimalFormat formatter = new DecimalFormat();
