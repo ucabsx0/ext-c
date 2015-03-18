@@ -1,0 +1,1 @@
+ExtC is an Eclipse plug-in that is useful for locating large, noncohesive classes and for recommending how to split them into smaller, more cohesive classes.  Its GUI enables querying a metrics database, displaying the dependency graphs of classes, and clustering a class's members.  These clusters form the basis of the refactored classes.
